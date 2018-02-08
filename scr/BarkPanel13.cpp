@@ -31,7 +31,7 @@ Panel13Widget::Panel13Widget()
 
 	{
 		SVGPanel *panel = new SVGPanel();
-		panel->setBackground(SVG::load(assetPlugin(plugin, "res/BarkClipGainDistort.svg")));
+		panel->setBackground(SVG::load(assetPlugin(plugin, "res/BarkPanel13.svg")));
 		panel->box.size = box.size;
 		addChild(panel);
 	}
