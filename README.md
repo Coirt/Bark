@@ -11,6 +11,7 @@ Panel 13
 15x13 pixel panel for your rack with the custom grey bark colour
 
 see repo: https://github.com/Coirt/VCVrack-Tutorial-Files for more info at a later time on how to create these panels 
+
 ---------
 
 # Gain
