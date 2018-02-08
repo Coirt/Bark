@@ -18,7 +18,7 @@ see repo: https://github.com/Coirt/VCVrack-Tutorial-Files for more info at a lat
 Simple gain knob with meters set to output 20v max
 
 # Clipper
-TBD
+TBD Will be a multifunctional module.
 
 # Trim LFO
-TBD
+TBD Will have some multifunction
