@@ -14,11 +14,11 @@ see repo: https://github.com/Coirt/VCVrack-Tutorial-Files for more info at a lat
 
 ---------
 
-# Gain
+# Gain v0.0.1
 Simple gain knob with meters set to output 20v max
 
-# Clipper
+# Clipper v0
 TBD Will be a multifunctional module.
 
-# Trim LFO
+# Trim LFO v0
 TBD Will have some multifunction
