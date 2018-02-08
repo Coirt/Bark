@@ -37,9 +37,9 @@ struct GainWidget : ModuleWidget {
 	GainWidget();
 };
 
-struct ClipperWidget : ModuleWidget {
-	ClipperWidget();
-};
+//struct ClipperWidget : ModuleWidget {
+//	ClipperWidget();
+//};
 
 struct Panel13Widget : ModuleWidget {
 	Panel13Widget();
