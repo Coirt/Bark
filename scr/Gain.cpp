@@ -210,7 +210,7 @@ struct GainDisplay : TransparentWidget
 	{
 		float height = 176;
 		float width = 10.5;
-		float spacer = 0.5;
+		float spacer = 1;
 		float vuL = rescalef(module->vu_L, -97, 0, 0, height);
 		float rmsL = rescalef(module->rms_L, -97, 0, 0, height);		//103.5, -97, 0
 		float vuR = rescalef(module->vu_R, -97, 0, 0, height);
@@ -268,7 +268,7 @@ GainWidget::GainWidget()
 
 	GainDisplay *display = new GainDisplay();
 	display->module = module;
-	display->box.pos = Vec(23.4, 380 - 346);
+	display->box.pos = Vec(23.4, 380 - 315);
 	display->box.size = Vec(110, 70);
 	addChild(display);
 
