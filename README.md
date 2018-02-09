@@ -23,3 +23,8 @@ TBD Will be a multifunctional module.
 
 # Trim LFO v0
 TBD Will have some multifunction
+
+
+
+# YouTube
+Test builds can be viewed on my YouTube [Channel](https://www.youtube.com/channel/UCgXuIsOMqlTLbuXRaUjBWuA/featured?view_as=subscriber)
