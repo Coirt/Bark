@@ -14,14 +14,14 @@ void init(rack::Plugin *p) {
 #ifdef version
 	//p->version = TOSTRING(VERSION);
 #endif
-	//p->website = "https://github.com/VCVRack/Tutorial";
-	//p->manual = "https://github.com/VCVRack/Tutorial/blob/master/README.md";
+	p->website = "https://github.com/Coirt/Bark";
+	p->manual = "https://github.com/Coirt/Bark/blob/master/README.md";
 
 	// For each module, specify the ModuleWidget subclass, manufacturer slug (for saving in patches), manufacturer human-readable name, module slug, and module name
 
 	//p->addModel(createModel<TrimLFOWidget>("Bark", "TrimLFO", "Trim LFO/Offset", LFO_TAG, UTILITY_TAG, LOGIC_TAG, DUAL_TAG));
 	p->addModel(createModel<GainWidget>("Bark", "Gain", "Gain Knob", UTILITY_TAG, AMPLIFIER_TAG));
-	p->addModel(createModel<ClipperWidget>("Bark", "Clipper", "Clip Gain Distort", UTILITY_TAG, AMPLIFIER_TAG, EFFECT_TAG));
+	//p->addModel(createModel<ClipperWidget>("Bark", "Clipper", "Clip Gain Distort", UTILITY_TAG, AMPLIFIER_TAG, EFFECT_TAG));
 
 
 	////////
@@ -30,7 +30,6 @@ void init(rack::Plugin *p) {
 	p->addModel(createModel<Panel13Widget>("Bark", "Panel13", "Bark Panel 13", BLANK_TAG));
 	p->addModel(createModel<Panel10Widget>("Bark", "Panel10", "Bark Panel 10", BLANK_TAG));
 	p->addModel(createModel<Panel6Widget>("Bark", "Panel6", "Bark Panel 6", BLANK_TAG));
-	//p->addModel(createModel<FloatsPanelWidget>("Bark", "FloatsPanel", "Bark Floats", BLANK_TAG));
 	
 
 	// Any other plugin initialization may go here.
