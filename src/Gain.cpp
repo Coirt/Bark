@@ -218,8 +218,8 @@ struct GainDisplay : TransparentWidget
 		//float threshold = rescalef(module->threshold, 0, -97, 0, height);
 		//float gain = rescalef(1 - (module->gaindB - module->makeup), -97, 0, 97, 0);
 		//float makeup = rescalef(module->makeup, 0, 60, 0, 60);
-		float peakL = rescalef(module->peakL, -97, 97, 0, height);
-		float peakR = rescalef(module->peakR, 97, -97, 0, height);
+		float peakL = rescalef(module->peakL, -1200, 97, 0, height);
+		float peakR = rescalef(module->peakR, 97, -1200, 0, height);
 		float inL = rescalef(module->in_L_dBFS, 0, -97, 0, height);
 		float inR = rescalef(module->in_R_dBFS, 0, -97, 0, height);
 		nvgStrokeWidth(vg, 0);
