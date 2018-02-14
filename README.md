@@ -24,7 +24,11 @@ TBD Will be a multifunctional module.
 # Trim LFO v0
 TBD Will have some multifunction
 
+# 4x Logic v0
+Because 1 just is not enough.
 
 
-# YouTube
+# Social
 Test builds can be viewed on my YouTube [Channel](https://www.youtube.com/channel/UCgXuIsOMqlTLbuXRaUjBWuA/featured?view_as=subscriber)
+
+[Facebook](https://www.facebook.com/phil.golden.5070)
