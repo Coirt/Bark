@@ -1,5 +1,19 @@
 # Bark
 VCVrack Modules
+
+
+# Gain v0.0.1
+Simple gain knob with meters set to output 20v max
+
+# Clipper v0
+TBD Will be a multifunctional module.
+
+# Trim LFO v0
+TBD Will have some multifunction
+
+# 4x Logic v0
+Because 1 just is not enough.
+
 ---------
 Panel 6
 15x6 pixel panel for your rack with the custom grey bark colour
@@ -14,20 +28,6 @@ see repo: https://github.com/Coirt/VCVrack-Tutorial-Files for more info at a lat
 how to create these panels and add features to make your first working VCVrack module.
 
 ---------
-
-# Gain v0.0.1
-Simple gain knob with meters set to output 20v max
-
-# Clipper v0
-TBD Will be a multifunctional module.
-
-# Trim LFO v0
-TBD Will have some multifunction
-
-# 4x Logic v0
-Because 1 just is not enough.
-
-
 # Social
 Test builds can be viewed on my YouTube [Channel](https://www.youtube.com/channel/UCgXuIsOMqlTLbuXRaUjBWuA/featured?view_as=subscriber)
 
