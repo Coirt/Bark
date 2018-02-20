@@ -29,9 +29,9 @@ extern Plugin *plugin;
 //	};
 ////////////////////
 
-//struct TrimLFOWidget : ModuleWidget {
-//	TrimLFOWidget();
-//};
+struct TrimLFOWidget : ModuleWidget {
+	TrimLFOWidget();
+};
 
 struct GainWidget : ModuleWidget {
 	GainWidget();
