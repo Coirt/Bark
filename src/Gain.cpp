@@ -5,6 +5,8 @@
 #include <math.h>
 #include <cfloat>
 
+using namespace std;
+
 struct Gain : Module {
 	enum ParamIds {
 		MAKEUP_PARAM,
@@ -24,14 +26,14 @@ struct Gain : Module {
 		BLINK_LIGHT,
 		NUM_LIGHTS
 	};
-	
-	DoubleRingBuffer<float, 16384> vu_L_Buffer, vu_R_Buffer;
-	DoubleRingBuffer<float, 512> rms_L_Buffer, rms_R_Buffer;
-	float runningVU_L_Sum = 1e-6f, runningRMS_L_Sum = 1e-6f, rms_L = -96.3f, vu_L = -96.3f, peakL = -96.3f;
-	float runningVU_R_Sum = 1e-6f, runningRMS_R_Sum = 1e-6f, rms_R = -96.3f, vu_R = -96.3f, peakR = -96.3f;
-	float in_L_dBFS = 1e-6f;
-	float in_R_dBFS = 1e-6f;
-	float gain = 1, gaindB = 1;
+
+	DoubleRingBuffer<float, 32768> vu_L_Buffer, vu_R_Buffer;
+	DoubleRingBuffer<float, 2048> rms_L_Buffer, rms_R_Buffer;
+	float runningVU_L_Sum = 1e-5f, runningRMS_L_Sum = 1e-5f, rms_L = -96.3f, vu_L = -96.3f, peakL = -96.3f;
+	float runningVU_R_Sum = 1e-5f, runningRMS_R_Sum = 1e-5f, rms_R = -96.3f, vu_R = -96.3f, peakR = -96.3f;
+	float in_L_dBFS = 1e-5f;
+	float in_R_dBFS = 1e-5f;
+	float gain = 1, gaindB = 1, dist = 0, knee = 0;
 	float makeup = 1, previousPostGain = 1.0f;
 	int indexVU = 0, indexRMS = 0, lookAheadWriteIndex = 0;
 	int maxIndexVU = 0, maxIndexRMS = 0, maxLookAheadWriteIndex = 0;
@@ -54,10 +56,10 @@ struct Gain : Module {
 void Gain::step()
 {
 
-//VU Meter
+	//VU Meter
 	{
 		//float readIndex;
-		if (indexVU >= 16384) {
+		if (indexVU >= 32768) {
 			runningVU_L_Sum -= *vu_L_Buffer.startData();
 			runningVU_R_Sum -= *vu_R_Buffer.startData();
 			vu_L_Buffer.startIncr(1);
@@ -65,7 +67,7 @@ void Gain::step()
 			indexVU--;
 		}
 
-		if (indexRMS >= 512) {
+		if (indexRMS >= 2048) {
 			runningRMS_L_Sum -= *rms_L_Buffer.startData();
 			runningRMS_R_Sum -= *rms_R_Buffer.startData();
 			rms_L_Buffer.startIncr(1);
@@ -76,22 +78,15 @@ void Gain::step()
 		indexVU++;
 		indexRMS++;
 
-		//#buffL[lookAheadWriteIndex] = inputs[IN_L_INPUT].value;
-		//#buffR[lookAheadWriteIndex] = inputs[IN_R_INPUT].value;
+		if (outputs[OUT_L_OUTPUT].active)
+			in_L_dBFS = max(20 * log10((abs(outputs[OUT_L_OUTPUT].value) + 1e-5f) / 5), -96.3f);
+		else
+			in_L_dBFS = -96.3f;
 
-		//if (!inputs[SC_L_INPUT].active && inputs[IN_L_INPUT].active)
-		//	in_L_dBFS = max(20 * log10((abs(inputs[IN_L_INPUT].value) + 1e-6f) / 5), -96.3f);
-		//else if (inputs[SC_L_INPUT].active)
-		//	in_L_dBFS = max(20 * log10((abs(inputs[SC_L_INPUT].value) + 1e-6f) / 5), -96.3f);
-		//else
-		//	in_L_dBFS = -96.3f;
-
-		//if (!inputs[SC_R_INPUT].active && inputs[IN_R_INPUT].active)
-		//	in_R_dBFS = max(20 * log10((abs(inputs[IN_R_INPUT].value) + 1e-6f) / 5), -96.3f);
-		//else if (inputs[SC_R_INPUT].active)
-		//	in_R_dBFS = max(20 * log10((abs(inputs[SC_R_INPUT].value) + 1e-6f) / 5), -96.3f);
-		//else
-		//	in_R_dBFS = -96.3f;
+		if (outputs[OUT_R_OUTPUT].active)
+			in_R_dBFS = max(20 * log10((abs(outputs[OUT_R_OUTPUT].value) + 1e-5f) / 5), -96.3f);
+		else
+			in_R_dBFS = -96.3f;
 
 		float data_L = in_L_dBFS * in_L_dBFS;
 
@@ -114,35 +109,36 @@ void Gain::step()
 		runningRMS_L_Sum += data_L;
 		runningVU_R_Sum += data_R;
 		runningRMS_R_Sum += data_R;
-		rms_L = clampf(-1 * sqrtf(runningRMS_L_Sum / 512), -96.3f, 0.0f);
-		vu_L = clampf(-1 * sqrtf(runningVU_L_Sum / 16384), -96.3f, 0.0f);
-		rms_R = clampf(-1 * sqrtf(runningRMS_R_Sum / 512), -96.3f, 0.0f);
-		vu_R = clampf(-1 * sqrtf(runningVU_R_Sum / 16384), -96.3f, 0.0f);
+		rms_L = clampf(-1 * sqrtf(runningRMS_L_Sum / 2048), -96.3f, 0.0f);
+		vu_L = clampf(-1 * sqrtf(runningVU_L_Sum / 32768), -96.3f, 0.0f);
+		rms_R = clampf(-1 * sqrtf(runningRMS_R_Sum / 2048), -96.3f, 0.0f);
+		vu_R = clampf(-1 * sqrtf(runningVU_R_Sum / 32768), -96.3f, 0.0f);
 		makeup = params[MAKEUP_PARAM].value;
 
 		if (in_L_dBFS > peakL)
 			peakL = in_L_dBFS;
 		else
-			peakL -= 50 / engineGetSampleRate();
+			peakL -= 50 / engineGetSampleRate();		//50
 
 		if (in_R_dBFS > peakR)
 			peakR = in_R_dBFS;
 		else
 			peakR -= 50 / engineGetSampleRate();
 
-		//float slope = 1 / ratio - 1;
-		//float maxIn = max(in_L_dBFS, in_R_dBFS);
-		//float dist = maxIn - threshold;
-		//float gcurve = 0.0f;
+		float slope = 1;
+		float maxIn = max(in_L_dBFS, in_R_dBFS);
+		float dist = maxIn;
+		float gcurve = 1.2f;
 
-		//if (dist<-1 * knee / 2)
-		//	gcurve = maxIn;
+		if (dist<-1 * knee / 2)
+			gcurve = maxIn + slope * pow(dist + gcurve / 4, 2);
 		//else if ((dist > -1 * knee / 2) && (dist < knee / 2)) {
 		//	gcurve = maxIn + slope * pow(dist + knee / 2, 2) / (2 * knee);
 		//}
-		//else {
-		//	gcurve = maxIn + slope * dist;
-		//}
+		else {
+			gcurve = maxIn + slope * dist;
+		}
+
 
 		//float preGain = gcurve - maxIn;
 		//float postGain = 0.0f;
@@ -171,29 +167,35 @@ void Gain::step()
 			readIndex = 20000 - abs(lookAheadWriteIndex - nbSamples);
 		}
 
-		outputs[OUT_L_OUTPUT].value = buffL[readIndex];
+		outputs[OUT_L_OUTPUT].value = buffL[readIndex];		//outputs[OUT_LR_OUTPUT].value
 		outputs[OUT_R_OUTPUT].value = buffR[readIndex];
 
 		lookAheadWriteIndex = (lookAheadWriteIndex + 1) % 20000;
 
+		/*in_L_dBFS = inputs[IN_L_INPUT].value * params[MAKEUP_PARAM].value / 2.5;
+		in_R_dBFS = inputs[IN_R_INPUT].value * params[MAKEUP_PARAM].value / 2.5;
+
+		outputs[OUT_L_OUTPUT].value = in_L_dBFS;
+		outputs[OUT_R_OUTPUT].value = in_R_dBFS;*/
 
 		//Gain
-		float out1 = inputs[IN_L_INPUT].value * params[MAKEUP_PARAM].value;
-		float out2 = inputs[IN_R_INPUT].value * params[MAKEUP_PARAM].value;
+		float in_L_dBFS = inputs[IN_L_INPUT].value * params[MAKEUP_PARAM].value;
+		float in_R_dBFS = inputs[IN_R_INPUT].value * params[MAKEUP_PARAM].value;
 		out1 = clampf(out1, -10.0, 10.0);
 		out2 = clampf(out2, -10.0, 10.0);
 
 		in_L_dBFS = inputs[IN_L_INPUT].value;
 		in_R_dBFS = inputs[IN_R_INPUT].value;
 
-		outputs[OUT_L_OUTPUT].value = in_L_dBFS;
-		outputs[OUT_R_OUTPUT].value = in_R_dBFS;
+		//outputs[OUT_L_OUTPUT].value = in_L_dBFS;
+		//outputs[OUT_R_OUTPUT].value = in_R_dBFS;
 
 		in_L_dBFS = in_L_dBFS * params[MAKEUP_PARAM].value / 2.5;
 		in_R_dBFS = in_R_dBFS * params[MAKEUP_PARAM].value / 2.5;
 
 		outputs[OUT_L_OUTPUT].value = in_L_dBFS;
 		outputs[OUT_R_OUTPUT].value = in_R_dBFS;
+		
 	}
 }
 
@@ -208,9 +210,11 @@ struct GainDisplay : TransparentWidget
 
 	void draw(NVGcontext *vg) override
 	{
-		float height = 176;
+		float height = 174;		//	176
 		float width = 10.5;
+		float width1 = 1.3125;		//	= width / 8
 		float spacer = 1;
+		//float spacer1 = 1.5;
 		float vuL = rescalef(module->vu_L, -97, 0, 0, height);
 		float rmsL = rescalef(module->rms_L, -97, 0, 0, height);		//103.5, -97, 0
 		float vuR = rescalef(module->vu_R, -97, 0, 0, height);
@@ -218,32 +222,37 @@ struct GainDisplay : TransparentWidget
 		//float threshold = rescalef(module->threshold, 0, -97, 0, height);
 		//float gain = rescalef(1 - (module->gaindB - module->makeup), -97, 0, 97, 0);
 		//float makeup = rescalef(module->makeup, 0, 60, 0, 60);
-		float peakL = rescalef(module->peakL, -1200, 97, 0, height);
-		float peakR = rescalef(module->peakR, 97, -1200, 0, height);
-		float inL = rescalef(module->in_L_dBFS, 0, -97, 0, height);
-		float inR = rescalef(module->in_R_dBFS, 0, -97, 0, height);
+		float peakL = rescalef(module->peakL, -800, 97, 0, height);			// -1200.-1300
+		float peakR = rescalef(module->peakR, 97, -800, 0, height);			//97, -1200.-1300
+		float inL = rescalef(module->in_L_dBFS, -97, 0, 0, height);		//0, -97, 0,
+		float inR = rescalef(module->in_R_dBFS, -97, 0, 0, height);		//0, -97, 0,
 		nvgStrokeWidth(vg, 0);
 		nvgBeginPath(vg);
 		nvgFillColor(vg, BARK_GREEN4);
 		nvgRoundedRect(vg, 0, height - vuL, width, vuL, 0);
 		nvgRoundedRect(vg, 3 * (width + spacer), height - vuR, width, vuR, 0);
 		nvgFill(vg);
-		nvgClosePath(vg);
-
-		nvgFillColor(vg, BARK_RED2);
+		nvgFillColor(vg, BARK_ORANGE1);
+		nvgBeginPath(vg);
+		if (inL<rmsL + 0)
+			nvgRoundedRect(vg, width/2-width1/2, height - vuL, width1, vuL, 0);							//L RMS
+		//nvgRoundedRect(vg, 0 * width + spacer, 12 + height - vuL - 72, width, inL - rmsL - 0, 0);
+		if (inR<rmsR + 0)
+			nvgRoundedRect(vg, 3*(width+spacer) + (width / 2 - width1 / 2), height - 0 - vuR, width1, vuR, 0);		//R RMS
+		//nvgRoundedRect(vg, 3 * (width + spacer), 12 + height - vuR - 72, width, inR - rmsR - 0, 0);
+		nvgFill(vg);
 		nvgBeginPath(vg);
 		nvgRoundedRect(vg, 0, height - peakL, width, -13, 0);
 		nvgRoundedRect(vg, 3 * (width + spacer), peakR, width, -13, 0);
 		nvgFill(vg);
 		nvgClosePath(vg);
+		//nvgClosePath(vg);
 
-		nvgBeginPath(vg);
-		if (inL>rmsL - 2)
-			nvgRoundedRect(vg, width + spacer, height - inL - 12, width, inL - rmsL - 15, 0);
-		if (inR>rmsR - 2)
-			nvgRoundedRect(vg, 3 * (width + spacer), height - inR - 12, width, inR - rmsR - 15, 0);
-		nvgFill(vg);
+		nvgFillColor(vg, BARK_RED2);
+		
 		nvgClosePath(vg);
+
+		
 
 		nvgStroke(vg);
 		nvgFill(vg);
@@ -287,12 +296,12 @@ GainWidget::GainWidget()
 	//Knob---
 	//addParam(createParam<BarkKnob57>(Vec(45.03, 91.91), module, Gain::GIAN_PARAM, 0, 60, 0));			//Bidoo - Bar
 	addParam(createParam<BarkKnob57>(Vec(16.6, 380 - 121.56), module, Gain::MAKEUP_PARAM, 0.0, 10.0, 2.5));		//cf - Master
-	//Port---
+																												//Port---
 	addInput(createInput<BarkInPort>(Vec(13.65 + 3, 380 - 57.26), module, Gain::IN_L_INPUT));			//Botoom
 	addInput(createInput<BarkInPort>(Vec(48.88 + 3, 380 - 57.26), module, Gain::IN_R_INPUT));			//Bottom
 	addOutput(createOutput<BarkOutPort>(Vec(13.65 + 3, 380 - 360.12), module, Gain::OUT_L_OUTPUT));		//Top
 	addOutput(createOutput<BarkOutPort>(Vec(48.88 + 3, 380 - 360.59), module, Gain::OUT_R_OUTPUT));		//Top
-	//screw---
+																										//screw---
 	addChild(createScrew<BarkScrew2>(Vec(2, 3)));							//pos1
 	addChild(createScrew<BarkScrew1>(Vec(box.size.x - 13, 367.2)));			//pos4
 }
