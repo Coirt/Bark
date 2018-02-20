@@ -53,9 +53,10 @@ struct Panel6Widget : ModuleWidget {
 	Panel6Widget();
 };
 
-//struct FloatsPanelWidget : ModuleWidget {
-//	FloatsPanelWidget();
-//};
+struct QuadLogicWidget : ModuleWidget {
+	QuadLogicWidget();
+};
+
 
 
 /////////////////////////
