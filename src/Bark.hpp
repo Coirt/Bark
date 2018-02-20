@@ -103,6 +103,23 @@ struct BarkScrew4 : SVGScrew {
 		box.size = sw->box.size;
 	}
 };
+
+////Switch----
+//	struct FILENAME : SVGSwitch, ToggleSwitch {
+//		FILENAME() {
+//	addFrame(SVG::load(assetPlugin(plugin, "res/components/FILENAME.svg")));	//	State=0
+//	addFrame(SVG::load(assetPlugin(plugin, "res/components/FILENAME.svg")));	//	State=1
+//}
+//};
+//------------------------------------------------------
+struct BarkSwitch : SVGSwitch, ToggleSwitch {
+	BarkSwitch() {
+		addFrame(SVG::load(assetPlugin(plugin, "res/components/BarkSwitch_0.svg")));			//	State=0
+		addFrame(SVG::load(assetPlugin(plugin, "res/components/BarkSwitch_1.svg")));			//	State=1
+	}
+	};
+
+
 ////Port----
 	//Port In
 struct BarkInPort : SVGPort {
@@ -131,10 +148,10 @@ struct BarkInPort2 : SVGPort {
 
 struct BarkPatchPortIn : SVGPort{
 	BarkPatchPortIn() {
-	background->svg = SVG::load(assetPlugin(plugin, "res/components/BarkPatchPortIn.svg"));
-	background->wrap();
-	box.size = background->box.size;
-}
+		background->svg = SVG::load(assetPlugin(plugin, "res/components/BarkPatchPortIn.svg"));
+		background->wrap();
+		box.size = background->box.size;
+	}
 };
 
 struct BarkInPort350 : SVGPort {
@@ -199,11 +216,31 @@ struct BarkKnob24 : SVGKnob {
 	}
 };
 
+struct BarkKnob26 : SVGKnob {
+	BarkKnob26() {
+		minAngle = -0.829 * M_PI;
+		maxAngle = 0.831 * M_PI;
+		sw->svg = SVG::load(assetPlugin(plugin, "res/components/BarkKnob26.svg"));
+		sw->wrap();
+		box.size = sw->box.size;
+	}
+};
+
 struct BarkKnob30 : SVGKnob {
 	BarkKnob30() {
 		minAngle = -0.835 * M_PI;
 		maxAngle = 0.831 * M_PI;
 		sw->svg = SVG::load(assetPlugin(plugin, "res/components/BarkKnob30.svg"));
+		sw->wrap();
+		box.size = sw->box.size;
+	}
+};
+
+struct BarkKnob40 : SVGKnob {
+	BarkKnob40() {
+		minAngle = -0.835 * M_PI;
+		maxAngle = 0.831 * M_PI;
+		sw->svg = SVG::load(assetPlugin(plugin, "res/components/BarkKnob40.svg"));
 		sw->wrap();
 		box.size = sw->box.size;
 	}
