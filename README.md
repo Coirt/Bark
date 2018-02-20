@@ -2,16 +2,16 @@
 VCVrack Modules
 
 
-# Gain v0.0.1
+# Gain v0.0.3
 Simple gain knob with meters set to output 20v max
 
 # Clipper v0
 TBD Will be a multifunctional module.
 
-# Trim LFO v0
+# Trim LFO v0.0.1
 TBD Will have some multifunction
 
-# 4x Logic v0
+# Quad Logic v1.0.0
 Because 1 just is not enough.
 
 ---------
