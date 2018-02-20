@@ -11,7 +11,7 @@ TBD Will be a multifunctional module.
 # Trim LFO v0.0.1
 TBD Will have some multifunction
 
-# Quad Logic v1.0.0
+# Quad Logic v0.1.0
 Because 1 just is not enough.
 
 ---------
