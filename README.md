@@ -9,7 +9,7 @@ Simple gain knob with meters set to output 20v max
 TBD Will be a multifunctional module.
 
 # Trim LFO v0.0.1
-TBD Will have some multifunction
+Normal LFO with two offset knobs to route to Quad Logic below see Wiki above for more details.
 
 # Quad Logic v0.1.0
 Because 1 just is not enough.
