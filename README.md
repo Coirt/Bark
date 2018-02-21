@@ -32,3 +32,8 @@ how to create these panels and add features to make your first working VCVrack m
 Test builds can be viewed on my YouTube [Channel](https://www.youtube.com/channel/UCgXuIsOMqlTLbuXRaUjBWuA/featured?view_as=subscriber)
 
 [Facebook](https://www.facebook.com/phil.golden.5070)
+
+
+
+--------
+[Wiki](https://github.com/Coirt/Bark/wiki)
