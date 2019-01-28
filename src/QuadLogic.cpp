@@ -1,5 +1,6 @@
 #include "Bark.hpp"
 #include "dsp/digital.hpp"
+#include "barkComponents.hpp"
 
 struct QuadLogic : Module
 {
@@ -47,14 +48,14 @@ void QuadLogic::step()
 	float logicSum2 = inputs[LOGIC_A2_INPUT].value + inputs[LOGIC_B2_INPUT].value;
 	float logicSum3 = inputs[LOGIC_A3_INPUT].value + inputs[LOGIC_B3_INPUT].value;
 	float logicSum4 = inputs[LOGIC_A4_INPUT].value + inputs[LOGIC_B4_INPUT].value;
-	lights[LOGIC_POS1_LIGHT].setBrightnessSmooth(fmaxf(0.0, logicSum1 / 5.0));
-	lights[LOGIC_NEG1_LIGHT].setBrightnessSmooth(fmaxf(0.0, -logicSum1 / 5.0));
-	lights[LOGIC_POS2_LIGHT].setBrightnessSmooth(fmaxf(0.0, logicSum2 / 5.0));
-	lights[LOGIC_NEG2_LIGHT].setBrightnessSmooth(fmaxf(0.0, -logicSum2 / 5.0));
-	lights[LOGIC_POS3_LIGHT].setBrightnessSmooth(fmaxf(0.0, logicSum3 / 5.0));
-	lights[LOGIC_NEG3_LIGHT].setBrightnessSmooth(fmaxf(0.0, -logicSum3 / 5.0));
-	lights[LOGIC_POS4_LIGHT].setBrightnessSmooth(fmaxf(0.0, logicSum4 / 5.0));
-	lights[LOGIC_NEG4_LIGHT].setBrightnessSmooth(fmaxf(0.0, -logicSum4 / 5.0));
+	lights[LOGIC_POS1_LIGHT].setBrightnessSmooth(fmaxf(0.0, logicSum1 / 5.0f));
+	lights[LOGIC_NEG1_LIGHT].setBrightnessSmooth(fmaxf(0.0, -logicSum1 / 5.0f));
+	lights[LOGIC_POS2_LIGHT].setBrightnessSmooth(fmaxf(0.0, logicSum2 / 5.0f));
+	lights[LOGIC_NEG2_LIGHT].setBrightnessSmooth(fmaxf(0.0, -logicSum2 / 5.0f));
+	lights[LOGIC_POS3_LIGHT].setBrightnessSmooth(fmaxf(0.0, logicSum3 / 5.0f));
+	lights[LOGIC_NEG3_LIGHT].setBrightnessSmooth(fmaxf(0.0, -logicSum3 / 5.0f));
+	lights[LOGIC_POS4_LIGHT].setBrightnessSmooth(fmaxf(0.0, logicSum4 / 5.0f));
+	lights[LOGIC_NEG4_LIGHT].setBrightnessSmooth(fmaxf(0.0, -logicSum4 / 5.0f));
 
 	outputs[MAX1_OUTPUT].value = fmaxf(inputs[LOGIC_A1_INPUT].value, inputs[LOGIC_B1_INPUT].value);
 	outputs[MIN1_OUTPUT].value = fminf(inputs[LOGIC_A1_INPUT].value, inputs[LOGIC_B1_INPUT].value);
@@ -67,50 +68,57 @@ void QuadLogic::step()
 }
 
 
-QuadLogicWidget::QuadLogicWidget(){
+struct QuadLogicWidget : ModuleWidget {
+	QuadLogicWidget(QuadLogic *module);
+};
 
-	QuadLogic *module = new QuadLogic();
-	setModule(module);
-	box.size = Vec(75, 380);
+QuadLogicWidget::QuadLogicWidget(QuadLogic *module) : ModuleWidget(module) {
+	box.size = Vec(5 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT);
 
 	{
 		SVGPanel *panel = new SVGPanel();
-		panel->setBackground(SVG::load(assetPlugin(plugin, "res/QuadLogic.svg")));
 		panel->box.size = box.size;
+		panel->setBackground(SVG::load(assetPlugin(plugin, "res/BarkQuadLogic.svg")));
 		addChild(panel);
 	}
+
 
 	////////////
 	//components
 	////////////
-
+	//----
+	//	ModuleLightWidget::create	== Light
+	//	Widget::create 				== Screw
+	//	ParamWidget::create 			== Knob
+	//	Port::create					== Port	
+	//	    ""		<COMPONENT>(Vec(0, 0), (for port) = , Port::INPUT, or ,Port::OUTPUT , module, NAME::ENUM));
+	//----
 //PortIn---
-	addInput(createInput<BarkPatchPortIn>(Vec(8.1, 380 - 348.52), module, QuadLogic::LOGIC_A1_INPUT));
-	addInput(createInput<BarkPatchPortIn>(Vec(42.71, 380 - 348.52), module, QuadLogic::LOGIC_B1_INPUT));
-	addInput(createInput<BarkPatchPortIn>(Vec(8.1, 380 - 266.09), module, QuadLogic::LOGIC_B2_INPUT));
-	addInput(createInput<BarkPatchPortIn>(Vec(42.71, 380 - 266.09), module, QuadLogic::LOGIC_A2_INPUT));
-	addInput(createInput<BarkPatchPortIn>(Vec(8.1, 380 - 133.18), module, QuadLogic::LOGIC_A3_INPUT));
-	addInput(createInput<BarkPatchPortIn>(Vec(42.71, 380 - 133.18), module, QuadLogic::LOGIC_B3_INPUT));
-	addInput(createInput<BarkPatchPortIn>(Vec(8.1, 380 - 49.53), module, QuadLogic::LOGIC_B4_INPUT));
-	addInput(createInput<BarkPatchPortIn>(Vec(42.71, 380 - 49.53), module, QuadLogic::LOGIC_A4_INPUT));
-
+	addInput(Port::create<BarkPatchPortIn>(Vec(8.1f + 0.35f, 380 - 348.52f + 0.35f), Port::INPUT, module, QuadLogic::LOGIC_A1_INPUT));
+	addInput(Port::create<BarkPatchPortIn>(Vec(42.71f, 380 - 348.52f + 0.35f), Port::INPUT, module, QuadLogic::LOGIC_B1_INPUT));	
+	addInput(Port::create<BarkPatchPortIn>(Vec(8.1f + 0.35f, 380 - 266.09f + 0.35f), Port::INPUT, module, QuadLogic::LOGIC_B2_INPUT));
+	addInput(Port::create<BarkPatchPortIn>(Vec(42.71f, 380 - 266.09f + 0.35f), Port::INPUT, module, QuadLogic::LOGIC_A2_INPUT));	
+	addInput(Port::create<BarkPatchPortIn>(Vec(8.1f + 0.35f, 380 - 133.18f), Port::INPUT, module, QuadLogic::LOGIC_A3_INPUT));
+	addInput(Port::create<BarkPatchPortIn>(Vec(42.71f, 380 - 133.18f), Port::INPUT, module, QuadLogic::LOGIC_B3_INPUT));
+	addInput(Port::create<BarkPatchPortIn>(Vec(8.1f + 0.35f, 380 - 49.53f), Port::INPUT, module, QuadLogic::LOGIC_B4_INPUT));
+	addInput(Port::create<BarkPatchPortIn>(Vec(42.71f, 380 - 49.53f), Port::INPUT, module, QuadLogic::LOGIC_A4_INPUT));
 //PortOut---
-	addOutput(createOutput<BarkPatchPortOut>(Vec(8.1, 380 - 320.3), module, QuadLogic::MIN1_OUTPUT));
-	addOutput(createOutput<BarkPatchPortOut>(Vec(42.71, 380 - 320.3), module, QuadLogic::MAX1_OUTPUT));
-	addOutput(createOutput<BarkPatchPortOut>(Vec(8.1, 380 - 230.2), module, QuadLogic::MAX2_OUTPUT));
-	addOutput(createOutput<BarkPatchPortOut>(Vec(42.71, 380 - 230.2), module, QuadLogic::MIN2_OUTPUT));
-	addOutput(createOutput<BarkPatchPortOut>(Vec(8.1, 380 - 169.08), module, QuadLogic::MIN3_OUTPUT));
-	addOutput(createOutput<BarkPatchPortOut>(Vec(42.71, 380 - 169.08), module, QuadLogic::MAX3_OUTPUT));
-	addOutput(createOutput<BarkPatchPortOut>(Vec(8.1, 380 - 77.73), module, QuadLogic::MAX4_OUTPUT));
-	addOutput(createOutput<BarkPatchPortOut>(Vec(42.71, 380 - 77.73), module, QuadLogic::MIN4_OUTPUT));
-
+	addOutput(Port::create<BarkPatchPortOut>(Vec(8.1f + 0.35f, 380 - 320.3f), Port::OUTPUT, module, QuadLogic::MIN1_OUTPUT));
+	addOutput(Port::create<BarkPatchPortOut>(Vec(42.71f, 380 - 320.3f), Port::OUTPUT, module, QuadLogic::MAX1_OUTPUT));
+	addOutput(Port::create<BarkPatchPortOut>(Vec(8.1f + 0.35f, 380 - 230.2f), Port::OUTPUT, module, QuadLogic::MAX2_OUTPUT));
+	addOutput(Port::create<BarkPatchPortOut>(Vec(42.71, 380 - 230.2f), Port::OUTPUT, module, QuadLogic::MIN2_OUTPUT));
+	addOutput(Port::create<BarkPatchPortOut>(Vec(8.1f + 0.35f, 380 - 169.08f + 0.35f), Port::OUTPUT, module, QuadLogic::MIN3_OUTPUT));
+	addOutput(Port::create<BarkPatchPortOut>(Vec(42.71, 380 - 169.08f + 0.35f), Port::OUTPUT, module, QuadLogic::MAX3_OUTPUT));
+	addOutput(Port::create<BarkPatchPortOut>(Vec(8.1f + 0.35f, 380 - 77.73f + 0.35f), Port::OUTPUT, module, QuadLogic::MAX4_OUTPUT));
+	addOutput(Port::create<BarkPatchPortOut>(Vec(42.71f, 380 - 77.73f + 0.35f), Port::OUTPUT, module, QuadLogic::MIN4_OUTPUT));
 //screw---
-	addChild(createScrew<BarkScrew1>(Vec(2, 367.2)));					//pos3
-	addChild(createScrew<BarkScrew4>(Vec(box.size.x - 13, 3)));			//pos2
-
-	//Lights---
-	addChild(createLight<SmallLight<GreenRedLight>>(Vec(34.82, 380 - 326.8), module, QuadLogic::LOGIC_POS1_LIGHT));
-	addChild(createLight<SmallLight<GreenRedLight>>(Vec(34.82, 380 - 240.7), module, QuadLogic::LOGIC_POS2_LIGHT));
-	addChild(createLight<SmallLight<GreenRedLight>>(Vec(34.82, 380 - 144.68), module, QuadLogic::LOGIC_POS3_LIGHT));
-	addChild(createLight<SmallLight<GreenRedLight>>(Vec(34.82, 380 - 56.04), module, QuadLogic::LOGIC_POS4_LIGHT));
+	addChild(Widget::create<BarkScrew1>(Vec(2, 367.2f)));						//pos3
+	addChild(Widget::create<BarkScrew3>(Vec(box.size.x - 13, 3)));				//pos2
+//Lights---
+	addChild(ModuleLightWidget::create<SmallLight<GreenRedLight>>(Vec(34.82f - 0.35f, 380 - 326.8f), module, QuadLogic::LOGIC_POS1_LIGHT));
+	addChild(ModuleLightWidget::create<SmallLight<GreenRedLight>>(Vec(34.82f - 0.35f, 380 - 240.7f), module, QuadLogic::LOGIC_POS2_LIGHT));
+	addChild(ModuleLightWidget::create<SmallLight<GreenRedLight>>(Vec(34.82f, 380 - 144.68f), module, QuadLogic::LOGIC_POS3_LIGHT));
+	addChild(ModuleLightWidget::create<SmallLight<GreenRedLight>>(Vec(34.82f, 380 - 56.04f), module, QuadLogic::LOGIC_POS4_LIGHT));
 }
+
+Model *modelQuadLogic = Model::create<QuadLogic, QuadLogicWidget>("Bark", "QuadLogic", "Quad Logic", UTILITY_TAG, LOGIC_TAG);
