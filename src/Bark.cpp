@@ -1,10 +1,15 @@
-#include "Rack.hpp"
+#include "Bark.hpp"
 
-using namespace rack;
+Plugin *plugin;
 
-extern Plugin *plugin;
+void init(rack::Plugin *p) {
 
-//Modules
-extern Model *modelTrimLFO;
-extern Model *modelQuadLogic;
-extern Model *modelPanel6;
+	plugin = p;
+	p->slug = TOSTRING(SLUG);
+	p->version = TOSTRING(VERSION);
+
+	// p->addModel(model---);
+	p->addModel(modelTrimLFO);
+	p->addModel(modelQuadLogic);
+	p->addModel(modelPanel6);
+}
