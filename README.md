@@ -3,7 +3,7 @@ VCVrack Modules
 
 
 # Trim LFO v0.6.2
-Normal LFO with two offset knobs to route to Quad Logic below see Wiki above for more details.
+LFO module with two offset knobs which trims the top and bottom values from the LFO leaving the original waveform intact. Has the extra function of mixing the diffent waveforms when the offsets are left full, but those can be trimmed too. 
 
 # Quad Logic v0.6.0
 Because 1 just is not enough.
