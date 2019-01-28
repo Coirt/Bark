@@ -1,4 +1,5 @@
 #include "Bark.hpp"
+#include "barkComponents.hpp"
 
 struct Panel6 : Module {
 	enum ParamIds {
@@ -23,10 +24,12 @@ void Panel6::step()
 {
 }
 
-Panel6Widget::Panel6Widget()
+struct Panel6Widget : ModuleWidget
 {
-	Panel6 *module = new Panel6();
-	setModule(module);
+	Panel6Widget(Panel6 *module);
+};
+
+Panel6Widget::Panel6Widget(Panel6 *module) : ModuleWidget(module) {
 	box.size = Vec(6 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT);
 
 	{
@@ -35,20 +38,10 @@ Panel6Widget::Panel6Widget()
 		panel->box.size = box.size;
 		addChild(panel);
 	}
-
-	///////////////////////////////////////////////////////////////
-	// Screw Positions
-	//		addChild(createScrew<NAMESCREW>(Vec(15, 0)));						//top left		pos1
-	//		addChild(createScrew<NAMESCREW>(Vec(box.size.x - 30, 0)));			//top right		pos2
-	//		addChild(createScrew<NAMESCREW>(Vec(15, 365)));					//bottom left	pos3
-	//		addChild(createScrew<NAMESCREW>(Vec(box.size.x - 30, 365)));		//bottom right	pos4
-	/////////////////////////////////////////////////////////////
-
-	////////////
-	//components
-	////////////
-
 	//screw
-	addChild(createScrew<BarkScrew2>(Vec(2, 3)));							//pos1
-	addChild(createScrew<BarkScrew1>(Vec(box.size.x - 13, 367.2)));			//pos4
+	addChild(Widget::create<BarkScrew2>(Vec(2, 3)));								//pos1
+	addChild(Widget::create<BarkScrew1>(Vec(box.size.x - 13, 367.2)));			//pos4
 }
+
+//p->addModel(createModel<Panel6Widget>("Bark", "Panel6", "Bark Panel 6", BLANK_TAG));
+Model *modelPanel6 = Model::create<Panel6, Panel6Widget>("Bark", "Panel6", "Bark Panel 6", BLANK_TAG);
