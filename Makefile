@@ -1,21 +1,20 @@
+RACK_DIR ?= ../..
 SLUG = Bark
-VERSION = 0.5.1
+VERSION = 0.6.2
 
-# FLAGS will be passed to both the C and C++ compiler
-FLAGS +=
-CFLAGS +=
-CXXFLAGS +=
-
-# Careful about linking to shared libraries, since you can't assume much about the user's environment and library search path.
-# Static libraries are fine.
-LDFLAGS +=
-
-# Add .cpp and .c files to the build
+FLAGS += -I./libsamplerate-0.1.9/src
 SOURCES += $(wildcard src/*.cpp)
-
-# Add files to the ZIP package when running `make dist`
-# The compiled plugin is automatically added.
+SOURCES += $(wildcard libsamplerate-0.1.9/src/*.c)
 DISTRIBUTABLES += $(wildcard LICENSE*) res
 
-# Include the VCV plugin Makefile framework
-include ../../plugin.mk
+libsamplerate := libsamplerate-0.1.9
+DEPS += $(libsamplerate)
+
+$(libsamplerate):
+	mkdir -p dep
+	$(WGET) "http://www.mega-nerd.com/SRC/libsamplerate-0.1.9.tar.gz"
+	$(UNTAR) libsamplerate-0.1.9.tar.gz
+	cp config.h libsamplerate-0.1.9/src/
+
+
+include $(RACK_DIR)/plugin.mk
