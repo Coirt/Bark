@@ -328,7 +328,7 @@ TrimLFOWidget::TrimLFOWidget(TrimLFO *module) : ModuleWidget(module) {
 	addChild(Widget::create<BarkScrew3>(Vec(2, 3)));	//pos1
 	//Light---
 	addChild(ModuleLightWidget::create<SmallLight<GreenRedLight>>(Vec(71.93f, rackY - 230.22f), module, TrimLFO::PHASE_POS_LIGHT));
-	//------------------------------
+	//-------------------------------
 	///ref, VOLTS DISPLAY : AS-TriggersMKI
 	VoltsDisplayWidget *display1 = new VoltsDisplayWidget();
 	display1->box.pos = Vec(15.009f, 33.05f);
@@ -340,13 +340,13 @@ TrimLFOWidget::TrimLFOWidget(TrimLFO *module) : ModuleWidget(module) {
 	display2->box.size = Vec(50.728f, 13.152f);
 	display2->value = &module->volts2;
 	addChild(display2);
-	//------------------------------
+	//-------------------------------
 	FreqDisplayWidget *display3 = new FreqDisplayWidget();
 	display3->box.pos = Vec(32.23f, 237.31f);	//== -L/+R, +==D/-==U
 	display3->box.size = Vec(85.798f, 13.673f);	//x, y == Lenght, Height
 	display3->freqHz = &module->freqHz;
 	addChild(display3);
-	//------------------------------
+	//-------------------------------
 }
 
 Model *modelTrimLFO = Model::create<TrimLFO, TrimLFOWidget>("Bark", "TrimLFO", "Trim LFO", LFO_TAG, UTILITY_TAG, LOGIC_TAG, DUAL_TAG);
