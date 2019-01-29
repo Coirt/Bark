@@ -1,6 +1,7 @@
 # Bark
 VCVrack Modules
-![pack](image)
+![pack](image/splash.jpg)
+
 
 # Trim LFO v0.6.3
 LFO module with two offset knobs which trims the top and bottom values from the LFO leaving the original waveform intact. Has the extra function of mixing the diffent waveforms when the offsets are left full, but those can be trimmed too. 
