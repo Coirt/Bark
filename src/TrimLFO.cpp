@@ -239,12 +239,12 @@ void TrimLFO::step() {
 	outputs[TRI_OUTPUT].value = triValue;
 	outputs[SQR_OUTPUT].value = sqrValue;
 
-	/* Interesting shape----
+#if 0
+	// Interesting shape----
 	outputs[trimLFO_OUTPUT].value = fmaxf(fminf(params[OFFSET1_PARAM].value, sinValue), fmaxf(params[OFFSET2_PARAM].value, sinValue)) -
 	fmodf(fminf(params[OFFSET1_PARAM].value, sinValue), fmaxf(params[OFFSET2_PARAM].value, sinValue));
 
 	//----old
-	/*
 	fmaxValue = fmaxf(fminf(params[OFFSET1_PARAM].value, xFade), fmaxf(params[OFFSET2_PARAM].value, xFade));
 	fminValue = fminf(fmaxf(params[OFFSET1_PARAM].value, xFade), fminf(params[OFFSET2_PARAM].value, xFade));
 	////issue - not accounting for second offset!!! because it only outputs 1 value
@@ -261,6 +261,7 @@ void TrimLFO::step() {
 	*/
 
 	//outputs[trimLFO_OUTPUT].value = fminf(fmaxValue, fminValue) - params[OFFSET2_PARAM].value; //offset by param2
+#endif
 
 	lights[PHASE_POS_LIGHT].setBrightnessSmooth(fmaxf(0.0f, oscillator.light()));
 	lights[PHASE_NEG_LIGHT].setBrightnessSmooth(fmaxf(0.0f, -oscillator.light()));

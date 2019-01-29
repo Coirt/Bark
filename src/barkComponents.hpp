@@ -2,7 +2,7 @@
 # include "componentlibrary.hpp"
 #include <vector>
 #include <jansson.h>
-#include "Widgets.hpp"
+#include "widgets.hpp"
 #include <iostream>
 
 using namespace std;
