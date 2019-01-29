@@ -24,6 +24,7 @@ Panel 6
 15x6 pixel panel for your rack with the custom grey bark colour
 
 TDB:
+
 Panel 10
 15x10 pixel panel for your rack with the custom grey bark colour
 
