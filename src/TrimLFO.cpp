@@ -313,16 +313,16 @@ TrimLFOWidget::TrimLFOWidget(TrimLFO *module) : ModuleWidget(module) {
 	//Knobs---
 	addParam(ParamWidget::create<BarkKnob70>(Vec(39.66f, rackY - 217.01f), module, TrimLFO::FREQ_PARAM, -16.0f, 4.0f, -6.0f));
 	addParam(ParamWidget::create<BarkScrew01>(Vec(box.size.x - 13, 367.2f), module, TrimLFO::FINE_PARAM, -0.06798301f, 0.06798301f, 0.0f));
-	addParam(ParamWidget::create<BarkKnob40>(Vec(20.48f, rackY - 326.78f), module, TrimLFO::OFFSET1_PARAM, -10.0f, 10.0f, 0.0f));
-	addParam(ParamWidget::create<BarkKnob40>(Vec(89.7f, rackY - 326.78f), module, TrimLFO::OFFSET2_PARAM, -10.0f, 10.0f, 10.0f));
+	addParam(ParamWidget::create<BarkKnob40>(Vec(20.48f, rackY - 329.58f), module, TrimLFO::OFFSET1_PARAM, -10.0f, 10.0f, 0.0f));
+	addParam(ParamWidget::create<BarkKnob40>(Vec(89.7f, rackY - 329.58f), module, TrimLFO::OFFSET2_PARAM, -10.0f, 10.0f, 10.0f));
 	addParam(ParamWidget::create<BarkKnob26>(Vec(5.19f, rackY - 167.6f), module, TrimLFO::PW_PARAM, 0.0f, 1.0f, 0.5f));
 	addParam(ParamWidget::create<BarkKnob26>(Vec(25.32f, rackY - 122.3f), module, TrimLFO::FM1_PARAM, 0.0f, 1.0f, 0.0f));
 	addParam(ParamWidget::create<BarkKnob26>(Vec(61.65f, rackY - 122.3f), module, TrimLFO::FM2_PARAM, 0.0f, 1.0f, 0.0f));
 	addParam(ParamWidget::create<BarkKnob26>(Vec(98.06f, rackY - 122.3f), module, TrimLFO::PWM_PARAM, 0.0f, 1.0f, 0.0f));
 	addParam(ParamWidget::create<BarkSlide1>(Vec(25.41f, rackY - 57.0f), module, TrimLFO::WAVEMIX_PARAM, 0.0f, 3.0f, 0.0f));
 	//Switch---
-	addParam(ParamWidget::create<BarkSwitch>(Vec(8.67f, rackY - 241.06f), module, TrimLFO::OFFSET_PARAM, 0.0f, 1.0f, 1.0f));
-	addParam(ParamWidget::create<BarkSwitch>(Vec(117.57f, rackY - 241.06f), module, TrimLFO::INVERT_PARAM, 0.0f, 1.0f, 1.0f));
+	addParam(ParamWidget::create<BarkSwitch>(Vec(8.67f, rackY - 217.06f), module, TrimLFO::OFFSET_PARAM, 0.0f, 1.0f, 1.0f));
+	addParam(ParamWidget::create<BarkSwitch>(Vec(117.57f, rackY - 217.06f), module, TrimLFO::INVERT_PARAM, 0.0f, 1.0f, 1.0f));
 	//Screw---
 	addChild(Widget::create<BarkScrew3>(Vec(2, 3)));	//pos1
 	//Light---
