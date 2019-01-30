@@ -174,9 +174,8 @@ void TrimLFO::step() {
 		outputs[trimLFO_OUTPUT].value = fmaxf(params[OFFSET1_PARAM].value, fminf(params[OFFSET2_PARAM].value, xFade));
 	}
 	///sqr----
-	else if (waveMixParam >= 3.0f) { //3.0f sqr
-		xFade = sqrValue;
-		outputs[trimLFO_OUTPUT].value = fmaxf(params[OFFSET1_PARAM].value, fminf(params[OFFSET2_PARAM].value, xFade));
+	else if (waveMixParam == 3.0f) { //3.0f sqr
+		outputs[trimLFO_OUTPUT].value = fmaxf(params[OFFSET1_PARAM].value, fminf(params[OFFSET2_PARAM].value, sqrValue));
 	}
 	///LFO----
 	outputs[SIN_OUTPUT].value = sinValue;
