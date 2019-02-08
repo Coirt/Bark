@@ -1,0 +1,8 @@
+---v0.6.4---
+
+Trim LFO----
+updated panel
+fixed slider anchor showing at abitrary zoom levels
+added buttons for increasing/decreasing frequency values by half or double the current rate on the display
+
+new module--
