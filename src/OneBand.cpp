@@ -52,8 +52,8 @@ void OneBand::step(){
 		outL = clamp(outputs[OUTL_OUTPUT].value, -9.9f, 9.9f), outR = clamp(outputs[OUTR_OUTPUT].value, -9.9f, 9.9f),
 		Gain = params[OUTGAIN_PARAM].value / 2.0f;
 	double eqGain = params[EQGAIN_PARAM].value * 5.0f + clamp(inputs[GAINMOD_INPUT].value, -9.99f, 9.99f) * 1.5f,
-		modInput = clamp(inputs[FREQMOD_INPUT].value * 140.f, 1.5f, 1244.f),
-		eqFreq = clamp(params[EQFREQ_PARAM].value, .8f, 1244.f) + modInput,		//1.9250002 != 27.5Hz *recalculate!
+		modInput = clamp(inputs[FREQMOD_INPUT].value, 27.5f, 20000.f),
+		eqFreq = clamp(params[EQFREQ_PARAM].value, 27.5f, 20000.f) + modInput,
 		eqQ = clamp(params[EQBANDWIDTH_PARAM].value, 2., 40.) + inputs[BWMOD_INPUT].value;
 	double sampRate, biquadFreq, biquadQ, biquadGain;
 	
@@ -86,9 +86,9 @@ void OneBand::step(){
 		
 		//clamp frequency when mod source connected
 		if (inputs[FREQMOD_INPUT].active) {
-			modInput = clamp(inputs[FREQMOD_INPUT].value * 124.4f, 1.5f, 1244.f);
+			modInput = clamp(inputs[FREQMOD_INPUT].value, 27.5f, 20000.f);
 		} else {
-			modInput = clamp(inputs[FREQMOD_INPUT].value * 124.4f, .8f, 1244.f);
+			modInput = clamp(inputs[FREQMOD_INPUT].value, 27.5f, 20000.f);
 		}
 		
 		sampRate = engineGetSampleRate();
@@ -163,7 +163,7 @@ OneBandWidget::OneBandWidget(OneBand *module) : ModuleWidget(module) {
 	//addOutput(Port::create<BarkPatchPortIn>(Vec(33.78f, rackY - 248.26f), Port::OUTPUT, module, OneBand::devParamOutQ));
 	//Knobs---
 	addParam(ParamWidget::create<BarkKnob26>(Vec(10.2f - offsetKnobs, rackY - 349.73f), module, OneBand::EQGAIN_PARAM, -6.5f, 6.5f, 0.0f));
-	addParam(ParamWidget::create<BarkKnob26>(Vec(24.95f - offsetKnobs, rackY - 291.2f), module, OneBand::EQFREQ_PARAM, .8f, 1244.f, 13.6f));
+	addParam(ParamWidget::create<BarkKnob26>(Vec(24.95f - offsetKnobs, rackY - 291.2f), module, OneBand::EQFREQ_PARAM, 27.5f, 20000.f, 13.6f));
 	addParam(ParamWidget::create<BarkKnob26>(Vec(10.68f - offsetKnobs, rackY - 231.51f), module, OneBand::EQBANDWIDTH_PARAM, 1.f, 40.0f, 15.0f));
 	addParam(ParamWidget::create<BarkKnob30>(Vec(8.29f, rackY - 94.67f), module, OneBand::OUTGAIN_PARAM, 0.0f, 7.0f, 2.0f));
 	//Switch---
