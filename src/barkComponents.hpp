@@ -1,5 +1,7 @@
 #pragma once
 #include "componentlibrary.hpp"
+#include "app.hpp"
+#include "asset.hpp"
 #include <vector>
 #include <jansson.h>
 #include "widgets.hpp"
@@ -8,6 +10,16 @@
 using namespace std;
 
 namespace rack {
+	///Colour--------------------------------------------------
+	const NVGcolor BARK_GREEN = nvgRGBA(73, 191, 0, 255);
+	const NVGcolor BARK_YELLOW1 = nvgRGBA(255, 212, 42, 255);
+	const NVGcolor BARK_YELLOW2 = nvgRGBA(255, 192, 42, 255);
+	const NVGcolor BARK_ORANGE = nvgRGBA(250, 123, 0, 255);
+	const NVGcolor BARK_RED = nvgRGBA(186, 15, 0, 255);
+	const NVGcolor BARK_CLIPPING = nvgRGBA(240, 255, 255, 255);//white
+	///Colour--------------------------------------------------
+	//const int btnLock;
+
 	////Screw----
 	struct BarkScrew1 : SVGScrew {
 		BarkScrew1() {
@@ -48,7 +60,19 @@ namespace rack {
 			setSVG(SVG::load(assetPlugin(plugin, "res/components/BarkScrew01.svg")));
 			sw->wrap();
 			box.size = sw->box.size;
-			speed = 0.2f;
+			speed = 0.18f;
+		}
+		void randomize() override {}
+	};
+
+	struct BarkScrew02 : SVGKnob {
+		BarkScrew02() {
+			minAngle = -2.0 * M_PI;
+			maxAngle = 2.0 * M_PI;
+			setSVG(SVG::load(assetPlugin(plugin, "res/components/BarkScrew01.svg")));
+			sw->wrap();
+			box.size = sw->box.size;
+			speed = 0.5f;
 		}
 		void randomize() override {}
 	};
@@ -60,6 +84,41 @@ namespace rack {
 			addFrame(SVG::load(assetPlugin(plugin, "res/components/BarkSwitch_1.svg")));	//	State=1
 		}
 	};
+
+	struct BarkSwitchSmall : SVGSwitch, ToggleSwitch {
+		BarkSwitchSmall() {
+			addFrame(SVG::load(assetPlugin(plugin, "res/components/BarkSwitchSmall_0.svg")));
+			addFrame(SVG::load(assetPlugin(plugin, "res/components/BarkSwitchSmall_1.svg")));
+		}
+	};
+
+	struct BarkSwitchSmallSide : SVGSwitch, ToggleSwitch {
+		BarkSwitchSmallSide() {
+			addFrame(SVG::load(assetPlugin(plugin, "res/components/BarkSwitchSmallSide_0.svg")));
+			addFrame(SVG::load(assetPlugin(plugin, "res/components/BarkSwitchSmallSide_1.svg")));
+		}
+	};
+	
+	//struct BarkButtonMinus : SVGSwitch, ToggleSwitch {
+	//	BarkButtonMinus() {
+	//		addFrame(SVG::load(assetPlugin(plugin, "res/components/BarkButtonMinus.svg")));
+	//		addFrame(SVG::load(assetPlugin(plugin, "res/components/BarkButtonMinus_0.svg")));
+	//	}
+	//};
+
+	//struct BarkButtonPlus : SVGSwitch, ToggleSwitch {	//MomentarySwitch
+	//	BarkButtonPlus() {
+	//		addFrame(SVG::load(assetPlugin(plugin, "res/components/BarkButtonPlus.svg")));
+	//		addFrame(SVG::load(assetPlugin(plugin, "res/components/BarkButtonPlus_0.svg")));
+	//	}
+	//};
+
+	//struct BarkBtnLockSnap : SVGSwitch, ToggleSwitch {
+	//	BarkBtnLockSnap() {
+	//		addFrame(SVG::load(assetPlugin(plugin, "res/components/BarkButtonLock.svg")));
+	//		addFrame(SVG::load(assetPlugin(plugin, "res/components/BarkButtonUnlock.svg")));
+	//	}
+	//};
 
 	////Slider----
 	struct BarkSlide1 : SVGFader {
@@ -197,6 +256,7 @@ namespace rack {
 			setSVG(SVG::load(assetPlugin(plugin, "res/components/BarkKnob26.svg")));
 			sw->wrap();
 			box.size = sw->box.size;
+			speed = 0.65f;
 		}
 	};
 
@@ -207,6 +267,7 @@ namespace rack {
 			setSVG(SVG::load(assetPlugin(plugin, "res/components/BarkKnob30.svg")));
 			sw->wrap();
 			box.size = sw->box.size;
+			speed = 0.7f;
 		}
 	};
 
@@ -232,8 +293,30 @@ namespace rack {
 		}
 	};
 
+	//struct snapMode : SVGKnob {
+	//	ParamWidget *modeSwitch;
+	//	void step() override {
+	//		snap = (modeSwitch->value > 0.f);
+	//		SVGKnob::snap();
+	//		//snapMode->modeSwitch = modeSwitch
+	//	}
+	//};
+
 	struct BarkKnob70 : SVGKnob {
 		BarkKnob70() {
+			minAngle = -0.83 * M_PI;
+			maxAngle = 0.828 * M_PI;
+			setSVG(SVG::load(assetPlugin(plugin, "res/components/BarkKnob70.svg")));
+			sw->wrap();
+			box.size = sw->box.size;
+			speed = 0.5f;
+			shadow->box.pos = Vec(0, sw->box.size.y * 0.05);
+		}
+	};
+
+	struct BarkKnob70Snap : SVGKnob {
+		BarkKnob70Snap() {
+			snap = true;
 			minAngle = -0.83 * M_PI;
 			maxAngle = 0.828 * M_PI;
 			setSVG(SVG::load(assetPlugin(plugin, "res/components/BarkKnob70.svg")));
@@ -268,6 +351,75 @@ namespace rack {
 		KnobTest1() {
 			setSVG(SVG::load(assetPlugin(plugin, "res/components/KnobTest1.svg")));
 			
+		}
+	};
+
+	///Light----
+	struct greenLight : GrayModuleLightWidget {
+		greenLight() {
+			addBaseColor(BARK_GREEN);
+		}
+	};
+
+	struct yellowLight1 : GrayModuleLightWidget {
+		yellowLight1() {
+			addBaseColor(BARK_YELLOW1);
+		}
+	};
+
+	struct yellowLight2 : GrayModuleLightWidget {
+		yellowLight2() {
+			addBaseColor(BARK_YELLOW2);
+		}
+	};
+
+	struct orangeLight : GrayModuleLightWidget {
+		orangeLight() {
+			addBaseColor(BARK_ORANGE);
+		}
+	};
+
+	struct redLight : GrayModuleLightWidget {
+		redLight() {
+			addBaseColor(BARK_RED);
+		}
+	};
+
+	struct clipLight : GrayModuleLightWidget {
+		clipLight() {
+			addBaseColor(BARK_CLIPPING);
+		}
+	};
+
+	template <typename BASE>
+	struct BiggerLight : BASE {
+		BiggerLight() {
+			this->box.size = Vec(10, 10);//px
+			this->bgColor = nvgRGBA(192, 192, 192, 32);//silver
+		}
+	};
+
+	template <typename BASE>
+	struct BigLight : BASE {
+		BigLight() {
+			this->box.size = Vec(8, 8);//px
+			this->bgColor = nvgRGBA(192, 192, 192, 32);//silver
+		}
+	};
+
+	template <typename BASE>
+	struct SmallerLight : BASE {
+		SmallerLight() {
+			this->box.size = Vec(4, 4);//px
+			this->bgColor = nvgRGBA(192, 192, 192, 45);//silver
+		}
+	};
+
+	template <typename BASE>
+	struct SmallestLight : BASE {
+		SmallestLight() {
+			this->box.size = Vec(2, 2);//px
+			this->bgColor = nvgRGBA(192, 192, 192, 45);//silver
 		}
 	};
 }
