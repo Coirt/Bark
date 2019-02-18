@@ -39,4 +39,4 @@ Test builds can be viewed on my YouTube [Channel](https://www.youtube.com/channe
 You can find more information in the [Wiki](https://github.com/Coirt/Bark/wiki)
 
 --------
-Donations are not required, but if you would like contribute to developement time you can so by making a donation [here](https://www.paypal.me/philgolden)
+Donations are not required, but if you would like contribute to developement time you can do so by making a donation [here](https://www.paypal.me/philgolden)
