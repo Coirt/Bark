@@ -48,14 +48,14 @@ void QuadLogic::step()
 	float logicSum2 = inputs[LOGIC_A2_INPUT].value + inputs[LOGIC_B2_INPUT].value;
 	float logicSum3 = inputs[LOGIC_A3_INPUT].value + inputs[LOGIC_B3_INPUT].value;
 	float logicSum4 = inputs[LOGIC_A4_INPUT].value + inputs[LOGIC_B4_INPUT].value;
-	lights[LOGIC_POS1_LIGHT].setBrightnessSmooth(fmaxf(0.0, logicSum1 / 5.0f));
-	lights[LOGIC_NEG1_LIGHT].setBrightnessSmooth(fmaxf(0.0, -logicSum1 / 5.0f));
-	lights[LOGIC_POS2_LIGHT].setBrightnessSmooth(fmaxf(0.0, logicSum2 / 5.0f));
-	lights[LOGIC_NEG2_LIGHT].setBrightnessSmooth(fmaxf(0.0, -logicSum2 / 5.0f));
-	lights[LOGIC_POS3_LIGHT].setBrightnessSmooth(fmaxf(0.0, logicSum3 / 5.0f));
-	lights[LOGIC_NEG3_LIGHT].setBrightnessSmooth(fmaxf(0.0, -logicSum3 / 5.0f));
-	lights[LOGIC_POS4_LIGHT].setBrightnessSmooth(fmaxf(0.0, logicSum4 / 5.0f));
-	lights[LOGIC_NEG4_LIGHT].setBrightnessSmooth(fmaxf(0.0, -logicSum4 / 5.0f));
+	lights[LOGIC_POS1_LIGHT].setBrightnessSmooth(fmaxf(0.0f, logicSum1 / 5.0f));
+	lights[LOGIC_NEG1_LIGHT].setBrightnessSmooth(fmaxf(0.0f, -logicSum1 / 5.0f));
+	lights[LOGIC_POS2_LIGHT].setBrightnessSmooth(fmaxf(0.0f, logicSum2 / 5.0f));
+	lights[LOGIC_NEG2_LIGHT].setBrightnessSmooth(fmaxf(0.0f, -logicSum2 / 5.0f));
+	lights[LOGIC_POS3_LIGHT].setBrightnessSmooth(fmaxf(0.0f, logicSum3 / 5.0f));
+	lights[LOGIC_NEG3_LIGHT].setBrightnessSmooth(fmaxf(0.0f, -logicSum3 / 5.0f));
+	lights[LOGIC_POS4_LIGHT].setBrightnessSmooth(fmaxf(0.0f, logicSum4 / 5.0f));
+	lights[LOGIC_NEG4_LIGHT].setBrightnessSmooth(fmaxf(0.0f, -logicSum4 / 5.0f));
 
 	outputs[MAX1_OUTPUT].value = fmaxf(inputs[LOGIC_A1_INPUT].value, inputs[LOGIC_B1_INPUT].value);
 	outputs[MIN1_OUTPUT].value = fminf(inputs[LOGIC_A1_INPUT].value, inputs[LOGIC_B1_INPUT].value);
@@ -82,19 +82,8 @@ QuadLogicWidget::QuadLogicWidget(QuadLogic *module) : ModuleWidget(module) {
 		addChild(panel);
 	}
 
-
-	////////////
-	//components
-	////////////
-	//----
-	//	ModuleLightWidget::create	== Light
-	//	Widget::create 				== Screw
-	//	ParamWidget::create 			== Knob
-	//	Port::create					== Port	
-	//	    ""		<COMPONENT>(Vec(0, 0), (for port) = , Port::INPUT, or ,Port::OUTPUT , module, NAME::ENUM));
-	//----
 //PortIn---
-	addInput(Port::create<BarkPatchPortIn>(Vec(8.1f + 0.35f, 380 - 348.52f + 0.35f), Port::INPUT, module, QuadLogic::LOGIC_A1_INPUT));
+	addInput(Port::create<BarkPatchPortIn>(Vec(8.45f, 380 - 348.52f + 0.35f), Port::INPUT, module, QuadLogic::LOGIC_A1_INPUT));
 	addInput(Port::create<BarkPatchPortIn>(Vec(42.71f, 380 - 348.52f + 0.35f), Port::INPUT, module, QuadLogic::LOGIC_B1_INPUT));	
 	addInput(Port::create<BarkPatchPortIn>(Vec(8.1f + 0.35f, 380 - 266.09f + 0.35f), Port::INPUT, module, QuadLogic::LOGIC_B2_INPUT));
 	addInput(Port::create<BarkPatchPortIn>(Vec(42.71f, 380 - 266.09f + 0.35f), Port::INPUT, module, QuadLogic::LOGIC_A2_INPUT));	

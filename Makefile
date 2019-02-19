@@ -1,20 +1,9 @@
 RACK_DIR ?= ../..
 SLUG = Bark
-VERSION = 0.6.2
+VERSION = 0.6.4
 
-FLAGS += -I./libsamplerate-0.1.9/src
+FLAGS +=
 SOURCES += $(wildcard src/*.cpp)
-SOURCES += $(wildcard libsamplerate-0.1.9/src/*.c)
 DISTRIBUTABLES += $(wildcard LICENSE*) res
-
-libsamplerate := libsamplerate-0.1.9
-DEPS += $(libsamplerate)
-
-$(libsamplerate):
-	mkdir -p dep
-	$(WGET) "http://www.mega-nerd.com/SRC/libsamplerate-0.1.9.tar.gz"
-	$(UNTAR) libsamplerate-0.1.9.tar.gz
-	cp config.h libsamplerate-0.1.9/src/
-
-
+# Include the VCV Rack plugin Makefile framework
 include $(RACK_DIR)/plugin.mk

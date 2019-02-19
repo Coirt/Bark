@@ -24,7 +24,7 @@
        xlink:href="#linearGradient11007"
        id="radialGradient5464"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(0.68547263,0,0,0.03032891,438.13084,895.16652)"
+       gradientTransform="matrix(0.68547263,0,0,0.03032891,438.13084,886.32769)"
        cx="75.114998"
        cy="316.04288"
        fx="75.114998"
@@ -51,7 +51,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="7.919596"
-     inkscape:cx="41.556814"
+     inkscape:cx="20.46988"
      inkscape:cy="16.21821"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -78,7 +78,7 @@
     <path
        inkscape:connector-curvature="0"
        id="path5462-0"
-       d="m 439.92161,904.25176 h 99.397 v 1 h -99.397 z"
+       d="m 439.92161,895.41293 h 99.397 v 1 h -99.397 z"
        style="display:inline;opacity:0.66799999;fill:url(#radialGradient5464);fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.93965864" />
   </g>
 </svg>
