@@ -1,8 +1,9 @@
 ---v0.6.5---
 Slightly tweaked In port colour, red circles on the ports should now look nicer when scale is smaller than 1.1
 Enabled mod inputs on 1 band, also tweaked internal code.
-uploaded new panel for TrimLFO
-
+uploaded new panel for TrimLFO.
+default frequecny is now 2 Hz on Trim LFO.
+added a manual reset button on Trim LFO (both BPM/Hz versions), when you click on the reset label "RST" the phase will be reset.
 
 -----------------------------
 ---v0.6.4---
