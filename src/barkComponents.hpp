@@ -99,6 +99,12 @@ namespace rack {
 		}
 	};
 	
+	struct BarkButton1 : SVGSwitch, MomentarySwitch {
+		BarkButton1() {
+			addFrame(SVG::load(assetPlugin(plugin, "res/components/BarkButtonReset_0.svg")));
+		}
+	};
+
 	//struct BarkButtonMinus : SVGSwitch, ToggleSwitch {
 	//	BarkButtonMinus() {
 	//		addFrame(SVG::load(assetPlugin(plugin, "res/components/BarkButtonMinus.svg")));
@@ -390,6 +396,11 @@ namespace rack {
 			addBaseColor(BARK_CLIPPING);
 		}
 	};
+	struct ParamInLight : GrayModuleLightWidget {
+		ParamInLight() {
+			addBaseColor(BARK_CLIPPING);
+		}
+	};
 
 	template <typename BASE>
 	struct BiggerLight : BASE {
@@ -414,11 +425,20 @@ namespace rack {
 			this->bgColor = nvgRGBA(192, 192, 192, 45);//silver
 		}
 	};
+	
+	template <typename BASE>
+	struct SmallerLightFA : BASE {
+		SmallerLightFA() {
+			this->box.size = Vec(4, 4);//px
+			this->bgColor = nvgRGBA(56, 56, 56, 255);//panel
+			this->borderColor = nvgRGBA(56, 56, 56, 255);//panel
+		}
+	};
 
 	template <typename BASE>
 	struct SmallestLight : BASE {
 		SmallestLight() {
-			this->box.size = Vec(2, 2);//px
+			this->box.size = Vec(3, 3);//px
 			this->bgColor = nvgRGBA(192, 192, 192, 45);//silver
 		}
 	};
