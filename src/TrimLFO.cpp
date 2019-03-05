@@ -88,6 +88,7 @@ struct TrimLFO : Module {
 		PW_PARAM,
 		PWM_PARAM,
 		WAVEMIX_PARAM,
+		RESET_PARAM,
 		NUM_PARAMS
 	};
 	enum InputIds {
@@ -124,11 +125,13 @@ struct TrimLFO : Module {
 
 	TrimLFO() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {}
 	void step() override;
+	
+
 };
 
 
 void TrimLFO::step() {
-	
+
 	volts1 = clamp(params[OFFSET1_PARAM].value, -10.0f, 10.0f);
 	volts2 = clamp(params[OFFSET2_PARAM].value, -10.0f, 10.0f);
 	
@@ -146,8 +149,8 @@ void TrimLFO::step() {
 	oscillator.setPulseWidth(params[PW_PARAM].value + params[PWM_PARAM].value * inputs[PW_INPUT].value / 10.0f);
 	oscillator.offset = (params[OFFSET_PARAM].value > 0.0f);
 	oscillator.invert = (params[INVERT_PARAM].value <= 0.0f);
-	oscillator.step(1.0 / engineGetSampleRate());
-	oscillator.setReset(inputs[RESET_INPUT].value);
+	oscillator.step(engineGetSampleTime());
+	oscillator.setReset(inputs[RESET_INPUT].value || params[RESET_PARAM].value);
 
 	//----------------	DISPLAY Hz	--------------------------
 	float frq = params[FREQ_PARAM].value + params[FM1_PARAM].value * inputs[FM1_INPUT].value + params[FM2_PARAM].value * inputs[FM2_INPUT].value;
@@ -314,7 +317,7 @@ TrimLFOWidget::TrimLFOWidget(TrimLFO *module) : ModuleWidget(module) {
 	addInput(Port::create<BarkInPort350>(Vec(119.89f, rackY - 164.05f), Port::INPUT, module, TrimLFO::RESET_INPUT));
 	//addInput(Port::create<BarkPatchPortIn>(Vec(63.35f, rackY - 332.02f), Port::INPUT, module, TrimLFO::MODSRC_INPUT));
 	//Knobs---
-	addParam(ParamWidget::create<BarkKnob70>(Vec(39.66f, rackY - 217.01f), module, TrimLFO::FREQ_PARAM, -16.0f, 4.0f, -6.0f));
+	addParam(ParamWidget::create<BarkKnob70>(Vec(39.66f, rackY - 217.01f), module, TrimLFO::FREQ_PARAM, -16.0f, 4.0f, 1.0f));//-6
 	addParam(ParamWidget::create<BarkScrew01>(Vec(box.size.x - 13, 367.2f), module, TrimLFO::FINE_PARAM, -0.06798301f, 0.06798301f, 0.0f));
 	addParam(ParamWidget::create<BarkKnob40>(Vec(20.48f, rackY - 329.58f), module, TrimLFO::OFFSET1_PARAM, -10.0f, 10.0f, 0.0f));
 	addParam(ParamWidget::create<BarkKnob40>(Vec(89.7f, rackY - 329.58f), module, TrimLFO::OFFSET2_PARAM, -10.0f, 10.0f, 10.0f));
@@ -326,6 +329,7 @@ TrimLFOWidget::TrimLFOWidget(TrimLFO *module) : ModuleWidget(module) {
 	//Switch---
 	addParam(ParamWidget::create<BarkSwitch>(Vec(8.67f, rackY - 217.06f), module, TrimLFO::OFFSET_PARAM, 0.0f, 1.0f, 1.0f));
 	addParam(ParamWidget::create<BarkSwitch>(Vec(117.57f, rackY - 217.06f), module, TrimLFO::INVERT_PARAM, 0.0f, 1.0f, 1.0f));
+	addParam(ParamWidget::create<BarkButton1>(Vec(122.72f, rackY - 138.20f), module, TrimLFO::RESET_PARAM, 0.0f, 1.0f, 1.0f));
 	//Screw---
 	addChild(Widget::create<BarkScrew3>(Vec(2, 3)));	//pos1
 	//Light---
@@ -371,6 +375,7 @@ struct bpmTrimLFO : Module {
 		BPM_PARAM,
 		FREQHZplus_PARAM,	// +divide by 0.5f
 		FREQHZminus_PARAM,	// -multiply by 0.5f
+		RESET_PARAM,
 		NUM_PARAMS
 	};
 	enum InputIds {
@@ -407,11 +412,11 @@ struct bpmTrimLFO : Module {
 
 	bpmTrimLFO() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {}
 	void step() override;
-
 };
 
 
 void bpmTrimLFO::step() {
+	
 
 	volts1bpm = clamp(params[OFFSET1_PARAM].value, -10.0f, 10.0f);
 	volts2bpm = clamp(params[OFFSET2_PARAM].value, -10.0f, 10.0f);
@@ -432,8 +437,8 @@ void bpmTrimLFO::step() {
 	oscillator.setPulseWidth(params[PW_PARAM].value + params[PWM_PARAM].value * inputs[PW_INPUT].value / 10.0f);
 	oscillator.offset = (params[OFFSET_PARAM].value > 0.0f);
 	oscillator.invert = (params[INVERT_PARAM].value <= 0.0f);
-	oscillator.step(1.0 / engineGetSampleRate());
-	oscillator.setReset(inputs[RESET_INPUT].value);
+	oscillator.step(engineGetSampleTime());
+	oscillator.setReset(inputs[RESET_INPUT].value || params[RESET_PARAM].value);
 
 	//----------------	DISPLAY Hz	--------------------------
 	float frq = params[FREQ_PARAM].value + params[FM1_PARAM].value * inputs[FM1_INPUT].value + params[FM2_PARAM].value * inputs[FM2_INPUT].value;
@@ -450,7 +455,7 @@ void bpmTrimLFO::step() {
 	///sin.saw----
 	if (waveMixParam < 1.0f) {// 0.0f sin
 		xFade = crossfade(sinValue, sawValue, waveMixParam);
-		outputs[trimLFO_OUTPUT].value = fmaxf(params[OFFSET1_PARAM].value, fminf(params[OFFSET2_PARAM].value, xFade));
+		outputs[trimLFO_OUTPUT].value = fmaxf (params[OFFSET1_PARAM].value, fminf(params[OFFSET2_PARAM].value, xFade));
 	}
 	///saw.tri----
 	else if (waveMixParam < 2.0f) {	//1.0f saw
@@ -604,6 +609,7 @@ bpmTrimLFOWidget::bpmTrimLFOWidget(bpmTrimLFO *module) : ModuleWidget(module) {
 	//Switch---
 	addParam(ParamWidget::create<BarkSwitch>(Vec(8.67f, rackY - 217.06f), module, bpmTrimLFO::OFFSET_PARAM, 0.0f, 1.0f, 1.0f));
 	addParam(ParamWidget::create<BarkSwitch>(Vec(117.57f, rackY - 217.06f), module, bpmTrimLFO::INVERT_PARAM, 0.0f, 1.0f, 1.0f));
+	addParam(ParamWidget::create<BarkButton1>(Vec(122.72f, rackY - 138.20f), module, bpmTrimLFO::RESET_PARAM, 0.0f, 1.0f, 1.0f));
 	//Screw---
 	//addChild(Widget::create<BarkScrew3>(Vec(2, 3)));	//pos1
 	//Light---
