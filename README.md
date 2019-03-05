@@ -8,7 +8,8 @@ VCVrack Modules
 LFO module with two offset knobs which trims the top and bottom values from the LFO leaving the original waveform intact. Has the
 extra function of mixing the diffent waveforms when the offsets are left full, but those can be trimmed also. If you click click on the
 "RST" text under the RESET port it will manually reset the LFO. The result of this will also change the LFO's phase.
-There is two version A BPM value on the display and a Hz value on the display both are identical bar the display.
+
+note: Two versions of the same module. A BPM value on the display and a Hz value on the display both are identical bar the display.
 
 # Quad Logic v0.6.2
 Because 1 just is not enough.
