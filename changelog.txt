@@ -12,7 +12,8 @@ updated panel
 fixed slider anchor showing at abitrary zoom levels
 
 new modules--
-BMP LFO- Trim LFO with a "BPM" value instead of "Hz". Features include snap enabled knob for Halving/Doubling the frequency value and fine tune.
+BMP LFO- Trim LFO with a "BPM" value instead of "Hz". Features include snap enabled knob for Halving/Doubling 
+the frequency value and fine tune.
 
 1 Band- A dual mono 1 band parametric EQ and Amplifier. Features include swaping L/R channels, built in Peak meter, listen to the EQ
 processing, bypass EQ, frequency control via mod source (play the frequencies with a sequencer or LFO), dynamics control with the Gain 
