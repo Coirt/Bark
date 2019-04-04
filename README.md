@@ -14,7 +14,7 @@ note: Two versions of the same module. A BPM value on the display and a Hz value
 # Quad Logic v0.6.2
 Because 1 just is not enough.
 
-# 1Band v0.6.5
+# 1Band v0.6.6
 Dual Mono Parametric EQ with built in VU peak meter to see if the signal clipping. Pre/Post gain to VU meters (pre EQ / Post EQ). 
 Listen to what frequencies are being processed by the EQ with the headphone switch. Swap L/R channels. Modulation Inputs for Gain,
 Frquency and Q.
