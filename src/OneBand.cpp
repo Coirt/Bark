@@ -87,53 +87,55 @@ void OneBand::step(){
 	}
 	//dB Peak Level Indicator-------------------------------------------------------
 
-		if (inputs[FREQMOD_INPUT].active) {
-			lights[FreqParamOn].setBrightness(0); lights[FreqParamOff].setBrightness(1);
-			modInput = fminf(clamp((inputs[FREQMOD_INPUT].value / 5.f), abs(.01375f), abs(10.f)), fmaxf(abs(.01375f), abs(10.f)));
-			lpf24.setCutoff(110.f);
-			lpf24.process(modInput, engineGetSampleTime());
-			eqFreq = clamp(params[EQFREQ_PARAM].value, .11f, .11f) + ((5.f * lpf24.lowpass) * 2);
-		} else if (!inputs[FREQMOD_INPUT].active){
-			lights[FreqParamOn].setBrightness(1); lights[FreqParamOff].setBrightness(0);
-			eqFreq = fmax(params[EQFREQ_PARAM].value, fmin(abs(.01375), abs(10.)));
+	if (inputs[FREQMOD_INPUT].active) {
+		lights[FreqParamOn].setBrightness(0); lights[FreqParamOff].setBrightness(1);
+		modInput = fminf(clamp((inputs[FREQMOD_INPUT].value / 5.f), abs(.01375f), abs(10.f)), fmaxf(abs(.01375f), abs(10.f)));
+		lpf24.setCutoff(110.f);
+		lpf24.process(modInput, engineGetSampleTime());
+		eqFreq = clamp(params[EQFREQ_PARAM].value, .11f, .11f) + ((5.f * lpf24.lowpass) * 2);	//lin
+	} else if (!inputs[FREQMOD_INPUT].active){
+		lights[FreqParamOn].setBrightness(1); lights[FreqParamOff].setBrightness(0);
+		eqFreq = fmax(powf(2.f, params[EQFREQ_PARAM].value), fmin(abs(.01375), abs(10.)));	//exp
+	}
+	sampRate = engineGetSampleRate();
+	//freq
+	if (inputs[FREQMOD_INPUT].active) { biquadFreq = eqFreq * 2000.;		//lin
+	} else if (!inputs[FREQMOD_INPUT].active) { biquadFreq = eqFreq * 20.; }	//exp
+	biquadQ = eqQ;
+	//Bypass EQ/Gain------------------------
+	if (params[EQBYPASS_PARAM].value < 1.f) {biquadGain = eqGain;}		//EQ ON
+	else if (params[EQBYPASS_PARAM].value > 0.f) {biquadGain = 0.0;}	//EQ OFF
+	//Bypass EQ Gain------------------------
+	//set Biquad Values
+	parametricEQL->setBiquad(bq_type_peak, biquadFreq / sampRate, biquadQ, biquadGain);
+	parametricEQR->setBiquad(bq_type_peak, biquadFreq / sampRate, biquadQ, biquadGain);
+	//Listen to EQ
+	if (Listen == 1) {//invert input
+		if (swapLR == 1) {
+			outR = parametricEQL->process(inL * Gain) -inL;
+			outL = parametricEQR->process(inR * Gain) -inR;
+		} else {
+			outL = parametricEQL->process(inL * Gain) -inL;
+			outR = parametricEQR->process(inR * Gain) -inR;
 		}
-		sampRate = engineGetSampleRate();
-		biquadFreq = eqFreq * 2000.f;
-		biquadQ = eqQ;
-		//Bypass EQ/Gain------------------------
-		if (params[EQBYPASS_PARAM].value < 1.f) {biquadGain = eqGain;}		//EQ ON
-		else if (params[EQBYPASS_PARAM].value > 0.f) {biquadGain = 0.0;}	//EQ OFF
-		//Bypass EQ Gain------------------------
-		//set Biquad Values
-		parametricEQL->setBiquad(bq_type_peak, biquadFreq / sampRate, biquadQ, biquadGain);
-		parametricEQR->setBiquad(bq_type_peak, biquadFreq / sampRate, biquadQ, biquadGain);
-		//Listen to EQ
-		if (Listen == 1) {//invert input
-			if (swapLR == 1) {
-				outR = parametricEQL->process(inL * Gain) -inL;
-				outL = parametricEQR->process(inR * Gain) -inR;
-			} else {
-				outL = parametricEQL->process(inL * Gain) -inL;
-				outR = parametricEQR->process(inR * Gain) -inR;
-			}
-		} else if (Listen != 1) {
-			if (swapLR == 1) {
-				outR = parametricEQL->process(inL * Gain);
-				outL = parametricEQR->process(inR * Gain);
-			} else {
-				outL = parametricEQL->process(inL * Gain);
-				outR = parametricEQR->process(inR * Gain);
-			}
+	} else if (Listen != 1) {
+		if (swapLR == 1) {
+			outR = parametricEQL->process(inL * Gain);
+			outL = parametricEQR->process(inR * Gain);
+		} else {
+			outL = parametricEQL->process(inL * Gain);
+			outR = parametricEQR->process(inR * Gain);
 		}
-		
-		//dev---Check parameter value---------------------------------
-		//outputs[devParamOutGain].value = params[EQGAIN_PARAM].value;
-		//outputs[devParamOutFrq].value = params[EQFREQ_PARAM].value;
-		//outputs[devParamOutQ].value = params[EQBANDWIDTH_PARAM].value;
-		//dev---Check parameter value---------------------------------
-		
-		outputs[OUTL_OUTPUT].value = outL;
-		outputs[OUTR_OUTPUT].value = outR;
+	}
+	
+	//dev---Check parameter value---------------------------------
+	//outputs[devParamOutGain].value = params[EQGAIN_PARAM].value;
+	//outputs[devParamOutFrq].value = params[EQFREQ_PARAM].value;
+	//outputs[devParamOutQ].value = params[EQBANDWIDTH_PARAM].value;
+	//dev---Check parameter value---------------------------------
+	
+	outputs[OUTL_OUTPUT].value = outL;
+	outputs[OUTR_OUTPUT].value = outR;
 }
 
 struct OneBandWidget : ModuleWidget{
