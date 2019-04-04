@@ -1,3 +1,7 @@
+---v0.6.6---
+1 band frequency parameter now scales logarithmically (as suggested by Dra Gonas) note: mod input still linear
+-----------------------------
+
 ---v0.6.5---
 Slightly tweaked In port colour, red circles on the ports should now look nicer when scale is smaller than 1.1
 Enabled mod inputs on 1 band, also tweaked internal code.
