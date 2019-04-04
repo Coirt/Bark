@@ -1,6 +1,6 @@
 RACK_DIR ?= ../..
 SLUG = Bark
-VERSION = 0.6.5
+VERSION = 0.6.6
 
 FLAGS +=
 SOURCES += $(wildcard src/*.cpp)
