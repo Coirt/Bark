@@ -1,4 +1,19 @@
-###NOT YET READY FOR V1
+### V1 is under construction
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Bark
 VCVrack Modules
