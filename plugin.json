@@ -1,0 +1,52 @@
+{
+  "slug": "Bark",
+  "version": "1.0.0",
+  "license": "BSD-4-Clause",
+  "name": "Bark",
+  "author": "Coirt",
+  "authorEmail": "philg@live.ie",
+  "pluginUrl": "https://github.com/Coirt/Bark",
+  "authorUrl": "https://github.com/Coirt",
+  "manualUrl": "",
+  "sourceUrl": "https://github.com/Coirt/Bark",
+  "changelogUrl": "",
+  "donateUrl": "https://www.paypal.me/philgolden",
+  "modules": [
+
+    {
+      "slug": "Bark_TrimLFOhz",
+      "name": "Trim LFO Hz",
+      "description": "Trims top/bottom values on the selected LFO output, without attenuating",
+      "tags": [ "LFO" ]
+    },
+
+    {
+      "slug": "Bark_OneBand",
+      "name": "One Band",
+      "description": "Dual mono parametric EQ",
+      "tags": [ "Equalizer" ]
+    },
+
+    {
+      "slug": "Bark_TrimLFObpm",
+      "name": "Trim LFO BPM",
+      "description": "Trims top/bottom values on the selected LFO output, without attenuating",
+      "tags": [ "LFO", "Utility", "LOGIC", "Dual", "Clock" ]
+    },
+
+    {
+      "slug": "Testing",
+      "name": "Testign Panel",
+      "description": "Panel for testing",
+      "tags": [ "Utility" ]
+    },
+
+    {
+      "slug": "Bark_ClockSeq16",
+      "name": "Clock Seq 16",
+      "description": "2 x 8 or 16 step sequencer",
+      "tags": [ "Sequencer" ]
+    }
+
+  ]
+}
