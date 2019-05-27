@@ -2,11 +2,12 @@
   "slug": "Bark",
   "version": "1.0.0",
   "license": "BSD-4-Clause",
-  "name": "Bark",
-  "author": "Coirt",
+  "name": "Coirt",
+  "brand": "Bark",
+  "author": "Phil Golden",
   "authorEmail": "philg@live.ie",
-  "pluginUrl": "https://github.com/Coirt/Bark",
   "authorUrl": "https://github.com/Coirt",
+  "pluginUrl": "https://github.com/Coirt/Bark",
   "manualUrl": "",
   "sourceUrl": "https://github.com/Coirt/Bark",
   "changelogUrl": "",
@@ -14,39 +15,38 @@
   "modules": [
 
     {
-      "slug": "Bark_TrimLFOhz",
+      "slug": "TrimLFO",
       "name": "Trim LFO Hz",
       "description": "Trims top/bottom values on the selected LFO output, without attenuating",
-      "tags": [ "LFO" ]
+      "tags": [ "LFO", "Utility", "Logic", "Dual", "Clock generator" ]
     },
 
     {
-      "slug": "Bark_OneBand",
+      "slug": "OneBand",
       "name": "One Band",
-      "description": "Dual mono parametric EQ",
-      "tags": [ "Equalizer" ]
+      "description": "Dual-Mono parametric EQ",
+      "tags": [ "Equalizer", "Attenuator" ]
     },
 
     {
-      "slug": "Bark_TrimLFObpm",
+      "slug": "bpmTrimLFO",
       "name": "Trim LFO BPM",
       "description": "Trims top/bottom values on the selected LFO output, without attenuating",
-      "tags": [ "LFO", "Utility", "LOGIC", "Dual", "Clock" ]
+      "tags": [ "LFO", "Utility", "Logic", "Dual", "Clock generator" ]
     },
 
     {
-      "slug": "Testing",
-      "name": "Testign Panel",
+      "slug": "TestPanel",
+      "name": "Testing Panel",
       "description": "Panel for testing",
       "tags": [ "Utility" ]
     },
 
     {
-      "slug": "Bark_ClockSeq16",
+      "slug": "ClockSeq16",
       "name": "Clock Seq 16",
       "description": "2 x 8 or 16 step sequencer",
       "tags": [ "Sequencer" ]
     }
-
   ]
 }
