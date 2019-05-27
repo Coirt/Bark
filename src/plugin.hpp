@@ -12,4 +12,4 @@ extern Model *modelOneBand;
 extern Model *modelbpmTrimLFO;
 extern Model *modelTestPanel;
 //extern Model *modelNavPanel;
-extern Model *modelClockSeq16;
+//extern Model *modelClockSeq16;
