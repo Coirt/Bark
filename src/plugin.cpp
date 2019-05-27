@@ -14,6 +14,6 @@ void init(rack::Plugin *p) {
 	p->addModel(modelbpmTrimLFO);
 	p->addModel(modelTestPanel);
 	//p->addModel(modelNavPanel);
-	 p->addModel(modelClockSeq16);
+	//p->addModel(modelClockSeq16);
 
 }
