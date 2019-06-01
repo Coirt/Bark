@@ -285,4 +285,4 @@ struct OneBandWidget : ModuleWidget {
 		
 	}
 };
-Model *modelOneBand = createModel<OneBand, OneBandWidget>("One Band");
+Model *modelOneBand = createModel<OneBand, OneBandWidget>("OneBand");
