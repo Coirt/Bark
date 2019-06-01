@@ -334,7 +334,7 @@ struct TrimLFOWidget : ModuleWidget {
 	}
 };
 
-Model *modelTrimLFO = createModel<TrimLFO, TrimLFOWidget>("Trim LFO Hz");
+Model *modelTrimLFO = createModel<TrimLFO, TrimLFOWidget>("TrimLFO");
 
 //**-------------------------------------------------------------------------------------------------------------------------------------------------
 //-----bpmTrimLFO------------------------------------------------------------------------------------------------------------------------------------
@@ -639,4 +639,4 @@ struct bpmTrimLFOWidget : ModuleWidget {
 	}
 };
 
-Model *modelbpmTrimLFO = createModel<bpmTrimLFO, bpmTrimLFOWidget>("Trim LFO BPM");
+Model *modelbpmTrimLFO = createModel<bpmTrimLFO, bpmTrimLFOWidget>("bpmTrimLFO");
