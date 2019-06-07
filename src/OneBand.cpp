@@ -91,7 +91,7 @@ struct OneBand : Module {
 		///		float displayBase = 0.f, float displayMultiplier = 1.f, float displayOffset = 0.f)
 		//Knob---
 		configParam(EQGAIN_PARAM, -6.5f, 6.5f, 0.f, "Band Gain", " dB", params[EQGAIN_PARAM].getValue(), 5.f);
-		configParam(EQFREQ_PARAM, .459435f, 10.f, 3.459432f, "Freq", "Hz", 2, 20);	// .01375f
+		configParam(EQFREQ_PARAM, .459435f, 10.f, 3.459432f, "Freq", " Hz", 2, 20);	// .01375f
 		//configParam(EQFREQ_PARAM, 1.1726039399558574, 10.f, 3.3166247903554f, "Freq", " Hz", 20.f, std::pow(2.f, params[EQFREQ_PARAM].getValue()) );	// .01375f
 		configParam(EQBANDWIDTH_PARAM, 1.f, 40.f, 15.f, "Q Factor");
 		configParam(OUTGAIN_PARAM, 0.f, 7.f, 2.f, "Output Gain: ", " dB", -10, 20, -13.f);	//needs diff offset, TODO: show 0dB by default? or meter dB?
