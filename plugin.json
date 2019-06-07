@@ -39,7 +39,8 @@
       "slug": "TestPanel",
       "name": "Testing Panel",
       "description": "Panel for testing",
-      "tags": [ "Utility" ]
+      "tags": [ "Utility" ],
+      "disabled": true
     },
 
     {
