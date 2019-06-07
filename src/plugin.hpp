@@ -6,10 +6,12 @@ extern Plugin *pluginInstance;
 
 //Modules
 extern Model *modelTrimLFO;
-//extern Model *modelQuadLogic;
-//extern Model *modelPanel6;
+extern Model *modelQuadLogic;
+extern Model *modelPanel6;
 extern Model *modelOneBand;
 extern Model *modelbpmTrimLFO;
 extern Model *modelTestPanel;
 //extern Model *modelNavPanel;
 //extern Model *modelClockSeq16;
+extern Model *modelPolyMix;
+
