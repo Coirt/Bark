@@ -2,7 +2,7 @@
 #include "rack.hpp"
 
 
-namespace barkComponents {		//		componentlibrary
+namespace barkComponents {
 	///Colour--------------------------------------------------
 	static const NVGcolor BARK_GREEN = nvgRGBA(73, 191, 0, 255);
 	static const NVGcolor BARK_YELLOW1 = nvgRGBA(255, 212, 42, 255);
@@ -99,6 +99,20 @@ namespace barkComponents {		//		componentlibrary
 			//addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonReset_0.svg")));
 		}
 	};
+
+	struct BarkBtnMute : app::SvgSwitch {
+		BarkBtnMute() {
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkBTNMuteDown.svg")));
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkBTNMuteUp.svg")));
+		}
+	};
+	
+	struct BarkBtnSolo : app::SvgSwitch {
+		BarkBtnSolo() {
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkBTNSoloDown.svg")));
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkBTNSoloUp.svg")));
+		}
+	};
 	
 	struct BarkPushButton1 : app::SvgSwitch {
 		BarkPushButton1() {
@@ -131,10 +145,10 @@ namespace barkComponents {		//		componentlibrary
 	////Slider----
 	struct BarkSlide1 : app::SvgSlider {
 		BarkSlide1() {
-			///TODO: toggle for snap or fade or momentary button to snap to nearest
+			///TODO: toggle for snap / fade or momentary button to snap to nearest
 			math::Vec position = math::Vec(0.f, 0.f);
-			maxHandlePos = math::Vec(95.f, 0.0f).plus(position);
-			minHandlePos = math::Vec(-5.0f, 0.0f).plus(position);
+			maxHandlePos = math::Vec(95.f, 0.f).plus(position);
+			minHandlePos = math::Vec(-5.f, 0.f).plus(position);
 			setBackgroundSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/Barkslider1.svg")));
 			background->wrap();
 			background->box.pos = position;
@@ -146,16 +160,18 @@ namespace barkComponents {		//		componentlibrary
 			speed = 0.5f;
 			horizontal = true;
 		}
-		///flips up/down axis to left/right
-		/*void onDragMove(EventDragMove &e) override {
-			EventDragMove e2 = e;
-			e2.mouseRel = Vec(e.mouseRel.y, -e.mouseRel.x);
-			SVGFader::onDragMove(e2);
-		}*/
 		///turns off randomising
 		/*void randomize() override {}*/
 	};
-
+	struct BarkFaderLong : app::SvgSlider {
+		BarkFaderLong() {
+			minHandlePos = math::Vec(0, 95);
+			maxHandlePos = math::Vec(0, 3);
+			setBackgroundSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkSliderFaderLong.svg")));
+			setHandleSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkSliderHandleFaderLong.svg")));
+			speed = 0.8f;
+		}
+	};
 	////Ports----
 	///Port In--
 	struct BarkInPort : app::SvgPort {
@@ -232,6 +248,16 @@ namespace barkComponents {		//		componentlibrary
 		}
 	};
 
+	struct BarkKnobSwitchSmall : app::SvgKnob {
+		BarkKnobSwitchSmall() {
+			snap = true;
+			shadow->opacity = 0.f;
+			minAngle = -0.f * M_PI;
+			maxAngle = 0.25f * M_PI;	//0.29
+			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkKnobSwitchSmall.svg")));
+		}
+	};
+
 	struct BarkKnob9 : app::SvgKnob {
 		BarkKnob9() {
 			minAngle = -0.835 * M_PI;
@@ -239,6 +265,17 @@ namespace barkComponents {		//		componentlibrary
 			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkKnob9.svg")));
 			sw->wrap();
 			box.size = sw->box.size;
+		}
+	};
+
+	struct BarkKnob20 : app::SvgKnob {
+		BarkKnob20() {
+			minAngle = -0.835 * M_PI;
+			maxAngle = 0.831 * M_PI;
+			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkKnob20.svg")));
+			sw->wrap();
+			box.size = sw->box.size;
+			speed = 0.65f;
 		}
 	};
 
@@ -441,5 +478,6 @@ namespace barkComponents {		//		componentlibrary
 			this->bgColor = nvgRGBA(192, 192, 192, 45);//silver
 		}
 	};
+
 }//namespace barkComponents
 
