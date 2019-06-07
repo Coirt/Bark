@@ -46,7 +46,29 @@
       "slug": "ClockSeq16",
       "name": "Clock Seq 16",
       "description": "2 x 8 or 16 step sequencer",
-      "tags": [ "Sequencer" ]
+      "tags": [ "Sequencer" ], 
+      "disabled": true
+    }
+    
+    {
+      "slug": "PolyMix",
+      "name": "Polyphonic Mixer",
+      "description": "One Cable(s), 4x4 channel Mixer with send/return",
+      "tags": [ "Mixer", "Polyphonic" ]
+    },
+
+    {
+      "slug": "QuadLogic",
+      "name": "Quad Logic",
+      "description": "Min/Max value based on inputs",
+      "tags": [ "Utility", "Logic" ]
+    },
+
+    {
+      "slug": "Panel6",
+      "name": "Panel 6",
+      "description": "Blank",
+      "tags": [ "Blank" ]
     }
   ]
 }
