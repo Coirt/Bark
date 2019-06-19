@@ -9,7 +9,10 @@ namespace barkComponents {
 	static const NVGcolor BARK_YELLOW2 = nvgRGBA(255, 192, 42, 255);
 	static const NVGcolor BARK_ORANGE = nvgRGBA(250, 123, 0, 255);
 	static const NVGcolor BARK_RED = nvgRGBA(186, 15, 0, 255);
-	static const NVGcolor BARK_CLIPPING = nvgRGBA(240, 255, 255, 255);//white
+	static const NVGcolor BARK_CLIPPING = nvgRGBA(240, 255, 255, 255);	//white
+	static const NVGcolor VCVPOLY_BLUE = nvgRGBA(41, 178, 239, 255);
+	static const NVGcolor BARK_FAKEPOLY = nvgRGBA(0, 128, 0, 255);
+	static const NVGcolor BARK_MUTEPOLY = BARK_RED;
 	///Colour--------------------------------------------------
 
 	////Screw----
@@ -92,6 +95,14 @@ namespace barkComponents {
 		}
 	};
 
+	struct BarkSwitchSmallSide2 : app::SvgSwitch {
+		BarkSwitchSmallSide2() {
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkSwitchSmallSide_3.svg")));
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkSwitchSmallSide_4.svg")));
+			shadow->opacity = 0.f;
+		}
+	};
+
 	struct BarkButton1 : app::SvgSwitch {
 		BarkButton1() {
 			momentary = true;
@@ -118,6 +129,15 @@ namespace barkComponents {
 		BarkPushButton1() {
 			momentary = true;
 			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonRound1_0.svg")));
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonRound1_1.svg")));
+		}
+	};
+
+	struct BarkPushButton2 : app::SvgSwitch {
+		BarkPushButton2() {
+			momentary = false;
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonRound1_0.svg")));
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonRound1_1.svg")));
 		}
 	};
 
@@ -437,7 +457,26 @@ namespace barkComponents {
 			addBaseColor(BARK_CLIPPING);
 		}
 	};
-
+	
+	struct PolyLight : GrayModuleLightWidget {
+		PolyLight() {
+			addBaseColor(VCVPOLY_BLUE);
+			//addBaseColor(BARK_MUTEPOLY);
+		}
+	};
+	
+	struct PolyMute : GrayModuleLightWidget {
+		PolyMute() {
+			addBaseColor(BARK_MUTEPOLY);
+		}
+	};
+	
+	struct PolyFake : GrayModuleLightWidget {
+		PolyFake() {
+			addBaseColor(BARK_FAKEPOLY);
+		}
+	};
+	
 	template <typename BASE>
 	struct BiggerLight : BASE {
 		BiggerLight() {
@@ -476,6 +515,7 @@ namespace barkComponents {
 		SmallestLight() {
 			this->box.size = Vec(3, 3);//px
 			this->bgColor = nvgRGBA(192, 192, 192, 45);//silver
+			this->borderColor = nvgRGBA(56, 56, 56, 45);//panel
 		}
 	};
 
