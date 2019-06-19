@@ -2,7 +2,6 @@
 #include "barkComponents.hpp"
 #include "dependancies/filt/biquad.cpp"
 #include "dependancies/filt/lp24.cpp"
-#include "dependancies/dsp/vumeter1.hpp"
 
 using namespace barkComponents;
 
@@ -77,9 +76,10 @@ struct OneBand : Module {
 		NUM_LIGHTS = dBpeak_LIGHT + 8			//7 + Clipping Light
 	};
 
-	VUMeter1 volUnitIndicatorPEAK;	//TODO vumeter2
-	//dsp::VuMeter2 volUnitIndicatorPEAK;
-	//dsp::Counter light;
+	//instantiate
+	dsp::VuMeter2 volUnitIndicatorPEAK;
+	dsp::ClockDivider vuDivider;
+	dsp::ClockDivider lightDivider;
 	Biquad *parametricEQL = new Biquad();
 	Biquad *parametricEQR = new Biquad();
 	LadderFilter lpf24;		//smoothing
@@ -90,11 +90,11 @@ struct OneBand : Module {
 		///		std::string label = "", std::string unit = "", //new feature
 		///		float displayBase = 0.f, float displayMultiplier = 1.f, float displayOffset = 0.f)
 		//Knob---
-		configParam(EQGAIN_PARAM, -6.5f, 6.5f, 0.f, "Band Gain", " dB", params[EQGAIN_PARAM].getValue(), 5.f);
+		configParam(EQGAIN_PARAM, -6.5f, 6.5f, 0.f, "Band Gain", "dB", params[EQGAIN_PARAM].getValue(), 5.f);
 		configParam(EQFREQ_PARAM, .459435f, 10.f, 3.459432f, "Freq", " Hz", 2, 20);	// .01375f
 		//configParam(EQFREQ_PARAM, 1.1726039399558574, 10.f, 3.3166247903554f, "Freq", " Hz", 20.f, std::pow(2.f, params[EQFREQ_PARAM].getValue()) );	// .01375f
-		configParam(EQBANDWIDTH_PARAM, 1.f, 40.f, 15.f, "Q Factor");
-		configParam(OUTGAIN_PARAM, 0.f, 7.f, 2.f, "Output Gain: ", " dB", -10, 20, -13.f);	//needs diff offset, TODO: show 0dB by default? or meter dB?
+		configParam(EQBANDWIDTH_PARAM, .1f, 40.f, 15.f, "Q Factor");
+		configParam(OUTGAIN_PARAM, 0.f, 7.f, 2.f, "Output Gain", "dB", -10, 20, -13.f);	//needs diff offset, TODO: show 0dB by default? or meter dB?
 		//Switch---
 		configParam<tpEQstatus>(EQBYPASS_PARAM, 0.f, 1.f, 0.f, "EQ");
 		configParam<tpGainVal>(PREPOST_PARAM, 0.f, 1.f, 0.f, "Meter", " Gain");
@@ -102,7 +102,9 @@ struct OneBand : Module {
 		configParam<tpEQprocess>(LISTEN_PARAM, 0.f, 1.f, 0.f, "EQ");
 
 		//TODO vumeter2
-		//light.setPeriod(8);//128 faster?
+		volUnitIndicatorPEAK.lambda = 1 / 0.1f;
+		vuDivider.setDivision(16);
+		lightDivider.setDivision(256);
 	}
 	
 	void process(const ProcessArgs &args) override {
@@ -113,8 +115,8 @@ struct OneBand : Module {
 			Gain = params[OUTGAIN_PARAM].getValue() / 2.0f;
 		double eqGain = params[EQGAIN_PARAM].getValue() * 5.0 + (clamp(inputs[GAINMOD_INPUT].getVoltage(), -6.5f, 6.5f) * 5.0),
 			modInput, eqFreq/* = std::fmax(params[EQFREQ_PARAM].getValue(), std::fmin(fabs(1.17260394), fabs(10.)))*/,	//duplicated
-			eqQ = clamp(params[EQBANDWIDTH_PARAM].getValue(), 2.f, 40.f) + (4.f * clamp(inputs[BWMOD_INPUT].getVoltage(), 2.f, 40.f));
-		double sampRate, biquadFreq, biquadQ, biquadGain;
+			eqQ = clamp(params[EQBANDWIDTH_PARAM].getValue(), .1f, 40.f) + (4.f * clamp(inputs[BWMOD_INPUT].getVoltage(), .1f, 40.f));
+		double sampRate, biquadFreq, biquadQ, biquadGain = 0.;
 
 		//dBmeter on input-------------------
 		inL = inputs[INL_INPUT].getVoltage();	
@@ -123,23 +125,41 @@ struct OneBand : Module {
 		outLdBVU = outputs[OUTL_OUTPUT].getVoltage();	
 		outRdBVU = outputs[OUTR_OUTPUT].getVoltage();
 
-		//dB Peak Level Indicator------------------------------------------------------- pre EQ / post EQ
-		volUnitIndicatorPEAK.dBInterval = 3.f;
-		for (int light = 0; light < 8; light++) {
-			//TODO: L/R unbalanced inputs will not engage clip light
+		//dB Peak Level Indicator-------------------------------------------------------  
+		if (vuDivider.process()) {
+			//pre EQ---
 			if (params[PREPOST_PARAM].value == 0.0f && !inputs[INR_INPUT].active) {//pre
-				volUnitIndicatorPEAK.setValue(inL / 10.f);
-				lights[dBpeak_LIGHT + light].setBrightnessSmooth(volUnitIndicatorPEAK.getBrightness(light));
+				volUnitIndicatorPEAK.process(args.sampleTime * vuDivider.getDivision(), inL / 10.f);
 			} else if (params[PREPOST_PARAM].value == 1.0f && !inputs[INR_INPUT].active) {//post
-				volUnitIndicatorPEAK.setValue(outLdBVU / 10.f);
-				lights[dBpeak_LIGHT + light].setBrightnessSmooth(volUnitIndicatorPEAK.getBrightness(light));
+				volUnitIndicatorPEAK.process(args.sampleTime * vuDivider.getDivision(), outLdBVU / 10.f);
 			}
+			//post EQ---
 			if (params[PREPOST_PARAM].value == 0.0f && inputs[INR_INPUT].active) {
-				volUnitIndicatorPEAK.setValue(((inL / 10.f) + (inR / 10.f)) / 2.f);
-				lights[dBpeak_LIGHT + light].setBrightnessSmooth(volUnitIndicatorPEAK.getBrightness(light));
+				//volUnitIndicatorPEAK.setValue(((inL / 10.f) + (inR / 10.f)) / 2.f);
+				volUnitIndicatorPEAK.process(args.sampleTime * vuDivider.getDivision(), (inL / 10.f) + (inR / 10.f) / 2.f);
 			} else if (params[PREPOST_PARAM].value == 1.0f && inputs[INR_INPUT].active) {
-				volUnitIndicatorPEAK.setValue(((outLdBVU / 10.f) + (outRdBVU / 10.f)) / 2.f);
-				lights[dBpeak_LIGHT + light].setBrightnessSmooth(volUnitIndicatorPEAK.getBrightness(light));
+				//volUnitIndicatorPEAK.setValue(((outLdBVU / 10.f) + (outRdBVU / 10.f)) / 2.f);
+				volUnitIndicatorPEAK.process(args.sampleTime * vuDivider.getDivision(), (outLdBVU / 10.f) + (outRdBVU / 10.f) / 2.f);
+			}
+		}
+		if (lightDivider.process()) {
+			lights[dBpeak_LIGHT + 0].setBrightness(volUnitIndicatorPEAK.getBrightness(0.f, 0.f));
+			for (int light = 1; light < 8; light++) {
+				//TODO: L/R unbalanced inputs will not engage clip light
+				if (params[PREPOST_PARAM].value == 0.0f && !inputs[INR_INPUT].active) {//pre
+					//volUnitIndicatorPEAK.setValue(inL / 10.f);
+					lights[dBpeak_LIGHT + light].setBrightness(volUnitIndicatorPEAK.getBrightness(-3.f * light, -3.f * (light - 1)));
+				} else if (params[PREPOST_PARAM].value == 1.0f && !inputs[INR_INPUT].active) {//post
+					//volUnitIndicatorPEAK.setValue(outLdBVU / 10.f);
+					lights[dBpeak_LIGHT + light].setBrightness(volUnitIndicatorPEAK.getBrightness(-3.f * light, -3.f * (light - 1)));
+				}
+				if (params[PREPOST_PARAM].value == 0.0f && inputs[INR_INPUT].active) {
+					//volUnitIndicatorPEAK.setValue(((inL / 10.f) + (inR / 10.f)) / 2.f);
+					lights[dBpeak_LIGHT + light].setBrightness(volUnitIndicatorPEAK.getBrightness(-3.f * light, -3.f * (light - 1)));
+				} else if (params[PREPOST_PARAM].value == 1.0f && inputs[INR_INPUT].active) {
+					//volUnitIndicatorPEAK.setValue(((outLdBVU / 10.f) + (outRdBVU / 10.f)) / 2.f);
+					lights[dBpeak_LIGHT + light].setBrightness(volUnitIndicatorPEAK.getBrightness(-3.f * light, -3.f * (light - 1)));
+				}
 			}
 		}
 		//dB Peak Level Indicator-------------------------------------------------------
@@ -243,12 +263,12 @@ struct OneBandWidget : ModuleWidget {
 
 		///Ports---
 		//Out---
-		addOutput(createOutput<BarkOutPort350>(Vec(4.05f, rackY - 174.04f), module, OneBand::OUTL_OUTPUT));
-		addOutput(createOutput<BarkOutPort350>(Vec(31.38f, rackY - 174.04f), module, OneBand::OUTR_OUTPUT));
+		addOutput(createOutput<BarkOutPort350>(Vec(4.05f, rackY - 174.04f - 13.74f), module, OneBand::OUTL_OUTPUT));
+		addOutput(createOutput<BarkOutPort350>(Vec(31.38f, rackY - 174.04f - 13.74f), module, OneBand::OUTR_OUTPUT));
 		//In---
 		//Audio--
-		addInput(createInput<BarkInPort350>(Vec(4.05f, rackY - 46.16f), module, OneBand::INL_INPUT));
-		addInput(createInput<BarkInPort350>(Vec(31.38f, rackY - 46.16f), module, OneBand::INR_INPUT));
+		addInput(createInput<BarkInPort350>(Vec(4.05f, rackY - 46.16f - 14.02f), module, OneBand::INL_INPUT));
+		addInput(createInput<BarkInPort350>(Vec(31.38f, rackY - 46.16f - 14.02f), module, OneBand::INR_INPUT));
 		//Mod--
 		addInput(createInput<BarkPatchPortIn>(Vec(34.16f, rackY - 324.73f), module, OneBand::GAINMOD_INPUT));
 		addInput(createInput<BarkPatchPortIn>(Vec(2.16f, rackY - 307.59f), module, OneBand::FREQMOD_INPUT));
@@ -261,26 +281,26 @@ struct OneBandWidget : ModuleWidget {
 		addParam(createParam<BarkKnob26>(Vec(10.2f - offsetKnobs, rackY - 349.73f), module, OneBand::EQGAIN_PARAM));
 		addParam(createParam<BarkKnob26>(Vec(24.95f - offsetKnobs, rackY - 291.2f), module, OneBand::EQFREQ_PARAM));
 		addParam(createParam<BarkKnob26>(Vec(10.68f - offsetKnobs, rackY - 231.51f), module, OneBand::EQBANDWIDTH_PARAM));
-		addParam(createParam<BarkKnob30b>(Vec(8.29f, rackY - 94.67f), module, OneBand::OUTGAIN_PARAM));
+		addParam(createParam<BarkKnob30b>(Vec(8.29f, rackY - 107.46f), module, OneBand::OUTGAIN_PARAM));
 		//Switch---
 		addParam(createParam<BarkSwitchSmall>(Vec(41.29f, rackY - 355.97f), module, OneBand::EQBYPASS_PARAM));
-		addParam(createParam<BarkSwitchSmall>(Vec(11.26f, rackY - 123.78f), module, OneBand::PREPOST_PARAM));
-		addParam(createParam<BarkSwitchSmallSide>(Vec(21.89f, rackY - 148.45f), module, OneBand::SWAPLR_PARAM));
-		addParam(createParam<BarkSwitchSmall>(Vec(40.4f, rackY - 200.21f), module, OneBand::LISTEN_PARAM));
+		addParam(createParam<BarkSwitchSmall>(Vec(11.26f, rackY - 136.57f), module, OneBand::PREPOST_PARAM));
+		addParam(createParam<BarkSwitchSmallSide>(Vec(21.89f, rackY - 161.23f), module, OneBand::SWAPLR_PARAM));
+		addParam(createParam<BarkSwitchSmall>(Vec(40.4f, rackY - 212.39f), module, OneBand::LISTEN_PARAM));
 		//TODO: Screw Positions
 		addChild(createWidget<BarkScrew1>(Vec(box.size.x - 13, 3)));				//pos2
 		addChild(createWidget<BarkScrew2>(Vec(2, 367.2f)));						//pos3
 		//Light---
 		addChild(createLight<SmallerLightFA<ParamInLight>>(Vec(floatyMcFloatFace, rackY - 280.05f), module, OneBand::FreqParamOn));
 		addChild(createLight<SmallerLightFA<ParamInLight>>(Vec(floatyMcFloatFace, rackY - 261.72f), module, OneBand::FreqParamOff));
-		addChild(createLight<BiggerLight<clipLight>>(Vec(lightXpos - 1.f, rackY - 134.65f), module, OneBand::dBpeak_LIGHT + 0));
-		addChild(createLight<BigLight<redLight>>(Vec(lightXpos, rackY - 133.66f), module, OneBand::dBpeak_LIGHT + 1));
-		addChild(createLight<BigLight<orangeLight>>(Vec(lightXpos, rackY - 122.11f), module, OneBand::dBpeak_LIGHT + 2));
-		addChild(createLight<BigLight<yellowLight2>>(Vec(lightXpos, rackY - 110.55f), module, OneBand::dBpeak_LIGHT + 3));
-		addChild(createLight<BigLight<yellowLight1>>(Vec(lightXpos, rackY - 99.f), module, OneBand::dBpeak_LIGHT + 4));
-		addChild(createLight<BigLight<greenLight>>(Vec(lightXpos, rackY - 87.45f), module, OneBand::dBpeak_LIGHT + 5));
-		addChild(createLight<BigLight<greenLight>>(Vec(lightXpos, rackY - 75.9f), module, OneBand::dBpeak_LIGHT + 6));
-		addChild(createLight<BigLight<greenLight>>(Vec(lightXpos, rackY - 64.35f), module, OneBand::dBpeak_LIGHT + 7));
+		addChild(createLight<BiggerLight<clipLight>>(Vec(lightXpos - 1.f, rackY - 134.65f - 12.8f), module, OneBand::dBpeak_LIGHT + 0));
+		addChild(createLight<BigLight<redLight>>(Vec(lightXpos, rackY - 133.66f - 12.8f), module, OneBand::dBpeak_LIGHT + 1));
+		addChild(createLight<BigLight<orangeLight>>(Vec(lightXpos, rackY - 122.11f - 12.8f), module, OneBand::dBpeak_LIGHT + 2));
+		addChild(createLight<BigLight<yellowLight2>>(Vec(lightXpos, rackY - 110.55f - 12.8f), module, OneBand::dBpeak_LIGHT + 3));
+		addChild(createLight<BigLight<yellowLight1>>(Vec(lightXpos, rackY - 99.f - 12.8f), module, OneBand::dBpeak_LIGHT + 4));
+		addChild(createLight<BigLight<greenLight>>(Vec(lightXpos, rackY - 87.45f - 12.8f), module, OneBand::dBpeak_LIGHT + 5));
+		addChild(createLight<BigLight<greenLight>>(Vec(lightXpos, rackY - 75.9f - 12.8f), module, OneBand::dBpeak_LIGHT + 6));
+		addChild(createLight<BigLight<greenLight>>(Vec(lightXpos, rackY - 64.35f - 12.8f), module, OneBand::dBpeak_LIGHT + 7));
 
 		
 	}
