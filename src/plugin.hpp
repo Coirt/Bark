@@ -14,4 +14,6 @@ extern Model *modelTestPanel;
 //extern Model *modelNavPanel;
 //extern Model *modelClockSeq16;
 extern Model *modelPolyMix;
+extern Model *modelClamp;
+extern Model *modelPolyX;
 
