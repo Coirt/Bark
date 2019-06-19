@@ -16,4 +16,7 @@ void init(rack::Plugin *p) {
 	//p->addModel(modelNavPanel);
 	//p->addModel(modelClockSeq16);
 	p->addModel(modelPolyMix);
+	p->addModel(modelClamp);
+	p->addModel(modelvuMeter2);
+	p->addModel(modelPolyX);
 }
