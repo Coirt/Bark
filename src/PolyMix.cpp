@@ -3,8 +3,6 @@
 
 using namespace barkComponents;
 
-const int chSelect = 0;
-
 struct tpChannelSelect : ParamQuantity {
 	std::string getDisplayValueString() override {
 		if (getValue() == 0.f)
@@ -77,82 +75,174 @@ struct PolyMix : Module {
 			configParam(LEVEL_PARAM + i, 0., M_LOG2E, 1., "Level Ch " + std::to_string(i + 1), "dB", -10, 40);	//M_SQRT2
 			configParam<tpOnOff>(INVERT_PARAM + i, 0.f, 1.f, 1.f, "Invert Ch " + std::to_string(i + 1));
 			configParam<tpOnOff>(MUTE_PARAM + i, 0.f, 1.f, 1.f, "Mute Ch " + std::to_string(i + 1));
-			configParam(SOLO_PARAM + i, 0.f, 1.f, 1.f, "Solo Ch " + std::to_string(i + 1));	//<tpOnOff>
-			//TODO channels numbers on tp for channels 5-16
-			//***pseudo constant int ??function for when channel changed??, i * chSel + 1
+			configParam<tpOnOff>(SOLO_PARAM + i, 0.f, 1.f, 1.f, "Solo Ch " + std::to_string(i + 1));	
 		}
+	}
 
-		//pseudo
+	//pseudo---------------------------------------
 		//float constPowPan(float position) {
 		//	PANPOS pos;
 		//	/* pi/2: 1/4 cycle of a sinusoid */
 		//	const double  piovr2 = 4.0 * atan(1.0) * 0.5;		//	M_PI_2 == 1.57079632679489661923
 		//	const double  root2ovr2 = sqrt(2.0) * 0.5;			//	M_SQRT1_2 == 0.707106781186547524401
-		//	params[PAN_PARAM].getValue();//±0.707106781186547524401
+		//	params[PAN_PARAM].getValue();//Â±0.707106781186547524401
 		//	/* scale position to fit the pi/2 range */
-		//	double thispos = position * piovr2;						// paramvalue min == -M_SQRT1_2, max == M_SQRT1_2, thispos == ±1.1107207345395915617532801458281
+		//	double thispos = position * piovr2;			// paramvalue min == -M_SQRT1_2, max == M_SQRT1_2, thispos == Â±1.1107207345395915617532801458281
 		//	/* each channel uses a 1/4 of a cycle */
-		//	double angle = thispos * 0.5;					    	// 1.1107207345395915617532801458281 / 2 == ±0.55536036726979578087664007291405
+		//	double angle = thispos * 0.5;				// 1.1107207345395915617532801458281 / 2 == Â±0.55536036726979578087664007291405
 
 		//	pos.left = root2ovr2 * (cos(angle) - sin(angle));
 		//	pos.right = root2ovr2 * (cos(angle) + sin(angle));
 		//	return pos;
 		//}
+	/*
+	//Antonio Grazioli
+		float PanL(float balance, float cv) {
+			float p, gl;
+			p = M_PI * (balance + 1) / 4;	//if -1 ==
+			if (cv) {
+				gl = ::cos(p)*(1 - ((cv + 1) / 5));
+			} else {
+				gl = ::cos(p);
+			}
+			return gl;
+		}
 
+	//AS
+		float PanR(float balance , float cv) {
+		float p, inp;
+		inp = balance + cv / 5;
+		p = M_PI * (clamp(inp, -1.0f, 1.0f) + 1) / 4;
+		return ::sin(p);
+		}
+	*/
+	//pseudo---------------------------------------
+
+
+	/***Contant Power Pan ---
+	Referenced Richard Dobson, Antonio Grazioli(Autodafe)/Alfredo Santamaria(AS)
+	*/
+	float cpPanL(float bal, float cv) {//Left Signal
+		float position = bal + cv / 5, power;
+		//M_PI_2, M_SQRT1_2
+		float thisPos = position * M_PI_2;	//min -1.57 max 1.57
+		float angle = thisPos / 2;	//min -0.785 max 0.785
+		power = M_SQRT1_2 * (std::cos(angle) - std::sin(angle));
+		return power;
+	}
+
+	float cpPanR(float bal, float cv) {//Right Signal
+		float position = bal + cv / 5, power;
+		//M_PI_2, M_SQRT1_2
+		float thisPos = position * M_PI_2;
+		float angle = thisPos / 2;
+		power = M_SQRT1_2 * (std::cos(angle) + std::sin(angle));
+		return power;
 	}
 
 	void process(const ProcessArgs &args) override {
 		//initilize variables 
 		//bool soloSafe[16] = {}, solo[16] = {}, mute[16] = {};
 		//float auxSend1Lvl[16] = {}, auxSend2Lvl[16] = {}, pan[16] = {}; 
-		float polyChAudioL[16], polyChAudioR[16], polyChLevel[16] = {}, polyChPan[16] = {}, chFadLevel[16];
-		int chSel = ( int )params[CHSELECT_PARAM].getValue(), nChAudio = 0, nChLevel = 0, nChPan = 0, maxCh = 16, soloCase; //could use for index pos
-		//holds 4 (L/R) values for summing to output
+		float polyChAudioL[16] = { 0.f }, polyChAudioR[16] = { 0.f }, polyChLevel[16] = { 0.f },
+			polyChPan[16] = { 0.f }, chFadLevel[16] = { 0.f };
+		int chSel = (int)params[CHSELECT_PARAM].getValue(),
+			nChAudio = 0, nChLevel = 0, nChPan = 0, soloCase = 0;
+		//hold 4 (L/R) values for sum to output L/R
 		float sumL[4], sumR[4];//master gain
-		float cvMasterLevel = 1.f, ch1Send1, ch2Send1, ch3Send1, ch4Send1, ch1Send2, ch2Send2, ch3Send2, ch4Send2;
+		float ch1Send1 = 0.f, ch2Send1 = 0.f, ch3Send1 = 0.f, ch4Send1 = 0.f,
+			ch1Send2 = 0.f, ch2Send2 = 0.f, ch3Send2 = 0.f, ch4Send2 = 0.f,
+			cvMasterLevel = 1.f;
 
 		//get audio channels
 		//get #channels connected
 		nChAudio = inputs[POLYAUDIO_INPUT].getChannels();//int
-		if (inputs[POLYAUDIO_INPUT].isConnected()) {
-			for (int i = 0; i < nChAudio; i++) {//change to channels?
+		if (inputs[POLYAUDIO_INPUT].isConnected()) { //nested for loops not playing nice with poly
+				if (chSel == 0) {
+					params[INVERT_PARAM + 0].getValue() == 1.f ?
+						polyChAudioL[0] = polyChAudioR[0] = inputs[POLYAUDIO_INPUT].getVoltage(0) :
+						polyChAudioL[0] = polyChAudioR[0] = -inputs[POLYAUDIO_INPUT].getVoltage(0);
+					params[INVERT_PARAM + 1].getValue() == 1.f ?
+						polyChAudioL[1] = polyChAudioR[1] = inputs[POLYAUDIO_INPUT].getVoltage(1) :
+						polyChAudioL[1] = polyChAudioR[1] = -inputs[POLYAUDIO_INPUT].getVoltage(1);
+					params[INVERT_PARAM + 2].getValue() == 1.f ?
+						polyChAudioL[2] = polyChAudioR[2] = inputs[POLYAUDIO_INPUT].getVoltage(2) :
+						polyChAudioL[2] = polyChAudioR[2] = -inputs[POLYAUDIO_INPUT].getVoltage(2);
+					params[INVERT_PARAM + 3].getValue() == 1.f ?
+						polyChAudioL[3] = polyChAudioR[3] = inputs[POLYAUDIO_INPUT].getVoltage(3) :
+						polyChAudioL[3] = polyChAudioR[3] = -inputs[POLYAUDIO_INPUT].getVoltage(3);
+						
+				} if (chSel == 1) {
+					params[INVERT_PARAM + 0].getValue() == 1.f ?
+						polyChAudioL[4] = polyChAudioR[4] = inputs[POLYAUDIO_INPUT].getVoltage(4) :
+						polyChAudioL[4] = polyChAudioR[4] = -inputs[POLYAUDIO_INPUT].getVoltage(4);
+					params[INVERT_PARAM + 1].getValue() == 1.f ?
+						polyChAudioL[5] = polyChAudioR[5] = inputs[POLYAUDIO_INPUT].getVoltage(5) :
+						polyChAudioL[5] = polyChAudioR[5] = -inputs[POLYAUDIO_INPUT].getVoltage(5);
+					params[INVERT_PARAM + 2].getValue() == 1.f ?
+						polyChAudioL[6] = polyChAudioR[6] = inputs[POLYAUDIO_INPUT].getVoltage(6) :
+						polyChAudioL[6] = polyChAudioR[6] = -inputs[POLYAUDIO_INPUT].getVoltage(6);
+					params[INVERT_PARAM + 3].getValue() == 1.f ?
+						polyChAudioL[7] = polyChAudioR[7] = inputs[POLYAUDIO_INPUT].getVoltage(7) :
+						polyChAudioL[7] = polyChAudioR[7] = -inputs[POLYAUDIO_INPUT].getVoltage(7);
+				}
+
+				if (chSel == 2) {
+					params[INVERT_PARAM + 0].getValue() == 1.f ?
+						polyChAudioL[8] = polyChAudioR[8] = inputs[POLYAUDIO_INPUT].getVoltage(8) :
+						polyChAudioL[8] = polyChAudioR[8] = -inputs[POLYAUDIO_INPUT].getVoltage(8);
+					params[INVERT_PARAM + 1].getValue() == 1.f ?
+						polyChAudioL[9] = polyChAudioR[9] = inputs[POLYAUDIO_INPUT].getVoltage(9) :
+						polyChAudioL[9] = polyChAudioR[9] = -inputs[POLYAUDIO_INPUT].getVoltage(9);
+					params[INVERT_PARAM + 2].getValue() == 1.f ?
+						polyChAudioL[10] = polyChAudioR[10] = inputs[POLYAUDIO_INPUT].getVoltage(10) :
+						polyChAudioL[10] = polyChAudioR[10] = -inputs[POLYAUDIO_INPUT].getVoltage(10);
+					params[INVERT_PARAM + 3].getValue() == 1.f ?
+						polyChAudioL[11] = polyChAudioR[11] = inputs[POLYAUDIO_INPUT].getVoltage(11) :
+						polyChAudioL[11] = polyChAudioR[11] = -inputs[POLYAUDIO_INPUT].getVoltage(11);
+				}
+
+				if (chSel == 3) {
+					params[INVERT_PARAM + 0].getValue() == 1.f ?
+						polyChAudioL[12] = polyChAudioR[12] = inputs[POLYAUDIO_INPUT].getVoltage(12) :
+						polyChAudioL[12] = polyChAudioR[12] = -inputs[POLYAUDIO_INPUT].getVoltage(12);
+					params[INVERT_PARAM + 1].getValue() == 1.f ?
+						polyChAudioL[13] = polyChAudioR[13] = inputs[POLYAUDIO_INPUT].getVoltage(13) :
+						polyChAudioL[13] = polyChAudioR[13] = -inputs[POLYAUDIO_INPUT].getVoltage(13);
+					params[INVERT_PARAM + 2].getValue() == 1.f ?
+						polyChAudioL[14] = polyChAudioR[14] = inputs[POLYAUDIO_INPUT].getVoltage(14) :
+						polyChAudioL[14] = polyChAudioR[14] = -inputs[POLYAUDIO_INPUT].getVoltage(14);
+					params[INVERT_PARAM + 3].getValue() == 1.f ?
+						polyChAudioL[15] = polyChAudioR[15] = inputs[POLYAUDIO_INPUT].getVoltage(15) :
+						polyChAudioL[15] = polyChAudioR[15] = -inputs[POLYAUDIO_INPUT].getVoltage(15);
+				}
+			
+			//polyChAudioL[0] = polyChAudioR[0] = inputs[POLYAUDIO_INPUT].getVoltage(0);
+			/*
+			for (int i = 0; i < nChAudio; i++) {//unable to invert 
 				//assign channels to arrays
 				polyChAudioL[i] = polyChAudioR[i] = inputs[POLYAUDIO_INPUT].getVoltage(i);
-				maxCh = std::max(maxCh, nChAudio);//		??needed??
-				//invert here?
-				//outputs[INVERT_OUTPUT].setVoltage(-inputs[SIGN_INPUT].getVoltage());
+				//maxCh = std::max(maxCh, nChAudio);//		??needed??
 			}
+			*/
 		}
 
-		//get cv level channels
+
 		//get #channels connected
 		nChLevel = inputs[POLYLEVEL_INPUT].getChannels();	//int
 		if (inputs[POLYLEVEL_INPUT].isConnected()) {
-			for (int i = 0; i < nChLevel; i++) {//		!16 as disconnected channels are set to 0.f
+			for (int i = 0; i < nChLevel; i++) {//***disconnected channels are set to 0.f
 				//assign channels to arrays
 				polyChLevel[i] = inputs[POLYLEVEL_INPUT].getVoltage(i);	// recall
 				float cvLevel = clamp(inputs[POLYLEVEL_INPUT].getPolyVoltage(i) / 10, 0.f, 1.f);
 				polyChAudioL[i] = polyChAudioR[i] *= cvLevel;
-				//**** when number of channels connected is not the same as audio connected level is set to 0.f
-
-			}
-		}
-		//pan channels *** REDO!
-		if (inputs[POLYPAN_INPUT].isConnected()) {
-			for (int i = 0; i < 16; i++) {
-				//get #channels connected
-				nChPan = inputs[POLYPAN_INPUT].getChannels();//int
-				//assign channels to array
-				polyChLevel[i] = inputs[POLYPAN_INPUT].getVoltage(i);// recall
-				float panLevel = inputs[POLYPAN_INPUT].getPolyVoltage(i) < 0 ?
-					polyChAudioL[i] *= chFadLevel[i] * (1 - clamp(params[PAN_PARAM + i].getValue(), 0.f, 1.f)) :
-					polyChAudioR[i] *= chFadLevel[i] * (1 - clamp(-params[PAN_PARAM + i].getValue(), 0.f, 1.f));
-				polyChAudioL[i] *= panLevel;
-				//polyChAudioR[i] *= panLevel;
+				/**** when number of channels connected is not the same as audio connected, audio level is set to 0.f
+				solution PolyX mute or send volatge
+				*/
 			}
 		}
 
-		// set channel selection to 4 fader ch
+		// Channels 1 to 4
 		if (chSel == 0) {//ch1-4, index 0-3
 			for (int ch1_4 = 0; ch1_4 < 4; ch1_4++) {
 				//apply gain curve
@@ -160,11 +250,11 @@ struct PolyMix : Module {
 				//gain and pan | mute --- if mute equals 1 gain assigned fader else gain assigned zero
 				//GainParam * (1 - clamp(params[PAN_PARAM].value, 0.0f, 1.0f));
 				params[MUTE_PARAM + ch1_4].getValue() == 1.f ? polyChAudioL[ch1_4] *= chFadLevel[ch1_4] *
-					(1 - clamp(params[PAN_PARAM + ch1_4].getValue(), 0.f, 1.f)) : polyChAudioL[ch1_4] = 0.f;
+					cpPanL(params[PAN_PARAM + ch1_4].getValue(), inputs[POLYPAN_INPUT].getVoltage(ch1_4)) :
+					polyChAudioL[ch1_4] = 0.f;
 				params[MUTE_PARAM + ch1_4].getValue() == 1.f ? polyChAudioR[ch1_4] *= chFadLevel[ch1_4] *
-					(1 - clamp(-params[PAN_PARAM + ch1_4].getValue(), 0.f, 1.f)) : polyChAudioR[ch1_4] = 0.f;
-				//get working---
-				//params[INVERT_PARAM + ch1_4].getValue() == 0.f ? polyChAudioL[ch1_4] : -polyChAudioL[ch1_4];	//inputs[POLYAUDIO_INPUT + ch1_4].getVoltage(ch1_4)
+					cpPanR(params[PAN_PARAM + ch1_4].getValue(), inputs[POLYPAN_INPUT].getVoltage(ch1_4)) :
+					polyChAudioR[ch1_4] = 0.f;
 			}
 			//setAux
 			ch1Send1 = polyChAudioL[0] + polyChAudioR[0]; ch1Send2 = polyChAudioL[0] + polyChAudioR[0];
@@ -172,21 +262,15 @@ struct PolyMix : Module {
 			ch3Send1 = polyChAudioL[2] + polyChAudioR[2]; ch3Send2 = polyChAudioL[2] + polyChAudioR[2];
 			ch4Send1 = polyChAudioL[3] + polyChAudioR[3]; ch4Send2 = polyChAudioL[3] + polyChAudioR[3];
 
-			//Assign soloCase
-			/*for (int soloP = 0; soloP < 4; soloP++) {
-			if (params[SOLO_PARAM + soloP].getValue() < 1.f) {
-					soloCase = soloP;
-				}
-			}*/
-
+			//assign solo case
 			if (params[SOLO_PARAM + 0].getValue() < 1.f) { soloCase = 1; } 
 			else if (params[SOLO_PARAM + 1].getValue() < 1.f) { soloCase = 2; } 
 			else if (params[SOLO_PARAM + 2].getValue() < 1.f) { soloCase = 3; } 
 			else if (params[SOLO_PARAM + 3].getValue() < 1.f) { soloCase = 4; } 
-			else { soloCase = 0; } // default case - if solo's are not engaged
+			else { soloCase = 0; } // default case - when solo's are not enabled
 			//Solo channels
 			switch (soloCase) {
-				case 1: 
+				case 1:
 					params[SOLO_PARAM + 0].getValue() == 0.f ? polyChAudioL[0] *= chFadLevel[0] : polyChAudioL[0] = 0.f;
 					params[SOLO_PARAM + 1].getValue() == 1.f ? polyChAudioL[1] = 0.f : polyChAudioL[1] *= chFadLevel[1];
 					params[SOLO_PARAM + 2].getValue() == 1.f ? polyChAudioL[2] = 0.f : polyChAudioL[2] *= chFadLevel[2];
@@ -196,7 +280,7 @@ struct PolyMix : Module {
 					params[SOLO_PARAM + 2].getValue() == 1.f ? polyChAudioR[2] = 0.f : polyChAudioR[2] *= chFadLevel[2];
 					params[SOLO_PARAM + 3].getValue() == 1.f ? polyChAudioR[3] = 0.f : polyChAudioR[3] *= chFadLevel[3];
 					break;
-				case 2: 
+				case 2:
 					params[SOLO_PARAM + 0].getValue() == 1.f ? polyChAudioL[0] = 0.f : polyChAudioL[0] *= chFadLevel[0];
 					params[SOLO_PARAM + 1].getValue() == 0.f ? polyChAudioL[1] *= chFadLevel[1] : polyChAudioL[1] = 0.f;
 					params[SOLO_PARAM + 2].getValue() == 1.f ? polyChAudioL[2] = 0.f : polyChAudioL[2] *= chFadLevel[2];
@@ -206,7 +290,7 @@ struct PolyMix : Module {
 					params[SOLO_PARAM + 2].getValue() == 1.f ? polyChAudioR[2] = 0.f : polyChAudioR[2] *= chFadLevel[2];
 					params[SOLO_PARAM + 3].getValue() == 1.f ? polyChAudioR[3] = 0.f : polyChAudioR[3] *= chFadLevel[3];
 					break;
-				case 3: 
+				case 3:
 					params[SOLO_PARAM + 0].getValue() == 1.f ? polyChAudioL[0] = 0.f : polyChAudioL[0] *= chFadLevel[0];
 					params[SOLO_PARAM + 1].getValue() == 1.f ? polyChAudioL[1] = 0.f : polyChAudioL[1] *= chFadLevel[1];
 					params[SOLO_PARAM + 2].getValue() == 0.f ? polyChAudioL[2] *= chFadLevel[2] : polyChAudioL[2] = 0.f;
@@ -216,7 +300,7 @@ struct PolyMix : Module {
 					params[SOLO_PARAM + 2].getValue() == 0.f ? polyChAudioR[2] *= chFadLevel[2] : polyChAudioR[2] = 0.f;
 					params[SOLO_PARAM + 3].getValue() == 1.f ? polyChAudioR[3] = 0.f : polyChAudioR[3] *= chFadLevel[3];
 					break;
-				case 4: 
+				case 4:
 					params[SOLO_PARAM + 0].getValue() == 1.f ? polyChAudioL[0] = 0.f : polyChAudioL[0] *= chFadLevel[0];
 					params[SOLO_PARAM + 1].getValue() == 1.f ? polyChAudioL[1] = 0.f : polyChAudioL[1] *= chFadLevel[1];
 					params[SOLO_PARAM + 2].getValue() == 1.f ? polyChAudioL[2] = 0.f : polyChAudioL[2] *= chFadLevel[2];
@@ -226,7 +310,7 @@ struct PolyMix : Module {
 					params[SOLO_PARAM + 2].getValue() == 1.f ? polyChAudioR[2] = 0.f : polyChAudioR[2] *= chFadLevel[2];
 					params[SOLO_PARAM + 3].getValue() == 0.f ? polyChAudioR[3] *= chFadLevel[3] : polyChAudioR[3] = 0.f;
 					break;
-				default:  
+				default:
 					polyChAudioL[0] *= chFadLevel[0];
 					polyChAudioL[1] *= chFadLevel[1];
 					polyChAudioL[2] *= chFadLevel[2];
@@ -236,36 +320,42 @@ struct PolyMix : Module {
 					polyChAudioR[2] *= chFadLevel[2];
 					polyChAudioR[3] *= chFadLevel[3];
 					break;
-			}
+			}//chSel 0--------------------------------------------------------------------------------------------------------------------------
+
 			sumL[chSel] = (polyChAudioL[0] + polyChAudioL[1] + polyChAudioL[2] + polyChAudioL[3]);
 			sumR[chSel] = (polyChAudioR[0] + polyChAudioR[1] + polyChAudioR[2] + polyChAudioR[3]);
 
+//---------------------------------------------------------------------------------------------------
+		// Channels 5 to 8
 		} else if (chSel == 1) {//ch5-8 == index 4-7
 			for (int ch5_8 = 4, p = 0; ch5_8 < 8 && p < 4; ch5_8++, p++) {// p == param
 				//apply gain curve
 				chFadLevel[ch5_8] = std::pow(params[LEVEL_PARAM + p].getValue(), 2.f);
 				//gain and pan | mute --- if mute equals 1 gain assigned fader else gain assigned zero
 				params[MUTE_PARAM + p].getValue() == 1.f ? polyChAudioL[ch5_8] *= chFadLevel[ch5_8] *
-					(1 - clamp(params[PAN_PARAM + p].getValue(), 0.f, 1.f)) : polyChAudioL[ch5_8] = 0.f;
+					cpPanL(params[PAN_PARAM + p].getValue(), inputs[POLYPAN_INPUT].getVoltage(ch5_8)) : 
+					polyChAudioL[ch5_8] = 0.f;
 				params[MUTE_PARAM + p].getValue() == 1.f ? polyChAudioR[ch5_8] *= chFadLevel[ch5_8] *
-					(1 - clamp(-params[PAN_PARAM + p].getValue(), 0.f, 1.f)) : polyChAudioR[ch5_8] = 0.f;
-				//get working---
-				//params[INVERT_PARAM + ch1_4].getValue() == 0.f ? polyChAudioL[ch5_8] : -polyChAudioL[ch5_8];
+					cpPanR(params[PAN_PARAM + p].getValue(), inputs[POLYPAN_INPUT].getVoltage(ch5_8)) :
+					polyChAudioR[ch5_8] = 0.f;
 			}
+
 			//setAux
 			ch1Send1 = polyChAudioL[4] + polyChAudioR[4]; ch1Send2 = polyChAudioL[4] + polyChAudioR[4];
 			ch2Send1 = polyChAudioL[5] + polyChAudioR[5]; ch2Send2 = polyChAudioL[5] + polyChAudioR[5];
 			ch3Send1 = polyChAudioL[6] + polyChAudioR[6]; ch3Send2 = polyChAudioL[6] + polyChAudioR[6];
 			ch4Send1 = polyChAudioL[7] + polyChAudioR[7]; ch4Send2 = polyChAudioL[7] + polyChAudioR[7];
-			//Assign soloCase
+			
+			//Assign solo case
 			if (params[SOLO_PARAM + 0].getValue() < 1.f) { soloCase = 1; } 
 			else if (params[SOLO_PARAM + 1].getValue() < 1.f) { soloCase = 2; } 
 			else if (params[SOLO_PARAM + 2].getValue() < 1.f) { soloCase = 3; } 
 			else if (params[SOLO_PARAM + 3].getValue() < 1.f) { soloCase = 4; } 
-			else { soloCase = 0; } // default case - if solo's are not engaged
+			else { soloCase = 0; } // default case - when solo's are not engaged
+
 			//Solo channels
 			switch (soloCase) {
-				case 1: 
+				case 1:
 					params[SOLO_PARAM + 0].getValue() == 0.f ? polyChAudioL[4] *= chFadLevel[4] : polyChAudioL[4] = 0.f;
 					params[SOLO_PARAM + 1].getValue() == 1.f ? polyChAudioL[5] = 0.f : polyChAudioL[5] *= chFadLevel[5];
 					params[SOLO_PARAM + 2].getValue() == 1.f ? polyChAudioL[6] = 0.f : polyChAudioL[6] *= chFadLevel[6];
@@ -275,7 +365,7 @@ struct PolyMix : Module {
 					params[SOLO_PARAM + 2].getValue() == 1.f ? polyChAudioR[6] = 0.f : polyChAudioR[6] *= chFadLevel[6];
 					params[SOLO_PARAM + 3].getValue() == 1.f ? polyChAudioR[7] = 0.f : polyChAudioR[7] *= chFadLevel[7];
 					break;
-				case 2: 
+				case 2:
 					params[SOLO_PARAM + 0].getValue() == 1.f ? polyChAudioL[4] = 0.f : polyChAudioL[4] *= chFadLevel[4];
 					params[SOLO_PARAM + 1].getValue() == 0.f ? polyChAudioL[5] *= chFadLevel[5] : polyChAudioL[5] = 0.f;
 					params[SOLO_PARAM + 2].getValue() == 1.f ? polyChAudioL[6] = 0.f : polyChAudioL[6] *= chFadLevel[6];
@@ -305,7 +395,7 @@ struct PolyMix : Module {
 					params[SOLO_PARAM + 2].getValue() == 1.f ? polyChAudioR[6] = 0.f : polyChAudioR[6] *= chFadLevel[6];
 					params[SOLO_PARAM + 3].getValue() == 0.f ? polyChAudioR[7] *= chFadLevel[7] : polyChAudioR[7] = 0.f;
 					break;
-				default: 
+				default:
 					polyChAudioL[4] *= chFadLevel[4];
 					polyChAudioL[5] *= chFadLevel[5];
 					polyChAudioL[6] *= chFadLevel[6];
@@ -315,32 +405,43 @@ struct PolyMix : Module {
 					polyChAudioR[6] *= chFadLevel[6];
 					polyChAudioR[7] *= chFadLevel[7];
 					break;
-			}
+			}//chSel 1---------------------------------------------------------------------------------------------------------------------------
 
 			sumL[chSel] = (polyChAudioL[4] + polyChAudioL[5] + polyChAudioL[6] + polyChAudioL[7]);
 			sumR[chSel] = (polyChAudioR[4] + polyChAudioR[5] + polyChAudioR[6] + polyChAudioR[7]);
+
+//------------------------------------------------------------------------------------------------------
+
+		//channels 9 to 12
 		} else if (chSel == 2) {//ch9-12 == index 8-11
-			for (int ch9_12 = 8, p = 0; ch9_12 < 11 && p < 4; ch9_12++, p++) {// p == param
+			for (int ch9_12 = 8, p = 0; ch9_12 < 12 && p < 4; ch9_12++, p++) {// p == param
 				//apply gain curve
 				chFadLevel[ch9_12] = std::pow(params[LEVEL_PARAM + p].getValue(), 2.f);
 				//gain and pan | mute --- if mute equals 1 gain assigned fader else gain assigned zero
 				params[MUTE_PARAM + p].getValue() == 1.f ? polyChAudioL[ch9_12] *= chFadLevel[ch9_12] *
-					(1 - clamp(params[PAN_PARAM + p].getValue(), 0.f, 1.f)) : polyChAudioL[ch9_12] = 0.f;
+					cpPanL(params[PAN_PARAM + p].getValue(), inputs[POLYPAN_INPUT].getVoltage(ch9_12)) :
+					polyChAudioL[ch9_12] = 0.f;
 				params[MUTE_PARAM + p].getValue() == 1.f ? polyChAudioR[ch9_12] *= chFadLevel[ch9_12] *
-					(1 - clamp(-params[PAN_PARAM + p].getValue(), 0.f, 1.f)) : polyChAudioR[ch9_12] = 0.f;
-				//get working---
-				//params[INVERT_PARAM + ch1_4].getValue() == 0.f ? polyChAudioL[ch5_8] : -polyChAudioL[ch5_8];
+					cpPanR(params[PAN_PARAM + p].getValue(), inputs[POLYPAN_INPUT].getVoltage(ch9_12)) :
+					polyChAudioR[ch9_12] = 0.f;
 			}
+
 			//setAux
 			ch1Send1 = polyChAudioL[8] + polyChAudioR[8]; ch1Send2 = polyChAudioL[8] + polyChAudioR[8];
 			ch2Send1 = polyChAudioL[9] + polyChAudioR[9]; ch2Send2 = polyChAudioL[9] + polyChAudioR[9];
 			ch3Send1 = polyChAudioL[10] + polyChAudioR[10]; ch3Send2 = polyChAudioL[10] + polyChAudioR[10];
 			ch4Send1 = polyChAudioL[11] + polyChAudioR[11]; ch4Send2 = polyChAudioL[11] + polyChAudioR[11];
-			//Assign soloCase
-			if (params[SOLO_PARAM + 0].getValue() < 1.f) { soloCase = 1; } else if (params[SOLO_PARAM + 1].getValue() < 1.f) { soloCase = 2; } else if (params[SOLO_PARAM + 2].getValue() < 1.f) { soloCase = 3; } else if (params[SOLO_PARAM + 3].getValue() < 1.f) { soloCase = 4; } else { soloCase = 0; } // default case - if solo's are not engaged
+			
+			//Assign solo case
+			if (params[SOLO_PARAM + 0].getValue() < 1.f) { soloCase = 1; } 
+			else if (params[SOLO_PARAM + 1].getValue() < 1.f) { soloCase = 2; } 
+			else if (params[SOLO_PARAM + 2].getValue() < 1.f) { soloCase = 3; } 
+			else if (params[SOLO_PARAM + 3].getValue() < 1.f) { soloCase = 4; } 
+			else { soloCase = 0; } // default case - when solo's are not engaged
+
 			//Solo channels
 			switch (soloCase) {
-				case 1: 
+				case 1:
 					params[SOLO_PARAM + 0].getValue() == 0.f ? polyChAudioL[8] *= chFadLevel[8] : polyChAudioL[8] = 0.f;
 					params[SOLO_PARAM + 1].getValue() == 1.f ? polyChAudioL[9] = 0.f : polyChAudioL[9] *= chFadLevel[9];
 					params[SOLO_PARAM + 2].getValue() == 1.f ? polyChAudioL[10] = 0.f : polyChAudioL[10] *= chFadLevel[10];
@@ -350,7 +451,7 @@ struct PolyMix : Module {
 					params[SOLO_PARAM + 2].getValue() == 1.f ? polyChAudioR[10] = 0.f : polyChAudioR[10] *= chFadLevel[10];
 					params[SOLO_PARAM + 3].getValue() == 1.f ? polyChAudioR[11] = 0.f : polyChAudioR[11] *= chFadLevel[11];
 					break;
-				case 2: 
+				case 2:
 					params[SOLO_PARAM + 0].getValue() == 1.f ? polyChAudioL[8] = 0.f : polyChAudioL[8] *= chFadLevel[8];
 					params[SOLO_PARAM + 1].getValue() == 0.f ? polyChAudioL[9] *= chFadLevel[9] : polyChAudioL[9] = 0.f;
 					params[SOLO_PARAM + 2].getValue() == 1.f ? polyChAudioL[10] = 0.f : polyChAudioL[10] *= chFadLevel[10];
@@ -360,7 +461,7 @@ struct PolyMix : Module {
 					params[SOLO_PARAM + 2].getValue() == 1.f ? polyChAudioR[10] = 0.f : polyChAudioR[10] *= chFadLevel[10];
 					params[SOLO_PARAM + 3].getValue() == 1.f ? polyChAudioR[11] = 0.f : polyChAudioR[11] *= chFadLevel[11];
 					break;
-				case 3: 
+				case 3:
 					params[SOLO_PARAM + 0].getValue() == 1.f ? polyChAudioL[8] = 0.f : polyChAudioL[8] *= chFadLevel[8];
 					params[SOLO_PARAM + 1].getValue() == 1.f ? polyChAudioL[9] = 0.f : polyChAudioL[9] *= chFadLevel[9];
 					params[SOLO_PARAM + 2].getValue() == 0.f ? polyChAudioL[10] *= chFadLevel[10] : polyChAudioL[10] = 0.f;
@@ -370,7 +471,7 @@ struct PolyMix : Module {
 					params[SOLO_PARAM + 2].getValue() == 0.f ? polyChAudioR[10] *= chFadLevel[10] : polyChAudioR[10] = 0.f;
 					params[SOLO_PARAM + 3].getValue() == 1.f ? polyChAudioR[11] = 0.f : polyChAudioR[11] *= chFadLevel[11];
 					break;
-				case 4: 
+				case 4:
 					params[SOLO_PARAM + 0].getValue() == 1.f ? polyChAudioL[8] = 0.f : polyChAudioL[8] *= chFadLevel[8];
 					params[SOLO_PARAM + 1].getValue() == 1.f ? polyChAudioL[9] = 0.f : polyChAudioL[9] *= chFadLevel[9];
 					params[SOLO_PARAM + 2].getValue() == 1.f ? polyChAudioL[10] = 0.f : polyChAudioL[10] *= chFadLevel[10];
@@ -390,36 +491,44 @@ struct PolyMix : Module {
 					polyChAudioR[10] *= chFadLevel[10];
 					polyChAudioR[11] *= chFadLevel[11];
 					break;
-			}
+			}//chSel 2---------------------------------------------------------------------------------------------------------------------------
+
 			//sum mixer channels to array
 			sumL[chSel] = (polyChAudioL[8] + polyChAudioL[9] + polyChAudioL[10] + polyChAudioL[11]);
 			sumR[chSel] = (polyChAudioR[8] + polyChAudioR[9] + polyChAudioR[10] + polyChAudioR[11]);
-		} else if (chSel == 3) {//ch13-16 == index 12-15
-			for (int ch13_16 = 12, p = 0; ch13_16 < 15 && p < 4; ch13_16++, p++) {// p == param
+
+//--------------------------------------------------------------------------------------------------------
+
+		//channels 12 to 16
+		} else if (chSel == 3) {//ch12-16 == index 11-15
+			for (int ch12_15 = 12, p = 0; ch12_15 < 16 && p < 4; ch12_15++, p++) {// p == param
 				//apply gain curve
-				chFadLevel[ch13_16] = std::pow(params[LEVEL_PARAM + p].getValue(), 2.f);
+				chFadLevel[ch12_15] = std::pow(params[LEVEL_PARAM + p].getValue(), 2.f);
 				//gain and pan | mute --- if mute equals 1 gain assigned fader else gain assigned zero
-				params[MUTE_PARAM + p].getValue() == 1.f ? polyChAudioL[ch13_16] *= chFadLevel[ch13_16] *
-					(1 - clamp(params[PAN_PARAM + p].getValue(), 0.f, 1.f)) : polyChAudioL[ch13_16] = 0.f;
-				params[MUTE_PARAM + p].getValue() == 1.f ? polyChAudioR[ch13_16] *= chFadLevel[ch13_16] *
-					(1 - clamp(-params[PAN_PARAM + p].getValue(), 0.f, 1.f)) : polyChAudioR[ch13_16] = 0.f;
-				//get working---
-				//params[INVERT_PARAM + ch1_4].getValue() == 0.f ? polyChAudioL[ch5_8] : -polyChAudioL[ch5_8];
+				params[MUTE_PARAM + p].getValue() == 1.f ? polyChAudioL[ch12_15] *= chFadLevel[ch12_15] *
+					cpPanL(params[PAN_PARAM + p].getValue(), inputs[POLYPAN_INPUT].getVoltage(ch12_15)) :
+					polyChAudioL[ch12_15] = 0.f;
+				params[MUTE_PARAM + p].getValue() == 1.f ? polyChAudioR[ch12_15] *= chFadLevel[ch12_15] *
+					cpPanR(params[PAN_PARAM + p].getValue(), inputs[POLYPAN_INPUT].getVoltage(ch12_15)) :
+					polyChAudioR[ch12_15] = 0.f;
 			}
+
 			//setAux
 			ch1Send1 = polyChAudioL[12] + polyChAudioR[12]; ch1Send2 = polyChAudioL[12] + polyChAudioR[12];
 			ch2Send1 = polyChAudioL[13] + polyChAudioR[13]; ch2Send2 = polyChAudioL[13] + polyChAudioR[13];
 			ch3Send1 = polyChAudioL[14] + polyChAudioR[14]; ch3Send2 = polyChAudioL[14] + polyChAudioR[14];
 			ch4Send1 = polyChAudioL[15] + polyChAudioR[15]; ch4Send2 = polyChAudioL[15] + polyChAudioR[15];
-			//Assign soloCase
-			if (params[SOLO_PARAM + 0].getValue() == 1.f) { soloCase = 1; } 
-			else if (params[SOLO_PARAM + 1].getValue() == 1.f) { soloCase = 2; } 
-			else if (params[SOLO_PARAM + 2].getValue() == 1.f) { soloCase = 3; } 
-			else if (params[SOLO_PARAM + 3].getValue() == 1.f) { soloCase = 4; } 
-			else { soloCase = 0; } // default case - if solo's are not engaged
+
+			//Assign solo case
+			if (params[SOLO_PARAM + 0].getValue() < 1.f) { soloCase = 1; } 
+			else if (params[SOLO_PARAM + 1].getValue() < 1.f) { soloCase = 2; } 
+			else if (params[SOLO_PARAM + 2].getValue() < 1.f) { soloCase = 3; } 
+			else if (params[SOLO_PARAM + 3].getValue() < 1.f) { soloCase = 4; } 
+			else { soloCase = 0; } // default case - when solo's are not engaged
+
 			//Solo channels
 			switch (soloCase) {
-				case 1: 
+				case 1:
 					params[SOLO_PARAM + 0].getValue() == 0.f ? polyChAudioL[12] *= chFadLevel[12] : polyChAudioL[12] = 0.f;
 					params[SOLO_PARAM + 1].getValue() == 1.f ? polyChAudioL[13] = 0.f : polyChAudioL[13] *= chFadLevel[13];
 					params[SOLO_PARAM + 2].getValue() == 1.f ? polyChAudioL[14] = 0.f : polyChAudioL[14] *= chFadLevel[14];
@@ -429,7 +538,7 @@ struct PolyMix : Module {
 					params[SOLO_PARAM + 2].getValue() == 1.f ? polyChAudioR[14] = 0.f : polyChAudioR[14] *= chFadLevel[14];
 					params[SOLO_PARAM + 3].getValue() == 1.f ? polyChAudioR[15] = 0.f : polyChAudioR[15] *= chFadLevel[15];
 					break;
-				case 2: 
+				case 2:
 					params[SOLO_PARAM + 0].getValue() == 1.f ? polyChAudioL[12] = 0.f : polyChAudioL[12] *= chFadLevel[12];
 					params[SOLO_PARAM + 1].getValue() == 0.f ? polyChAudioL[13] *= chFadLevel[13] : polyChAudioL[13] = 0.f;
 					params[SOLO_PARAM + 2].getValue() == 1.f ? polyChAudioL[14] = 0.f : polyChAudioL[14] *= chFadLevel[14];
@@ -439,7 +548,7 @@ struct PolyMix : Module {
 					params[SOLO_PARAM + 2].getValue() == 1.f ? polyChAudioR[14] = 0.f : polyChAudioR[14] *= chFadLevel[14];
 					params[SOLO_PARAM + 3].getValue() == 1.f ? polyChAudioR[15] = 0.f : polyChAudioR[15] *= chFadLevel[15];
 					break;
-				case 3: 
+				case 3:
 					params[SOLO_PARAM + 0].getValue() == 1.f ? polyChAudioL[12] = 0.f : polyChAudioL[12] *= chFadLevel[12];
 					params[SOLO_PARAM + 1].getValue() == 1.f ? polyChAudioL[13] = 0.f : polyChAudioL[13] *= chFadLevel[13];
 					params[SOLO_PARAM + 2].getValue() == 0.f ? polyChAudioL[14] *= chFadLevel[14] : polyChAudioL[14] = 0.f;
@@ -449,7 +558,7 @@ struct PolyMix : Module {
 					params[SOLO_PARAM + 2].getValue() == 0.f ? polyChAudioR[14] *= chFadLevel[14] : polyChAudioR[14] = 0.f;
 					params[SOLO_PARAM + 3].getValue() == 1.f ? polyChAudioR[15] = 0.f : polyChAudioR[15] *= chFadLevel[15];
 					break;
-				case 4: 
+				case 4:
 					params[SOLO_PARAM + 0].getValue() == 1.f ? polyChAudioL[12] = 0.f : polyChAudioL[12] *= chFadLevel[12];
 					params[SOLO_PARAM + 1].getValue() == 1.f ? polyChAudioL[13] = 0.f : polyChAudioL[13] *= chFadLevel[13];
 					params[SOLO_PARAM + 2].getValue() == 1.f ? polyChAudioL[14] = 0.f : polyChAudioL[14] *= chFadLevel[14];
@@ -459,7 +568,7 @@ struct PolyMix : Module {
 					params[SOLO_PARAM + 2].getValue() == 1.f ? polyChAudioR[14] = 0.f : polyChAudioR[14] *= chFadLevel[14];
 					params[SOLO_PARAM + 3].getValue() == 0.f ? polyChAudioR[15] *= chFadLevel[15] : polyChAudioR[15] = 0.f;
 					break;
-				default: 
+				default:
 					polyChAudioL[12] *= chFadLevel[12];
 					polyChAudioL[13] *= chFadLevel[13];
 					polyChAudioL[14] *= chFadLevel[14];
@@ -470,10 +579,12 @@ struct PolyMix : Module {
 					polyChAudioR[15] *= chFadLevel[15];
 					break;
 			}
-			//sum mixer channels to array[4]
+
+			//sum mixer channels to array
 			sumL[chSel] = (polyChAudioL[12] + polyChAudioL[13] + polyChAudioL[14] + polyChAudioL[15]);
 			sumR[chSel] = (polyChAudioR[12] + polyChAudioR[13] + polyChAudioR[14] + polyChAudioR[15]);
-		}
+		}//chSel 3---------------------------------------------------------------------------------------------------------------------------
+
 		//*** TODO: storing values
 		//float lastValue = params[LEVEL_PARAM + 0].getValue();
 
@@ -482,17 +593,17 @@ struct PolyMix : Module {
 			aux1Ch2 = std::pow(params[AUX1_PARAM + 1].getValue(), 2.f), aux2Ch2 = std::pow(params[AUX2_PARAM + 1].getValue(), 2.f),
 			aux1Ch3 = std::pow(params[AUX1_PARAM + 2].getValue(), 2.f), aux2Ch3 = std::pow(params[AUX2_PARAM + 2].getValue(), 2.f),
 			aux1Ch4 = std::pow(params[AUX1_PARAM + 3].getValue(), 2.f), aux2Ch4 = std::pow(params[AUX2_PARAM + 3].getValue(), 2.f);
-		
+
 		float return1 = inputs[AUX1RETURN_INPUT].getVoltage(), return2 = inputs[AUX2RETURN_INPUT].getVoltage();
 		//sumAux
 
-		outputs[AUX1SEND_OUTPUT].setVoltage( (ch1Send1 * aux1Ch1) + (ch2Send1 * aux1Ch2) + (ch3Send1 * aux1Ch3) + (ch4Send1 * aux1Ch4) );
-		outputs[AUX2SEND_OUTPUT].setVoltage( (ch1Send2 * aux2Ch1) + (ch2Send2 * aux2Ch2) + (ch3Send2 * aux2Ch3) + (ch4Send2 * aux2Ch4) );
+		outputs[AUX1SEND_OUTPUT].setVoltage((ch1Send1 * aux1Ch1) + (ch2Send1 * aux1Ch2) + (ch3Send1 * aux1Ch3) + (ch4Send1 * aux1Ch4));
+		outputs[AUX2SEND_OUTPUT].setVoltage((ch1Send2 * aux2Ch1) + (ch2Send2 * aux2Ch2) + (ch3Send2 * aux2Ch3) + (ch4Send2 * aux2Ch4));
 
 		inputs[GAINLEVEL_INPUT].isConnected() == true ? cvMasterLevel = clamp(inputs[GAINLEVEL_INPUT].getVoltage() / 10, 0.f, 1.f) : cvMasterLevel;
 		float outGain = params[MASTERGAIN_PARAM].getValue() * cvMasterLevel;
 		float Left = sumL[chSel] * outGain + ((return1 + return2) / 2), Right = sumR[chSel] * outGain + ((return1 + return2) / 2);
-		float testL = sumL[chSel] * outGain, testR = sumR[chSel] * outGain;
+		//float testL = sumL[chSel] * outGain, testR = sumR[chSel] * outGain;
 
 		outputs[OUTL_OUTPUT].setVoltage(Left);
 		outputs[OUTR_OUTPUT].setVoltage(Right);
@@ -500,11 +611,13 @@ struct PolyMix : Module {
 
 
 
-		//noise on output when inputs not connected
+		//noise on output when inputs not connected due to not initilizing array values (audio L/R) 
+		/*** always initilize values!!!
 		if (!inputs[POLYAUDIO_INPUT].isConnected()) {
 			outputs[OUTL_OUTPUT].setVoltage(0.f);
 			outputs[OUTR_OUTPUT].setVoltage(0.f);
 		}
+		*/
 	}//process
 
 };
@@ -547,9 +660,7 @@ struct PolyMixWidget : ModuleWidget {
 
 		}
 		//Screws---
-		addChild(createWidget<BarkScrew4>(Vec(3, 3)));							//pos1
-		//addChild(createWidget<BarkScrew3>(Vec(box.size.x - 13, 3)));			//pos2
-		//addChild(createWidget<BarkScrew1>(Vec(3, 367.2f)));					//pos3
+		addChild(createWidget<BarkScrew4>(Vec(3, 3)));						//pos1
 		addChild(createWidget<BarkScrew1>(Vec(box.size.x - 13, 367.2)));			//pos4
 		//Light---
 
