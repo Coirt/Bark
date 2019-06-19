@@ -9,15 +9,15 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="99.397003"
-   height="5.77"
-   viewBox="0 0 99.396999 5.77"
+   width="9.0977182"
+   height="98.287834"
+   viewBox="0 0 2.4071046 26.005324"
    version="1.1"
-   id="svg2199"
+   id="svg5474"
    inkscape:version="0.92.2 (5c3e80d, 2017-08-06)"
-   sodipodi:docname="BarkSlider1.svg">
+   sodipodi:docname="BarkSliderFaderLong.svg">
   <defs
-     id="defs2193" />
+     id="defs5468" />
   <sodipodi:namedview
      id="base"
      pagecolor="#ffffff"
@@ -25,16 +25,16 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="7.919596"
-     inkscape:cx="-0.61705423"
-     inkscape:cy="16.21821"
+     inkscape:zoom="16"
+     inkscape:cx="-11.597005"
+     inkscape:cy="75.36417"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
      inkscape:snap-global="false"
      units="px" />
   <metadata
-     id="metadata2196">
+     id="metadata5471">
     <rdf:RDF>
       <cc:Work
          rdf:about="">
@@ -49,5 +49,18 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-439.92161,-905.49914)" />
+     transform="translate(-64.564305,-112.39614)">
+    <g
+       id="g5380"
+       transform="translate(56.854987,46.532073)">
+      <path
+         style="opacity:0.92000002;fill:#999999;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.01550357;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers stroke fill"
+         d="M 8.4919205,65.864067 H 9.3338194 V 91.86939 H 8.4919205 Z"
+         id="rect6837-2-8-14-0" />
+      <path
+         style="display:inline;opacity:0.92000002;fill:#1a1a1a;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.01202975;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers stroke fill"
+         d="m 8.6556234,66.056351 h 0.5144938 v 25.62075 H 8.6556234 Z"
+         id="rect6837-2-8-14-0-2" />
+    </g>
+  </g>
 </svg>

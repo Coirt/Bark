@@ -1,3 +1,12 @@
+
+---v1_b1---
+tweaked one band frequency and panel layout
+Added PolyMix, polyphonic mixer
+Added PolyX, Polyphonic merger with mute buttons. Note: see module description in module browser
+Added Clamp
+
+-----------------------------
+
 ---v0.6.6---
 1 band frequency parameter now scales logarithmically (as suggested by Dra Gonas) note: mod input still linear
 -----------------------------

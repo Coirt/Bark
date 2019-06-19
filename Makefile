@@ -1,7 +1,4 @@
 RACK_DIR ?= ../..
-SLUG = Bark
-VERSION = 0.6.6
-
 FLAGS +=
 SOURCES += $(wildcard src/*.cpp)
 DISTRIBUTABLES += $(wildcard LICENSE*) res

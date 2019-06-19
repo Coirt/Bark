@@ -1,18 +1,16 @@
-#include "dsp/functions.hpp"
-//#include "dsp/resampler.hpp"
-#include "dsp/ode.hpp"
+#include "plugin.hpp"
 
 /**
 Fundamental VCF by Andrew Best
 */
 
-inline float clip(float x) {
-	return tanhf(x);
+static float clip(float x) {
+	return std::tanh(x);
 }
 
 struct LadderFilter {
 	float omega0;
-	float resonance = 1.0f;
+	float resonance = 1.f;
 	float state[4];
 	float input;
 	float lowpass;
@@ -34,7 +32,7 @@ struct LadderFilter {
 	}
 
 	void process(float input, float dt) {
-		ode::stepRK4(0.f, dt, state, 4, [&](float t, const float x[], float dxdt[]) {
+		dsp::stepRK4(0.f, dt, state, 4, [&](float t, const float x[], float dxdt[]) {
 			float inputc = clip(input - resonance * x[3]);
 			float yc0 = clip(x[0]);
 			float yc1 = clip(x[1]);
