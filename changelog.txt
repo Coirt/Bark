@@ -1,3 +1,7 @@
+---v1.0.1---
+Small bugfix on PolyX, green light staying on when cable connected
+
+-----------------------------
 
 ---v1_b1---
 tweaked one band frequency and panel layout
