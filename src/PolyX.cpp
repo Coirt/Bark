@@ -81,8 +81,10 @@ struct PolyX : Module {
 					
 				}
 				if (inputs[MONO_INPUT + c].isConnected()) {
-					/***BUG: if cable is not connected and state is open(green light)
+					/***BUGFIX: if cable is not connected and state is open(green light)
 					when cable reconnected unable to tell if cable was connected. Light stuck on green*/
+					lights[chOpenSTATE_LIGHT + c].setBrightness(0);
+					//***BUGFIX
 					bool isBlue = (c < outputs[POLY_OUTPUT].getChannels() && params[MUTEFAKE_PARAM + c].getValue() == 0.f);//
 					bool isRed = (c < outputs[POLY_OUTPUT].getChannels() && params[MUTEFAKE_PARAM + c].getValue() == 1.f);
 					lights[chPolySTATE_LIGHT + c].setBrightness(isBlue);
