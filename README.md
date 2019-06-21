@@ -1,4 +1,4 @@
-### V1 beta
+### V1.0.1
 
 # Bark
 VCVrack Modules
