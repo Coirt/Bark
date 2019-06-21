@@ -38,7 +38,7 @@ struct PolyX : Module {
 	PolyX() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
 		for (int i = 0; i < 16; i++) {
-			configParam/*<tpMute10v>*/(MUTEFAKE_PARAM + i, 0.f, 1.f, 1.f, "Voltage");
+			configParam<tpMute10v>(MUTEFAKE_PARAM + i, 0.f, 1.f, 1.f, "Voltage");
 		}
 		lightDivider.setDivision(8);//512
 		onReset();
