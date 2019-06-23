@@ -257,10 +257,42 @@ struct PolyMix : Module {
 					polyChAudioR[ch1_4] = 0.f;
 			}
 			//setAux
-			ch1Send1 = polyChAudioL[0] + polyChAudioR[0]; ch1Send2 = polyChAudioL[0] + polyChAudioR[0];
-			ch2Send1 = polyChAudioL[1] + polyChAudioR[1]; ch2Send2 = polyChAudioL[1] + polyChAudioR[1];
-			ch3Send1 = polyChAudioL[2] + polyChAudioR[2]; ch3Send2 = polyChAudioL[2] + polyChAudioR[2];
-			ch4Send1 = polyChAudioL[3] + polyChAudioR[3]; ch4Send2 = polyChAudioL[3] + polyChAudioR[3];
+			///ch2
+			ch1Send1 = polyChAudioL[0] *
+				cpPanL(params[PAN_PARAM + 0].getValue(), inputs[POLYPAN_INPUT].getVoltage(0)) - 
+				-polyChAudioR[0] *
+				cpPanR(params[PAN_PARAM + 0].getValue(), inputs[POLYPAN_INPUT].getVoltage(0)); 
+			ch1Send2 = polyChAudioL[0] *
+				cpPanL(params[PAN_PARAM + 0].getValue(), inputs[POLYPAN_INPUT].getVoltage(0)) -
+				-polyChAudioR[0] *
+				cpPanR(params[PAN_PARAM + 0].getValue(), inputs[POLYPAN_INPUT].getVoltage(0));
+			///ch2
+			ch2Send1 = polyChAudioL[1] *
+				cpPanL(params[PAN_PARAM + 1].getValue(), inputs[POLYPAN_INPUT].getVoltage(1)) -
+				-polyChAudioR[1] *
+				cpPanR(params[PAN_PARAM + 1].getValue(), inputs[POLYPAN_INPUT].getVoltage(1));
+			ch2Send2 = polyChAudioL[1] *
+				cpPanL(params[PAN_PARAM + 1].getValue(), inputs[POLYPAN_INPUT].getVoltage(1)) -
+				-polyChAudioR[1] *
+				cpPanR(params[PAN_PARAM + 1].getValue(), inputs[POLYPAN_INPUT].getVoltage(1));
+			///ch3
+			ch3Send1 = polyChAudioL[2] *
+				cpPanR(params[PAN_PARAM + 2].getValue(), inputs[POLYPAN_INPUT].getVoltage(2)) -
+				-polyChAudioR[2] *
+				cpPanL(params[PAN_PARAM + 2].getValue(), inputs[POLYPAN_INPUT].getVoltage(2));
+			ch3Send2 = polyChAudioL[2] *
+				cpPanR(params[PAN_PARAM + 2].getValue(), inputs[POLYPAN_INPUT].getVoltage(2)) -
+				-polyChAudioR[2] *
+				cpPanL(params[PAN_PARAM + 2].getValue(), inputs[POLYPAN_INPUT].getVoltage(2));
+			///ch4
+			ch4Send1 = polyChAudioL[3] *
+				cpPanR(params[PAN_PARAM + 3].getValue(), inputs[POLYPAN_INPUT].getVoltage(3)) -
+				-polyChAudioR[3] *
+				cpPanL(params[PAN_PARAM + 3].getValue(), inputs[POLYPAN_INPUT].getVoltage(3));
+			ch4Send2 = polyChAudioL[3] *
+				cpPanR(params[PAN_PARAM + 3].getValue(), inputs[POLYPAN_INPUT].getVoltage(3)) -
+				-polyChAudioR[3] *
+				cpPanL(params[PAN_PARAM + 3].getValue(), inputs[POLYPAN_INPUT].getVoltage(3));
 
 			//assign solo case
 			if (params[SOLO_PARAM + 0].getValue() < 1.f) { soloCase = 1; } 
