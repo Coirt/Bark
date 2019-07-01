@@ -12,7 +12,7 @@ struct LowFrequencyOscillator {
 	T resetState = T::mask();
 
 	void setPitch(T pitch) {
-		pitch = simd::fmin(pitch, 8.f);
+		pitch = simd::fmin(pitch, 16.f);
 		freq = simd::pow(2.f, pitch);
 	}
 	void setPulseWidth(T pw_) {
