@@ -162,40 +162,10 @@ struct OneBand : Module {
 				}
 			}
 		}
-		//dB Peak Level Indicator-------------------------------------------------------
-		/*
-		//dB Peak Level Indicator------------------------------------------------------- pre EQ / post EQ
-		//volUnitIndicatorPEAK.dBInterval = 3.f;
-		if (params[PREPOST_PARAM].getValue() == 0.0f && !inputs[INR_INPUT].isConnected()) {//pre
-			volUnitIndicatorPEAK.process(args.sampleTime, inL / 10.f);//vumeter2
-		} else if (params[PREPOST_PARAM].getValue() == 1.0f && !inputs[INR_INPUT].isConnected()) {//post
-			volUnitIndicatorPEAK.process(args.sampleTime, inR / 10.f);
-		}
-		if (params[PREPOST_PARAM].getValue() == 0.0f && inputs[INR_INPUT].isConnected()) {
-			volUnitIndicatorPEAK.process(args.sampleTime, ((inL / 10.f) + (inR / 10.f)) / 2.f);
-		} else if (params[PREPOST_PARAM].getValue() == 1.0f && inputs[INR_INPUT].isConnected()) {
-			volUnitIndicatorPEAK.process(args.sampleTime, ((outLdBVU / 10.f) + (outRdBVU / 10.f)) / 2.f);
-		}
-		if (light.process()) {
-			for (int meterLight = 0; meterLight < 8; meterLight++) {
-				if (params[PREPOST_PARAM].getValue() == 0.0f && !inputs[INR_INPUT].isConnected()) {//pre
-					lights[dBpeak_LIGHT + meterLight].setBrightness(volUnitIndicatorPEAK.getBrightness(-6.f * (meterLight + 1), -6.f * meterLight));//vumeter2
-				} else if (params[PREPOST_PARAM].getValue() == 1.0f && !inputs[INR_INPUT].isConnected()) {//post
-					lights[dBpeak_LIGHT + meterLight].setBrightness(volUnitIndicatorPEAK.getBrightness(-6.f * (meterLight + 1), -6.f * meterLight));
-				}
-				if (params[PREPOST_PARAM].getValue() == 0.0f && inputs[INR_INPUT].isConnected()) {
-					lights[dBpeak_LIGHT + meterLight].setBrightness(volUnitIndicatorPEAK.getBrightness(-6.f * (meterLight + 1), -6.f * meterLight));
-				} else if (params[PREPOST_PARAM].getValue() == 1.0f && inputs[INR_INPUT].isConnected()) {
-					lights[dBpeak_LIGHT + meterLight].setBrightness(volUnitIndicatorPEAK.getBrightness(-6.f * (meterLight + 1), -6.f * meterLight));
-				}
-			}
-		}//if(process)
-		//dB Peak Level Indicator-------------------------------------------------------
-		*/
 
 		if (inputs[FREQMOD_INPUT].isConnected()) {
 			lights[FreqParamOn].setBrightness(0); lights[FreqParamOff].setBrightness(1);
-			modInput = std::fminf(clamp((inputs[FREQMOD_INPUT].value / 5.f), fabs(.01375f), fabs(10.f)), std::fmaxf(fabs(.01375f), fabs(10.f)));
+			modInput = std::fminf(clamp((inputs[FREQMOD_INPUT].getVoltage() / 5.f), fabs(.01375f), fabs(10.f)), std::fmaxf(fabs(.01375f), fabs(10.f)));
 			lpf24.setCutoff(110.f);
 			lpf24.process(modInput, args.sampleTime);
 			eqFreq = clamp(params[EQFREQ_PARAM].getValue(), .11f, .11f) + ((5.f * lpf24.lowpass) * 2);
@@ -207,14 +177,13 @@ struct OneBand : Module {
 		if (inputs[FREQMOD_INPUT].isConnected()) {
 			biquadFreq = eqFreq * 2000.;	//lin
 		} else if (!inputs[FREQMOD_INPUT].isConnected()) {
-			biquadFreq = eqFreq * 20.;//exp
+			biquadFreq = eqFreq * 20.;	//exp
 		}	
 		
+		//Q
 		biquadQ = eqQ;
-		//Bypass EQ/Gain------------------------
-		if (params[EQBYPASS_PARAM].getValue() < 1.f) { biquadGain = eqGain; }		//EQ ON
-		else if (params[EQBYPASS_PARAM].getValue() > 0.f) { biquadGain = 0.0; }		//EQ OFF
-		//Bypass EQ Gain------------------------
+		//Bypass EQ
+		params[EQBYPASS_PARAM].getValue() < 1.f ? biquadGain = eqGain :	biquadGain = 0.0;
 		//set Biquad Values
 		parametricEQL->setBiquad(bq_type_peak, biquadFreq / sampRate, biquadQ, biquadGain);
 		parametricEQR->setBiquad(bq_type_peak, biquadFreq / sampRate, biquadQ, biquadGain);
