@@ -1,12 +1,13 @@
 #include "plugin.hpp"
 #include "barkComponents.hpp"
-#include "dependancies/dsp/LFO.hpp"
+#include "dependancies/dsp/simdLFO.hpp"
+/* delete in next update
 #include <sstream>
 #include <iomanip>
 #include <string>
 #include <cstring>
 #include <iostream>
-
+delete in next update */
 
 using namespace barkComponents;
 
@@ -40,10 +41,8 @@ struct tpWave : ParamQuantity {
 
 struct TrimLFO : Module {
 	enum ParamIds {
-		//Offset
 		OFFSET1_PARAM, 
 		OFFSET2_PARAM,	
-		//LFO
 		OFFSET_PARAM, 
 		INVERT_PARAM, 
 		FREQ_PARAM, 
@@ -54,6 +53,12 @@ struct TrimLFO : Module {
 		PWM_PARAM, 
 		WAVEMIX_PARAM, 
 		RESET_PARAM,	
+		SETsin_PARAM,
+		SETsaw_PARAM,
+		SETtri_PARAM,
+		SETsqr_PARAM,
+		SETbi_PARAM,
+		SETuni_PARAM,
 		NUM_PARAMS
 	};
 	enum InputIds {
@@ -81,95 +86,148 @@ struct TrimLFO : Module {
 		NUM_LIGHTS
 	};
 
-	LowFrequencyOscillator oscillator;
-	float volts1 = 0.0000f;
-	float volts2 = 0.0000f;
+	LowFrequencyOscillator<float_4> oscillators[4];
+	dsp::ClockDivider lightDivider;
+	float volts1 = 0.f;
+	float volts2 = 0.f;
 	float freqHz = 1.f;
 	
 
 	TrimLFO() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-		//in 357952c
-		///		configParam(NAMEOF_PARAM, float minValue, float maxValue, float defaultValue, //old feature aka clamp
-		///		std::string label = "", std::string unit = "", //new feature
-		///		float displayBase = 0.f, float displayMultiplier = 1.f, float displayOffset = 0.f)
-		//configParam(NAMEOF_PARAM,
 		configParam(FREQ_PARAM, -16.f, 4.f, 1.f, "Freq", " Hz", 2.f, 1.f * std::pow(2.f, params[FREQ_PARAM].getValue()));
 		//	, "Hz" 1.f * std::pow(2.f, frq + fine)
 		//TODO: fix the scale of finetune%
-		configParam(FINE_PARAM, -0.06798301f, 0.06798301f, 0.f, "Fine Tune", "%", 0.f, 18.9702f, 0.f);// negatiuve value difference == 0.01645129630197%
+		configParam(FINE_PARAM, -0.06798301f, 0.06798301f, 0.f, "Fine Tune", "%", 0.f, 18.9702f, 0.f);
+		// negatiuve value difference == 0.01645129630197%
 		configParam(OFFSET1_PARAM, -10.f, 10.f, 0.f, "Offset 1");
 		configParam(OFFSET2_PARAM, -10.f, 10.f, 10.f, "Offset 2");
-		configParam(PW_PARAM, 0.f, 1.f, 0.5f, "Pulse Width", "%", 0.f, 100.f, -50.f);
-		configParam(FM1_PARAM, 0.f, 1.f, 0.f, "Freq Mod 1");
-		configParam(FM2_PARAM, 0.f, 1.f, 0.f, "Freq Mod 2");
-		configParam(PWM_PARAM, 0.f, 1.f, 0.f, "Pulse Width Mod");
+		configParam(PW_PARAM, 0.01f, .99f, 0.5f, "Pulse Width", "%", 0.f, 100.f, -50.f);
+		configParam(FM1_PARAM, 0.f, 1.f, 0.f, "Freq Mod 1", "%", 0.f, 100.f);
+		configParam(FM2_PARAM, 0.f, 1.f, 0.f, "Freq Mod 2", "%", 0.f, 100.f);
+		configParam(PWM_PARAM, 0.f, 1.f, 0.f, "Pulse Width Mod", "%", 0.f, 100.f);
 		configParam<tpWave>(WAVEMIX_PARAM, 0.f, 3.f, 0.f, "Wave ");
 		configParam<tpPolarVal>(OFFSET_PARAM, 0.f, 1.f, 1.f, "Type", "Polar");	
 		configParam<tpPhaseVal>(INVERT_PARAM, 0.f, 1.f, 1.f, "Phase", "°");
 		configParam(RESET_PARAM, 0.f, 1.f, 0.f, "Reset Phase");
-
+		configParam(SETsin_PARAM, 0.f, 1.f, 0.f, "Top Output Sine");
+		configParam(SETsaw_PARAM, 0.f, 1.f, 0.f, "Top Output Saw");
+		configParam(SETtri_PARAM, 0.f, 1.f, 0.f, "Top Output Triangle");
+		configParam(SETsqr_PARAM, 0.f, 1.f, 0.f, "Top Output Square");
+		configParam(SETbi_PARAM, 0.f, 1.f, 0.f, "Set Offsets Bipolar");
+		configParam(SETuni_PARAM, 0.f, 1.f, 0.f, "Set Offsets Unipolar");
+		lightDivider.setDivision(8);
 	}
 
 	void process(const ProcessArgs &args) override {
-		//param = getValue(), input = getVoltage(), output = setVoltage()
-		float out1 = clamp(params[OFFSET1_PARAM].getValue(), -10.f, 10.f) + oscillator.sin(),
-			out2 = clamp(params[OFFSET2_PARAM].getValue(), -10.f, 10.f) + oscillator.sqr(),
-			out1a = clamp(params[OFFSET1_PARAM].getValue(), -10.f, 10.f),	//Normal +-10v
+		float pwKnob = params[PW_PARAM].getValue(), pwmKnob = params[PWM_PARAM].getValue();
+		float out1a = clamp(params[OFFSET1_PARAM].getValue(), -10.f, 10.f),	//Normal +-10v
 			out2a = clamp(params[OFFSET2_PARAM].getValue(), -10.f, 10.f),	//Normal +-10v
-			fineTune = 4 * dsp::quadraticBipolar(params[FINE_PARAM].getValue());		//finetune
+			fineTune = 4 * dsp::quadraticBipolar(params[FINE_PARAM].getValue());		//TODO: pow this
+		float_4 sinValue, sawValue, triValue, sqrValue;
 
-		outputs[OUT1_OUTPUT].setVoltage(out1);
-		outputs[OUT2_OUTPUT].setVoltage(out2);
-		outputs[OUT1a_OUTPUT].setVoltage(out1a);
-		outputs[OUT2a_OUTPUT].setVoltage(out2a);
+		if (outputs[OUT1a_OUTPUT].isConnected()) { outputs[OUT1a_OUTPUT].setVoltage(out1a); }
+		if (outputs[OUT2a_OUTPUT].isConnected()) { outputs[OUT2a_OUTPUT].setVoltage(out2a); }
 
-		oscillator.setPitch(params[FREQ_PARAM].getValue() + fineTune + params[FM1_PARAM].getValue() * inputs[FM1_INPUT].getVoltage() + params[FM2_PARAM].getValue() * inputs[FM2_INPUT].getVoltage());
-		oscillator.setPulseWidth(params[PW_PARAM].getValue() + params[PWM_PARAM].getValue() * inputs[PW_INPUT].getVoltage() / 10.f);
-		oscillator.offset = (params[OFFSET_PARAM].getValue() > 0.f);
-		oscillator.invert = (params[INVERT_PARAM].getValue() <= 0.f);
-		oscillator.step(args.sampleTime);
-		oscillator.setReset(inputs[RESET_INPUT].getVoltage() || params[RESET_PARAM].getValue());
+		//simdLFO
+		for (int i = 0; i < 4; i += 4) {
+			auto *oscillator = &oscillators[i];
+			//frequency
+			float_4 pitch = params[FREQ_PARAM].getValue() + fineTune;
+			pitch += params[FM1_PARAM].getValue() * inputs[FM1_INPUT].getVoltageSimd<float_4>(i);
+			pitch += params[FM2_PARAM].getValue() * inputs[FM2_INPUT].getVoltageSimd<float_4>(i);
+			oscillator->setPitch(pitch);
+			//pulse width
+			float_4 pw = pwKnob + inputs[PW_INPUT].getVoltageSimd<float_4>(i) / 10.f * pwmKnob;
+			oscillator->setPulseWidth(pw);
 
+			oscillator->polarPat = (params[OFFSET_PARAM].getValue() < 1.f);
+			oscillator->invert = (params[INVERT_PARAM].getValue() < 1.f);
+
+			oscillator->step(args.sampleTime);
+
+			float_4 resetPhase = params[RESET_PARAM].getValue();
+			//setReset(internal, external)
+			oscillator->setReset(resetPhase, inputs[RESET_INPUT].getVoltageSimd<float_4>(i));
+			//oscillator->setReset(inputs[RESET_INPUT].getVoltage() || params[RESET_PARAM].getValue());
+
+			//initialise oscilators
+			sinValue = 5.f * oscillator->sin();
+			sawValue = 5.f * oscillator->saw();
+			triValue = 5.f * oscillator->tri();
+			sqrValue = 5.f * oscillator->sqr();
+
+			float_4 out1 = clamp(params[OFFSET1_PARAM].getValue(), -10.f, 10.f) + oscillator->sin();
+			float_4	out2 = clamp(params[OFFSET2_PARAM].getValue(), -10.f, 10.f) + oscillator->sqr();
+
+			outputs[OUT1_OUTPUT].setVoltageSimd(out1, i);
+			outputs[OUT2_OUTPUT].setVoltageSimd(out2, i);
+			///LFO outputs----
+			if (outputs[SIN_OUTPUT].isConnected()) { outputs[SIN_OUTPUT].setVoltageSimd(sinValue, i); }
+			if (outputs[SAW_OUTPUT].isConnected()) { outputs[SAW_OUTPUT].setVoltageSimd(sawValue, i); }
+			if (outputs[TRI_OUTPUT].isConnected()) { outputs[TRI_OUTPUT].setVoltageSimd(triValue, i); }
+			if (outputs[SQR_OUTPUT].isConnected()) { outputs[SQR_OUTPUT].setVoltageSimd(sqrValue, i); }
+			///TRIM LFO output----
+			float wavemixParamVal = params[WAVEMIX_PARAM].getValue();
+			float_4 waveMixParam = clamp(params[WAVEMIX_PARAM].getValue(), 0.f, 2.99999f), xFade;
+			///sin.saw----
+			if (wavemixParamVal < 1.f) {// 0.0f sin
+				xFade = simd::crossfade(sinValue, sawValue, waveMixParam);
+				outputs[trimLFO_OUTPUT].setVoltageSimd(simd::fmax(out1a, simd::fmin(out2a, xFade)), i);
+			}
+			///saw.tri----
+			else if (wavemixParamVal < 2.f) {	//1.0f saw
+				xFade = simd::crossfade(sawValue, triValue, waveMixParam - 1.f); ///some of the higher voltages get lost TODO: fix that - 1.2 maybe
+				outputs[trimLFO_OUTPUT].setVoltageSimd(simd::fmax(out1a, simd::fmin(out2a, xFade)), i);
+			}
+			///tri.sqr----
+			else if (wavemixParamVal < 3.f) { //2.0f tri
+				xFade = simd::crossfade(triValue, sqrValue, waveMixParam - 1.95f);//2.f
+				outputs[trimLFO_OUTPUT].setVoltageSimd(simd::fmax(out1a, simd::fmin(out2a, xFade)), i);
+			}
+			///sqr----
+			else if (wavemixParamVal == 3.f) { //3.0f sqr
+				outputs[trimLFO_OUTPUT].setVoltageSimd(simd::fmax(out1a, simd::fmin(out2a, xFade)), i);
+			}
+		}
 		//----------------	DISPLAY Hz	--------------------------
-		float frq = params[FREQ_PARAM].getValue() + params[FM1_PARAM].getValue() * inputs[FM1_INPUT].getVoltage() + params[FM2_PARAM].getValue() * inputs[FM2_INPUT].getVoltage(),
+		float frq = params[FREQ_PARAM].getValue() + params[FM1_PARAM].getValue() * inputs[FM1_INPUT].getVoltage() +
+			params[FM2_PARAM].getValue() * inputs[FM2_INPUT].getVoltage(),
 			fine = fineTune;
 		volts1 = clamp(params[OFFSET1_PARAM].getValue(), -10.f, 10.f);
 		volts2 = clamp(params[OFFSET2_PARAM].getValue(), -10.f, 10.f);
 		frq = clamp(frq, -16.f, 16.f);
-		freqHz = 1.f * std::pow(2.f, frq + fine);
-		//--------------------------------------------------------
-		///TRIM LFO----
-		//initilise oscillators
-		float sinValue = 5.f * oscillator.sin(), sawValue = 5.f * oscillator.saw(),
-			triValue = 5.f * oscillator.tri(), sqrValue = 5.f * oscillator.sqr(),
-			waveMixParam = clamp(params[WAVEMIX_PARAM].getValue(), 0.f, 2.99999f), xFade;
-		///sin.saw----
-		if (waveMixParam < 1.f) {// 0.0f sin
-			xFade = crossfade(sinValue, sawValue, waveMixParam);
-			outputs[trimLFO_OUTPUT].setVoltage(std::fmax(params[OFFSET1_PARAM].getValue(), std::fmin(params[OFFSET2_PARAM].getValue(), xFade)));
+		freqHz = 1.f * simd::pow(2.f, frq + fine);
+		//----------------	DISPLAY Hz	--------------------------
+
+		//set param on click
+		if (params[SETsin_PARAM].getValue() > 0.f) {
+			params[WAVEMIX_PARAM].setValue(0.f);
 		}
-		///saw.tri----
-		else if (waveMixParam < 2.f) {	//1.0f saw
-			xFade = crossfade(sawValue, triValue, waveMixParam - 1.f); ///some of the higher voltages get lost TODO: fix that - 1.2 maybe
-			outputs[trimLFO_OUTPUT].setVoltage(std::fmax(params[OFFSET1_PARAM].getValue(), std::fmin(params[OFFSET2_PARAM].getValue(), xFade)));
+		if (params[SETsaw_PARAM].getValue() > 0.f) {
+			params[WAVEMIX_PARAM].setValue(1.f);
 		}
-		///tri.sqr----
-		else if (waveMixParam < 3.f) { //2.0f tri
-			xFade = crossfade(triValue, sqrValue, waveMixParam - 1.95f);
-			outputs[trimLFO_OUTPUT].setVoltage(std::fmax(params[OFFSET1_PARAM].getValue(), std::fmin(params[OFFSET2_PARAM].getValue(), xFade)));
+		if (params[SETtri_PARAM].getValue() > 0.f) {
+			params[WAVEMIX_PARAM].setValue(2.f);
 		}
-		///sqr----
-		else if (waveMixParam == 3.f) { //3.0f sqr
-			outputs[trimLFO_OUTPUT].setVoltage(std::fmax(params[OFFSET1_PARAM].getValue(), std::fmin(params[OFFSET2_PARAM].getValue(), xFade)));
+		if (params[SETsqr_PARAM].getValue() > 0.f) {
+			params[WAVEMIX_PARAM].setValue(2.99999f);
 		}
-		///LFO----
-		outputs[SIN_OUTPUT].setVoltage(sinValue);
-		outputs[SAW_OUTPUT].setVoltage(sawValue);
-		outputs[TRI_OUTPUT].setVoltage(triValue);
-		outputs[SQR_OUTPUT].setVoltage(sqrValue);
-		lights[PHASE_POS_LIGHT].setSmoothBrightness(oscillator.light(), args.sampleTime);
-		lights[PHASE_NEG_LIGHT].setSmoothBrightness(-oscillator.light(), args.sampleTime);
+
+		//set Trim params to uni/bi
+		if (params[SETbi_PARAM].getValue() > 0.f) {
+			params[OFFSET1_PARAM].setValue(-5.f);
+			params[OFFSET2_PARAM].setValue(5.f);
+			params[OFFSET_PARAM].setValue(0.f);
+		} else if (params[SETuni_PARAM].getValue() > 0.f) {
+			params[OFFSET1_PARAM].setValue(0.f);
+			params[OFFSET2_PARAM].setValue(10.f);
+			params[OFFSET_PARAM].setValue(1.f);
+		}
+
+		float oscillatorLight = oscillators[0].light().s[0];
+		lights[PHASE_POS_LIGHT].setSmoothBrightness(oscillatorLight, args.sampleTime * lightDivider.getDivision());
+		lights[PHASE_NEG_LIGHT].setSmoothBrightness(-oscillatorLight, args.sampleTime * lightDivider.getDivision());
 	}
 };
 ////---------------------------------------------------------------------------------------------------------------------------
@@ -262,9 +320,9 @@ struct VoltsDisplayWidget : TransparentWidget {
 ////---------------------------------------------------------------------------------------------------------------------------
 struct TrimLFOWidget : ModuleWidget {
 	TrimLFOWidget(TrimLFO *module) {
-		
 		setModule(module);
 		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/BarkTrimLFO.svg")));
+		
 		int rackY = 380;
 		///Ports---
 		//Out---
@@ -272,7 +330,7 @@ struct TrimLFOWidget : ModuleWidget {
 		addOutput(createOutput<BarkOutPort350>(Vec(46.58f, rackY - 52.35f), module, TrimLFO::SAW_OUTPUT));
 		addOutput(createOutput<BarkOutPort350>(Vec(79.68f, rackY - 52.35f), module, TrimLFO::TRI_OUTPUT));
 		addOutput(createOutput<BarkOutPort350>(Vec(113.245f, rackY - 52.35f), module, TrimLFO::SQR_OUTPUT));
-		addOutput(createOutput<BarkOutPort350>(Vec(14.57f, rackY - 275.08f), module, TrimLFO::OUT1_OUTPUT));				//2v sin
+		addOutput(createOutput<BarkOutPort350>(Vec(14.57f, rackY - 275.08f), module, TrimLFO::OUT1_OUTPUT));					//2v sin
 		addOutput(createOutput<BarkOutPort350>(Vec(112.09f, rackY - 275.08f), module, TrimLFO::OUT2_OUTPUT));				//2v sqr
 		addOutput(createOutput<BarkOutPort350>(Vec(42.11f + 0.35f, rackY - 275.08f), module, TrimLFO::OUT1a_OUTPUT));		//Offset1
 		addOutput(createOutput<BarkOutPort350>(Vec(84.18f, rackY - 275.08f), module, TrimLFO::OUT2a_OUTPUT));				//Offset2
@@ -282,7 +340,6 @@ struct TrimLFOWidget : ModuleWidget {
 		addInput(createInput<BarkInPort350>(Vec(63.25f, rackY - 82.70f), module, TrimLFO::FM2_INPUT));
 		addInput(createInput<BarkInPort350>(Vec(99.66f, rackY - 82.70f), module, TrimLFO::PW_INPUT));
 		addInput(createInput<BarkInPort350>(Vec(119.89f, rackY - 164.05f), module, TrimLFO::RESET_INPUT));
-		//////addInput(Port::create<BarkPatchPortIn>(Vec(63.35f, rackY - 332.02f), Port::INPUT, module, TrimLFO::MODSRC_INPUT));
 		//Knobs---
 		addParam(createParam<BarkKnob70>(Vec(39.66f, rackY - 217.01f), module, TrimLFO::FREQ_PARAM));
 		addParam(createParam<BarkScrew01>(Vec(box.size.x - 13, 367.2f), module, TrimLFO::FINE_PARAM));
@@ -296,7 +353,14 @@ struct TrimLFOWidget : ModuleWidget {
 		//Switch---
 		addParam(createParam<BarkSwitch>(Vec(8.67f, rackY - 217.06f), module, TrimLFO::OFFSET_PARAM));
 		addParam(createParam<BarkSwitch>(Vec(117.57f, rackY - 217.06f), module, TrimLFO::INVERT_PARAM));
-		addParam(createParam<BarkButton1>(Vec(122.72f, rackY - 138.20f), module, TrimLFO::RESET_PARAM));
+		///quick access / hidden params
+		addParam(createParam<BarkButton1>(Vec(121.54f, rackY - 140.91f), module, TrimLFO::RESET_PARAM));
+		addParam(createParam<BarkButton1>(Vec(14.91f, rackY - 31.2f), module, TrimLFO::SETsin_PARAM));
+		addParam(createParam<BarkButton1>(Vec(48.21f, rackY - 31.2f), module, TrimLFO::SETsaw_PARAM));
+		addParam(createParam<BarkButton1>(Vec(81.52f, rackY - 31.2f), module, TrimLFO::SETtri_PARAM));
+		addParam(createParam<BarkButton1>(Vec(114.91f, rackY - 31.2f), module, TrimLFO::SETsqr_PARAM));
+		addParam(createParam<BarkButton1>(Vec(10.55f, rackY - 191.09f), module, TrimLFO::SETbi_PARAM));
+		addParam(createParam<BarkButton1>(Vec(10.55f, rackY - 228.33f), module, TrimLFO::SETuni_PARAM));
 		//Screw---
 		addChild(createWidget<BarkScrew3>(Vec(2, 3)));		//pos1
 		//Light---
@@ -320,32 +384,19 @@ struct TrimLFOWidget : ModuleWidget {
 		////------------------------------
 		}
 
-		
-
-		///Menu item
-		//struct reportBug : MenuItem {
-		//	TrimLFO *module;
-		//	Menu *createChildMenu() override {
-		//		//object
-		//		Menu *menuitem = new Menu;
-		//		std::_Adjust_manually_vector_aligned<>
-		//	}
-		//};
 	}
+
 };
 
 Model *modelTrimLFO = createModel<TrimLFO, TrimLFOWidget>("TrimLFO");
-
 //**-------------------------------------------------------------------------------------------------------------------------------------------------
 //-----bpmTrimLFO------------------------------------------------------------------------------------------------------------------------------------
 //**-------------------------------------------------------------------------------------------------------------------------------------------------
 struct bpmTrimLFO : Module {
 
 	enum ParamIds {
-		//Offset
 		OFFSET1_PARAM,
 		OFFSET2_PARAM,
-		//LFO
 		OFFSET_PARAM,
 		INVERT_PARAM,
 		FREQ_PARAM,
@@ -357,6 +408,12 @@ struct bpmTrimLFO : Module {
 		PWM_PARAM,
 		WAVEMIX_PARAM,
 		RESET_PARAM,
+		SETsin_PARAM,
+		SETsaw_PARAM,
+		SETtri_PARAM,
+		SETsqr_PARAM,
+		SETbi_PARAM,
+		SETuni_PARAM,
 		NUM_PARAMS
 	};
 	enum InputIds {
@@ -384,91 +441,145 @@ struct bpmTrimLFO : Module {
 		NUM_LIGHTS
 	};
 
-	LowFrequencyOscillator oscillator;
-	float volts1bpm = 0.0000f;
-	float volts2bpm = 0.0000f;
+	LowFrequencyOscillator<float_4> oscillators[4];
+	dsp::ClockDivider lightDivider;
+	float volts1bpm = 0.f;
+	float volts2bpm = 0.f;
 	float freqHz = 1.f;
 
 	bpmTrimLFO() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-		configParam(FREQ_PARAM, -16.f, 4.f, 1.f, "Freq", " BPM", 2.f, 1.f * std::pow(2.f, params[FREQ_PARAM].getValue()) * 60);
+		configParam(FREQ_PARAM, -16.f, 4.f, 1.f, "Freq", " BPM", 2.f, 1.f * simd::pow(2.f, params[FREQ_PARAM].getValue()) * 60);
 		configParam(FINE_PARAM, -0.06798301f, 0.06798301f, 0.f, "Fine Tune", "%", 0.f, 18.9702f, 0.f);
 		configParam(BPM_PARAM, -1.0136f / 2, 0.952f / 2, 0.f, "Fine Tune", "%", 0.f, 100.f, 0.f);
 		configParam(OFFSET1_PARAM, -10.f, 10.f, 0.f, "Offset 1");
 		configParam(OFFSET2_PARAM, -10.f, 10.f, 10.f, "Offset 2");
-		configParam(PW_PARAM, 0.f, 1.f, 0.5f, "Pulse Width", "%", 0.f, 100.f, -50.f);
-		configParam(FM1_PARAM, 0.f, 1.f, 0.f, "Freq Mod 1");
-		configParam(FM2_PARAM, 0.f, 1.f, 0.f, "Freq Mod 2");
-		configParam(PWM_PARAM, 0.f, 1.f, 0.f, "Pulse Width Mod");
-		configParam<tpWave>(WAVEMIX_PARAM, 0.f, 3.f, 0.f, "Wave ");
+		configParam(PW_PARAM, 0.01f, .99f, 0.5f, "Pulse Width", "%", 0.f, 100.f, -50.f);
+		configParam(FM1_PARAM, 0.f, 1.f, 0.f, "Freq Mod 1", "%", 0.f, 100.f);
+		configParam(FM2_PARAM, 0.f, 1.f, 0.f, "Freq Mod 2", "%", 0.f, 100.f);
+		configParam(PWM_PARAM, 0.f, 1.f, 0.f, "Pulse Width Mod", "%", 0.f, 100.f);
+		configParam<tpWave>(WAVEMIX_PARAM, 0.f, 2.99999f, 0.f, "Wave ");
 		configParam<tpPolarVal>(OFFSET_PARAM, 0.f, 1.f, 1.f, "Type", "Polar");
 		configParam<tpPhaseVal>(INVERT_PARAM, 0.f, 1.f, 1.f, "Phase", "°");
 		configParam(RESET_PARAM, 0.f, 1.f, 0.f, "Reset Phase");
+		configParam(SETsin_PARAM, 0.f, 1.f, 0.f, "Top Output Sine");
+		configParam(SETsaw_PARAM, 0.f, 1.f, 0.f, "Top Output Saw");
+		configParam(SETtri_PARAM, 0.f, 1.f, 0.f, "Top Output Triangle");
+		configParam(SETsqr_PARAM, 0.f, 1.f, 0.f, "Top Output Square");
+		configParam(SETbi_PARAM, 0.f, 1.f, 0.f, "Set Offsets Bipolar");
+		configParam(SETuni_PARAM, 0.f, 1.f, 0.f, "Set Offsets Unipolar");
+		lightDivider.setDivision(8);
 	}
 
 	void process(const ProcessArgs &args) override {		
-		//param = getValue() and setValue(), input = getVoltage(), output = setVoltage(TO)
-		float out1 = clamp(params[OFFSET1_PARAM].getValue(), -10.f, 10.f) + oscillator.sin(),
-			out2 = clamp(params[OFFSET2_PARAM].getValue(), -10.f, 10.f) + oscillator.sqr(),
-			out1a = clamp(params[OFFSET1_PARAM].getValue(), -10.f, 10.f),					//	±10v
-			out2a = clamp(params[OFFSET2_PARAM].getValue(), -10.f, 10.f),					//	±10v
-			fineTune = 3.0f * dsp::quadraticBipolar(params[FINE_PARAM].getValue()) +		
-			3.0f * dsp::quadraticBipolar(params[BPM_PARAM].getValue());					//finetune
+		float pwKnob = params[PW_PARAM].getValue(), pwmKnob = params[PWM_PARAM].getValue();
+		float out1a = clamp(params[OFFSET1_PARAM].getValue(), -10.f, 10.f),	//Normal +-10v
+			out2a = clamp(params[OFFSET2_PARAM].getValue(), -10.f, 10.f),	//Normal +-10v
+			fineTune = 4 * dsp::quadraticBipolar(params[FINE_PARAM].getValue());		//TODO: pow this
+		float_4 sinValue, sawValue, triValue, sqrValue;
 
-		outputs[OUT1_OUTPUT].setVoltage(out1);
-		outputs[OUT2_OUTPUT].setVoltage(out2);
-		outputs[OUT1a_OUTPUT].setVoltage(out1a);
-		outputs[OUT2a_OUTPUT].setVoltage(out2a);
+		if (outputs[OUT1a_OUTPUT].isConnected()) { outputs[OUT1a_OUTPUT].setVoltage(out1a); }
+		if (outputs[OUT2a_OUTPUT].isConnected()) { outputs[OUT2a_OUTPUT].setVoltage(out2a); }
 
-		oscillator.setPitch(params[FREQ_PARAM].getValue() + fineTune + params[FM1_PARAM].getValue() * inputs[FM1_INPUT].getVoltage() + params[FM2_PARAM].getValue() * inputs[FM2_INPUT].getVoltage());
-		oscillator.setPulseWidth(params[PW_PARAM].getValue() + params[PWM_PARAM].getValue() * inputs[PW_INPUT].getVoltage() / 10.f);
-		oscillator.offset = (params[OFFSET_PARAM].getValue() > 0.f);
-		oscillator.invert = (params[INVERT_PARAM].getValue() <= 0.f);
-		oscillator.step(args.sampleTime);
-		oscillator.setReset(inputs[RESET_INPUT].getVoltage() || params[RESET_PARAM].getValue());
+		//simdLFO
+		for (int i = 0; i < 4; i += 4) {
+			auto *oscillator = &oscillators[i];
+			//frequency
+			float_4 pitch = params[FREQ_PARAM].getValue() + fineTune;
+			pitch += params[FM1_PARAM].getValue() * inputs[FM1_INPUT].getVoltageSimd<float_4>(i);
+			pitch += params[FM2_PARAM].getValue() * inputs[FM2_INPUT].getVoltageSimd<float_4>(i);
+			oscillator->setPitch(pitch);
+			//pulse width
+			float_4 pw = pwKnob + inputs[PW_INPUT].getVoltageSimd<float_4>(i) / 10.f * pwmKnob;
+			oscillator->setPulseWidth(pw);
 
+			oscillator->polarPat = (params[OFFSET_PARAM].getValue() < 1.f);
+			oscillator->invert = (params[INVERT_PARAM].getValue() < 1.f);
+
+			oscillator->step(args.sampleTime);
+
+			float_4 resetPhase = params[RESET_PARAM].getValue();
+			//setReset(internal, external)
+			oscillator->setReset(resetPhase, inputs[RESET_INPUT].getVoltageSimd<float_4>(i));
+			//oscillator->setReset(inputs[RESET_INPUT].getVoltage() || params[RESET_PARAM].getValue());
+
+			//initialise oscilators
+			sinValue = 5.f * oscillator->sin();
+			sawValue = 5.f * oscillator->saw();
+			triValue = 5.f * oscillator->tri();
+			sqrValue = 5.f * oscillator->sqr();
+
+			float_4 out1 = clamp(params[OFFSET1_PARAM].getValue(), -10.f, 10.f) + oscillator->sin();
+			float_4	out2 = clamp(params[OFFSET2_PARAM].getValue(), -10.f, 10.f) + oscillator->sqr();
+
+			outputs[OUT1_OUTPUT].setVoltageSimd(out1, i);
+			outputs[OUT2_OUTPUT].setVoltageSimd(out2, i);
+			///LFO outputs----
+			if (outputs[SIN_OUTPUT].isConnected()) { outputs[SIN_OUTPUT].setVoltageSimd(sinValue, i); }
+			if (outputs[SAW_OUTPUT].isConnected()) { outputs[SAW_OUTPUT].setVoltageSimd(sawValue, i); }
+			if (outputs[TRI_OUTPUT].isConnected()) { outputs[TRI_OUTPUT].setVoltageSimd(triValue, i); }
+			if (outputs[SQR_OUTPUT].isConnected()) { outputs[SQR_OUTPUT].setVoltageSimd(sqrValue, i); }
+			///TRIM LFO output----
+			float wavemixParamVal = params[WAVEMIX_PARAM].getValue();
+			float_4 waveMixParam = clamp(params[WAVEMIX_PARAM].getValue(), 0.f, 2.99999f), xFade;
+			///sin.saw----
+			if (wavemixParamVal < 1.f) {// 0.0f sin
+				xFade = simd::crossfade(sinValue, sawValue, waveMixParam);
+				outputs[trimLFO_OUTPUT].setVoltageSimd(simd::fmax(out1a, simd::fmin(out2a, xFade)), i);
+			}
+			///saw.tri----
+			else if (wavemixParamVal < 2.f) {	//1.0f saw
+				xFade = simd::crossfade(sawValue, triValue, waveMixParam - 1.f); ///some of the higher voltages get lost TODO: fix that - 1.2 maybe
+				outputs[trimLFO_OUTPUT].setVoltageSimd(simd::fmax(out1a, simd::fmin(out2a, xFade)), i);
+			}
+			///tri.sqr----
+			else if (wavemixParamVal < 3.f) { //2.0f tri
+				xFade = simd::crossfade(triValue, sqrValue, waveMixParam - 1.95f);//2.f
+				outputs[trimLFO_OUTPUT].setVoltageSimd(simd::fmax(out1a, simd::fmin(out2a, xFade)), i);
+			}
+			///sqr----
+			else if (wavemixParamVal == 3.f) { //3.0f sqr
+				outputs[trimLFO_OUTPUT].setVoltageSimd(simd::fmax(out1a, simd::fmin(out2a, xFade)), i);
+			}
+		}
 		//----------------	DISPLAY BPM	--------------------------
-		float frq = params[FREQ_PARAM].getValue() + params[FM1_PARAM].getValue() * inputs[FM1_INPUT].getVoltage() + params[FM2_PARAM].getValue() * inputs[FM2_INPUT].getVoltage(),
+		float frq = params[FREQ_PARAM].getValue() + params[FM1_PARAM].getValue() * inputs[FM1_INPUT].getVoltage() +
+			params[FM2_PARAM].getValue() * inputs[FM2_INPUT].getVoltage(),
 			fine = fineTune;
 		volts1bpm = clamp(params[OFFSET1_PARAM].getValue(), -10.f, 10.f);
 		volts2bpm = clamp(params[OFFSET2_PARAM].getValue(), -10.f, 10.f);
 		frq = clamp(frq, -16.f, 16.f);
-		freqHz = 1.f * std::pow(2.f, frq + fine);
-		//--------------------------------------------------------
-		//if (params[RESET_PARAM].getValue() != 0.f) {
-			//params[WAVEMIX_PARAM].setValue(2.f);
-		//}
-		///TRIM LFO----
-		//initilise oscillators
-		float sinValue = 5.f * oscillator.sin(), sawValue = 5.f * oscillator.saw(),
-			triValue = 5.f * oscillator.tri(), sqrValue = 5.f * oscillator.sqr(),
-			waveMixParam = clamp(params[WAVEMIX_PARAM].getValue(), 0.f, 2.99999f), xFade;
-		///sin.saw----
-		if (waveMixParam < 1.f) {// 0.0f sin
-			xFade = crossfade(sinValue, sawValue, waveMixParam);
-			outputs[trimLFO_OUTPUT].setVoltage(std::fmax(params[OFFSET1_PARAM].getValue(), std::fmin(params[OFFSET2_PARAM].getValue(), xFade)));
+		freqHz = 1.f * simd::pow(2.f, frq + fine);
+		//----------------	DISPLAY BPM	--------------------------
+
+		//set param on click
+		if (params[SETsin_PARAM].getValue() > 0.f) {
+			params[WAVEMIX_PARAM].setValue(0.f);
 		}
-		///saw.tri----
-		else if (waveMixParam < 2.f) {	//1.0f saw
-			xFade = crossfade(sawValue, triValue, waveMixParam - 1.f); ///some of the higher voltages get lost TODO: fix that - 1.2 maybe
-			outputs[trimLFO_OUTPUT].setVoltage(std::fmax(params[OFFSET1_PARAM].getValue(), std::fmin(params[OFFSET2_PARAM].getValue(), xFade)));
+		if (params[SETsaw_PARAM].getValue() > 0.f) {
+			params[WAVEMIX_PARAM].setValue(1.f);
 		}
-		///tri.sqr----
-		else if (waveMixParam < 3.f) { //2.0f tri
-			xFade = crossfade(triValue, sqrValue, waveMixParam - 1.95f);
-			outputs[trimLFO_OUTPUT].setVoltage(std::fmax(params[OFFSET1_PARAM].getValue(), std::fmin(params[OFFSET2_PARAM].getValue(), xFade)));
+		if (params[SETtri_PARAM].getValue() > 0.f) {
+			params[WAVEMIX_PARAM].setValue(2.f);
 		}
-		///sqr----TODO: when sqr == 3 no sqr
-		else if (waveMixParam >= 3.f) { //3.0f sqr
-			outputs[trimLFO_OUTPUT].setVoltage(std::fmax(params[OFFSET1_PARAM].getValue(), std::fmin(params[OFFSET2_PARAM].getValue(), xFade)));
+		if (params[SETsqr_PARAM].getValue() > 0.f) {
+			params[WAVEMIX_PARAM].setValue(2.99999f);
 		}
-		///LFO----
-		outputs[SIN_OUTPUT].setVoltage(sinValue);
-		outputs[SAW_OUTPUT].setVoltage(sawValue);
-		outputs[TRI_OUTPUT].setVoltage(triValue);
-		outputs[SQR_OUTPUT].setVoltage(sqrValue);
-		lights[PHASE_POS_LIGHT].setSmoothBrightness(oscillator.light(), args.sampleTime);
-		lights[PHASE_NEG_LIGHT].setSmoothBrightness(-oscillator.light(), args.sampleTime);
+
+		//set Trim params to uni/bi
+		if (params[SETbi_PARAM].getValue() > 0.f) {
+			params[OFFSET1_PARAM].setValue(-5.f);
+			params[OFFSET2_PARAM].setValue(5.f);
+			params[OFFSET_PARAM].setValue(0.f);
+		} else if (params[SETuni_PARAM].getValue() > 0.f) {
+			params[OFFSET1_PARAM].setValue(0.f);
+			params[OFFSET2_PARAM].setValue(10.f);
+			params[OFFSET_PARAM].setValue(1.f);
+		}
+
+		float oscillatorLight = oscillators[0].light().s[0];
+		lights[PHASE_POS_LIGHT].setSmoothBrightness(oscillatorLight, args.sampleTime * lightDivider.getDivision());
+		lights[PHASE_NEG_LIGHT].setSmoothBrightness(-oscillatorLight, args.sampleTime * lightDivider.getDivision());
 	}
 };
 
@@ -569,6 +680,7 @@ struct bpmTrimLFOWidget : ModuleWidget {
 	bpmTrimLFOWidget(bpmTrimLFO *module) {
 		setModule(module);
 		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/BarkTrimLFObpm.svg")));
+		
 		int rackY = 380;
 		///Ports---
 		//Out---
@@ -586,7 +698,6 @@ struct bpmTrimLFOWidget : ModuleWidget {
 		addInput(createInput<BarkInPort350>(Vec(63.25f, rackY - 82.70f), module, bpmTrimLFO::FM2_INPUT));
 		addInput(createInput<BarkInPort350>(Vec(99.66f, rackY - 82.70f), module, bpmTrimLFO::PW_INPUT));
 		addInput(createInput<BarkInPort350>(Vec(119.89f, rackY - 164.05f), module, bpmTrimLFO::RESET_INPUT));
-		//////addInput(Port::create<BarkPatchPortIn>(Vec(63.35f, rackY - 332.02f), Port::INPUT, module, bpmTrimLFO::MODSRC_INPUT));
 		//Knobs---
 		addParam(createParam<BarkKnob70Snap>(Vec(39.66f, rackY - 217.01f), module, bpmTrimLFO::FREQ_PARAM));
 		addParam(createParam<BarkScrew01>(Vec(box.size.x - 13, 367.2f), module, bpmTrimLFO::FINE_PARAM));
@@ -601,11 +712,19 @@ struct bpmTrimLFOWidget : ModuleWidget {
 		//Switch---
 		addParam(createParam<BarkSwitch>(Vec(8.67f, rackY - 217.06f), module, bpmTrimLFO::OFFSET_PARAM));
 		addParam(createParam<BarkSwitch>(Vec(117.57f, rackY - 217.06f), module, bpmTrimLFO::INVERT_PARAM));
-		addParam(createParam<BarkButton1>(Vec(122.72f, rackY - 138.20f), module, bpmTrimLFO::RESET_PARAM));
+		///quick access - hidden params
+		addParam(createParam<BarkButton1>(Vec(121.54f, rackY - 140.91f), module, bpmTrimLFO::RESET_PARAM));
+		addParam(createParam<BarkButton1>(Vec(14.91f, rackY - 31.2f), module, bpmTrimLFO::SETsin_PARAM));
+		addParam(createParam<BarkButton1>(Vec(48.21f, rackY - 31.2f), module, bpmTrimLFO::SETsaw_PARAM));
+		addParam(createParam<BarkButton1>(Vec(81.52f, rackY - 31.2f), module, bpmTrimLFO::SETtri_PARAM));
+		addParam(createParam<BarkButton1>(Vec(114.91f, rackY - 31.2f), module, bpmTrimLFO::SETsqr_PARAM));
+		addParam(createParam<BarkButton1>(Vec(10.55f, rackY - 191.09f), module, bpmTrimLFO::SETbi_PARAM));
+		addParam(createParam<BarkButton1>(Vec(10.55f, rackY - 228.33f), module, bpmTrimLFO::SETuni_PARAM));
 		//Screw---
 		//addChild(createWidget<BarkScrew3>(Vec(2, 3)));		//pos1
 		//Light---
 		addChild(createLight<SmallLight<GreenRedLight>>(Vec(71.93f, rackY - 230.22f), module, bpmTrimLFO::PHASE_POS_LIGHT));
+		
 		//------------------------------bpmTrimLFO
 		//if not NULL i.e. in the browser don't draw display's
 		if (module != NULL) {
@@ -625,18 +744,8 @@ struct bpmTrimLFOWidget : ModuleWidget {
 			////------------------------------bpmTrimLFO
 		}
 
-		
-
-		///Menu item
-		//struct reportBug : MenuItem {
-		//	TrimLFO *module;
-		//	Menu *createChildMenu() override {
-		//		//object
-		//		Menu *menuitem = new Menu;
-		//		std::_Adjust_manually_vector_aligned<>
-		//	}
-		//};
 	}
+
 };
 
 Model *modelbpmTrimLFO = createModel<bpmTrimLFO, bpmTrimLFOWidget>("bpmTrimLFO");

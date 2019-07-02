@@ -108,6 +108,7 @@ namespace barkComponents {
 			momentary = true;
 			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonReset_0.svg")));
 			//addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonReset_0.svg")));
+			shadow->opacity = 0.f;
 		}
 	};
 

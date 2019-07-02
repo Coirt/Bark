@@ -1,6 +1,9 @@
+---v1.0.2---
+Optimised Trim LFO's with simd. Performance halfed.
+-----------------------------
+
 ---v1.0.1---
 Small bugfix on PolyX, green light staying on when cable connected
-
 -----------------------------
 
 ---v1_b1---
@@ -8,7 +11,6 @@ tweaked one band frequency and panel layout
 Added PolyMix, polyphonic mixer
 Added PolyX, Polyphonic merger with mute buttons. Note: see module description in module browser
 Added Clamp
-
 -----------------------------
 
 ---v0.6.6---
@@ -21,8 +23,8 @@ Enabled mod inputs on 1 band, also tweaked internal code.
 uploaded new panel for TrimLFO.
 default frequecny is now 2 Hz on Trim LFO.
 added a manual reset button on Trim LFO (both BPM/Hz versions), when you click on the reset label "RST" the phase will be reset.
-
 -----------------------------
+
 ---v0.6.4---
 Trim LFO----
 updated panel

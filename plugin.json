@@ -1,8 +1,8 @@
 {
   "slug": "Bark",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "license": "BSD-4-Clause",
-  "name": "Bark  /  Coirt",
+  "name": "Coirt\t/\tBark",
   "brand": "Bark",
   "author": "Phil Golden",
   "authorEmail": "philg@live.ie",
@@ -90,7 +90,7 @@
     {
       "slug": "PolyX",
       "name": "Poly X",
-      "description": "Merge to polyphonic with mute buttons.\n\nWhen no input channels are connected\nthe mute buttons send 10v or 0v, for\nuse with Level/Pan inputs on Poly Mix.\n",
+      "description": "Merge to polyphonic with mute buttons.\n\nWhen no input channels are connected\nthe mute buttons send 1v or 0v, for\nuse with Level/Pan inputs on Poly Mix.\n",
       "tags": [ "Polyphonic", "Switch" ]
     }
   ]
