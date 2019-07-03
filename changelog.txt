@@ -1,5 +1,13 @@
+---v1.0.3---
+Edits on module descriptions.
+Tweaked One Band. Code clean-up.
+-----------------------------
+
 ---v1.0.2---
 Optimised Trim LFO's with simd. Performance halfed.
+Added hidden buttons on labels to Trim LFO' to set parameters quickly. 
+("Bi", "Uni", "Sin", "Saw", "Tri", "Sqr")  "RST" added v0.6.5.
+Poly Mix aux now stereo from mono source. 
 -----------------------------
 
 ---v1.0.1---
