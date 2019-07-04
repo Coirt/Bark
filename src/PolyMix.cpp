@@ -102,7 +102,7 @@ struct PolyMix : Module {
 	*/
 	float cpPanL(float bal, float cv) {//Left Signal
 		float position = bal + cv / 5, power;
-		float thisPos = clamp(position, -1.f, 1.f) * M_PI_2;	//min -1.57 max 1.57
+		float thisPos = simd::clamp(position, -1.f, 1.f) * M_PI_2;	//min -1.57 max 1.57
 		float angle = thisPos / 2;	//min -0.785 max 0.785
 		power = M_SQRT1_2 * (simd::cos(angle) - simd::sin(angle));
 		return power;
@@ -110,7 +110,7 @@ struct PolyMix : Module {
 
 	float cpPanR(float bal, float cv) {//Right Signal
 		float position = bal + cv / 5, power;
-		float thisPos = clamp(position, -1.f, 1.f) * M_PI_2;
+		float thisPos = simd::clamp(position, -1.f, 1.f) * M_PI_2;
 		float angle = thisPos / 2;
 		power = M_SQRT1_2 * (simd::cos(angle) + simd::sin(angle));
 		return power;
@@ -200,7 +200,7 @@ struct PolyMix : Module {
 			for (int i = 0; i < nChLevel; i++) {
 				//assign channels to arrays
 				polyChLevel[i] = inputs[POLYLEVEL_INPUT].getVoltage(i);	// recall
-				float cvLevel = clamp(inputs[POLYLEVEL_INPUT].getPolyVoltage(i) / 10, 0.f, 1.f);
+				float cvLevel = simd::clamp(inputs[POLYLEVEL_INPUT].getPolyVoltage(i), 0.f, 1.f);
 				polyChAudioL[i] = polyChAudioR[i] *= cvLevel;
 			}
 		}
@@ -690,7 +690,7 @@ struct PolyMix : Module {
 		outputs[AUX1SEND_OUTPUT].setVoltage((ch1Send1 * aux1Ch1) + (ch2Send1 * aux1Ch2) + (ch3Send1 * aux1Ch3) + (ch4Send1 * aux1Ch4));
 		outputs[AUX2SEND_OUTPUT].setVoltage((ch1Send2 * aux2Ch1) + (ch2Send2 * aux2Ch2) + (ch3Send2 * aux2Ch3) + (ch4Send2 * aux2Ch4));
 
-		inputs[GAINLEVEL_INPUT].isConnected() == true ? cvMasterLevel = clamp(inputs[GAINLEVEL_INPUT].getVoltage() / 10, 0.f, 1.f) : cvMasterLevel;
+		inputs[GAINLEVEL_INPUT].isConnected() == true ? cvMasterLevel = simd::clamp(inputs[GAINLEVEL_INPUT].getVoltage(), 0.f, 1.f) : cvMasterLevel;
 		float outGain = params[MASTERGAIN_PARAM].getValue() * cvMasterLevel;
 		float Left = sumL[chSel] * outGain + ((return1 + return2) / 2), Right = sumR[chSel] * outGain + ((return1 + return2) / 2);
 
