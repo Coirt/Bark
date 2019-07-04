@@ -121,8 +121,8 @@ struct TrimLFO : Module {
 
 	void process(const ProcessArgs &args) override {
 		float pwKnob = params[PW_PARAM].getValue(), pwmKnob = params[PWM_PARAM].getValue();
-		float out1a = clamp(params[OFFSET1_PARAM].getValue(), -10.f, 10.f),	//Normal +-10v
-			out2a = clamp(params[OFFSET2_PARAM].getValue(), -10.f, 10.f),	//Normal +-10v
+		float out1a = simd::clamp(params[OFFSET1_PARAM].getValue(), -10.f, 10.f),	//Normal +-10v
+			out2a = simd::clamp(params[OFFSET2_PARAM].getValue(), -10.f, 10.f),	//Normal +-10v
 			fineTune = 4 * dsp::quadraticBipolar(params[FINE_PARAM].getValue());		//TODO: pow this
 		float_4 sinValue, sawValue, triValue, sqrValue;
 
@@ -157,8 +157,8 @@ struct TrimLFO : Module {
 			triValue = 5.f * oscillator->tri();
 			sqrValue = 5.f * oscillator->sqr();
 
-			float_4 out1 = clamp(params[OFFSET1_PARAM].getValue(), -10.f, 10.f) + oscillator->sin();
-			float_4	out2 = clamp(params[OFFSET2_PARAM].getValue(), -10.f, 10.f) + oscillator->sqr();
+			float_4 out1 = simd::clamp(params[OFFSET1_PARAM].getValue(), -10.f, 10.f) + oscillator->sin();
+			float_4	out2 = simd::clamp(params[OFFSET2_PARAM].getValue(), -10.f, 10.f) + oscillator->sqr();
 
 			outputs[OUT1_OUTPUT].setVoltageSimd(out1, i);
 			outputs[OUT2_OUTPUT].setVoltageSimd(out2, i);
@@ -169,7 +169,7 @@ struct TrimLFO : Module {
 			if (outputs[SQR_OUTPUT].isConnected()) { outputs[SQR_OUTPUT].setVoltageSimd(sqrValue, i); }
 			///TRIM LFO output----
 			float wavemixParamVal = params[WAVEMIX_PARAM].getValue();
-			float_4 waveMixParam = clamp(params[WAVEMIX_PARAM].getValue(), 0.f, 2.99999f), xFade;
+			float_4 waveMixParam = simd::clamp(params[WAVEMIX_PARAM].getValue(), 0.f, 2.99999f), xFade;
 			///sin.saw----
 			if (wavemixParamVal < 1.f) {// 0.0f sin
 				xFade = simd::crossfade(sinValue, sawValue, waveMixParam);
@@ -194,9 +194,9 @@ struct TrimLFO : Module {
 		float frq = params[FREQ_PARAM].getValue() + params[FM1_PARAM].getValue() * inputs[FM1_INPUT].getVoltage() +
 			params[FM2_PARAM].getValue() * inputs[FM2_INPUT].getVoltage(),
 			fine = fineTune;
-		volts1 = clamp(params[OFFSET1_PARAM].getValue(), -10.f, 10.f);
-		volts2 = clamp(params[OFFSET2_PARAM].getValue(), -10.f, 10.f);
-		frq = clamp(frq, -16.f, 16.f);
+		volts1 = simd::clamp(params[OFFSET1_PARAM].getValue(), -10.f, 10.f);
+		volts2 = simd::clamp(params[OFFSET2_PARAM].getValue(), -10.f, 10.f);
+		frq = simd::clamp(frq, -16.f, 16.f);
 		freqHz = 1.f * simd::pow(2.f, frq + fine);
 		//----------------	DISPLAY Hz	--------------------------
 
@@ -473,9 +473,10 @@ struct bpmTrimLFO : Module {
 
 	void process(const ProcessArgs &args) override {		
 		float pwKnob = params[PW_PARAM].getValue(), pwmKnob = params[PWM_PARAM].getValue();
-		float out1a = clamp(params[OFFSET1_PARAM].getValue(), -10.f, 10.f),	//Normal +-10v
-			out2a = clamp(params[OFFSET2_PARAM].getValue(), -10.f, 10.f),	//Normal +-10v
-			fineTune = 4 * dsp::quadraticBipolar(params[FINE_PARAM].getValue());		//TODO: pow this
+		float out1a = simd::clamp(params[OFFSET1_PARAM].getValue(), -10.f, 10.f),	//Normal +-10v
+			out2a = simd::clamp(params[OFFSET2_PARAM].getValue(), -10.f, 10.f),	//Normal +-10v
+			fineTune = 4.f * dsp::quadraticBipolar(params[FINE_PARAM].getValue()) + 
+			3.f * dsp::quadraticBipolar(params[BPM_PARAM].getValue());		//TODO: pow this
 		float_4 sinValue, sawValue, triValue, sqrValue;
 
 		if (outputs[OUT1a_OUTPUT].isConnected()) { outputs[OUT1a_OUTPUT].setVoltage(out1a); }
@@ -509,8 +510,8 @@ struct bpmTrimLFO : Module {
 			triValue = 5.f * oscillator->tri();
 			sqrValue = 5.f * oscillator->sqr();
 
-			float_4 out1 = clamp(params[OFFSET1_PARAM].getValue(), -10.f, 10.f) + oscillator->sin();
-			float_4	out2 = clamp(params[OFFSET2_PARAM].getValue(), -10.f, 10.f) + oscillator->sqr();
+			float_4 out1 = simd::clamp(params[OFFSET1_PARAM].getValue(), -10.f, 10.f) + oscillator->sin();
+			float_4	out2 = simd::clamp(params[OFFSET2_PARAM].getValue(), -10.f, 10.f) + oscillator->sqr();
 
 			outputs[OUT1_OUTPUT].setVoltageSimd(out1, i);
 			outputs[OUT2_OUTPUT].setVoltageSimd(out2, i);
@@ -521,7 +522,7 @@ struct bpmTrimLFO : Module {
 			if (outputs[SQR_OUTPUT].isConnected()) { outputs[SQR_OUTPUT].setVoltageSimd(sqrValue, i); }
 			///TRIM LFO output----
 			float wavemixParamVal = params[WAVEMIX_PARAM].getValue();
-			float_4 waveMixParam = clamp(params[WAVEMIX_PARAM].getValue(), 0.f, 2.99999f), xFade;
+			float_4 waveMixParam = simd::clamp(params[WAVEMIX_PARAM].getValue(), 0.f, 2.99999f), xFade;
 			///sin.saw----
 			if (wavemixParamVal < 1.f) {// 0.0f sin
 				xFade = simd::crossfade(sinValue, sawValue, waveMixParam);
@@ -546,9 +547,9 @@ struct bpmTrimLFO : Module {
 		float frq = params[FREQ_PARAM].getValue() + params[FM1_PARAM].getValue() * inputs[FM1_INPUT].getVoltage() +
 			params[FM2_PARAM].getValue() * inputs[FM2_INPUT].getVoltage(),
 			fine = fineTune;
-		volts1bpm = clamp(params[OFFSET1_PARAM].getValue(), -10.f, 10.f);
-		volts2bpm = clamp(params[OFFSET2_PARAM].getValue(), -10.f, 10.f);
-		frq = clamp(frq, -16.f, 16.f);
+		volts1bpm = simd::clamp(params[OFFSET1_PARAM].getValue(), -10.f, 10.f);
+		volts2bpm = simd::clamp(params[OFFSET2_PARAM].getValue(), -10.f, 10.f);
+		frq = simd::clamp(frq, -16.f, 16.f);
 		freqHz = 1.f * simd::pow(2.f, frq + fine);
 		//----------------	DISPLAY BPM	--------------------------
 
