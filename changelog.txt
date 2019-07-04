@@ -1,6 +1,8 @@
 ---v1.0.3---
 Edits on module descriptions.
 Tweaked One Band. Code clean-up.
+Introduced a bug in 1.0.2 where one of the Fine Tune Parameters would not work on Trim LFO BPM: Fixed
+Poly Mix level input should correctly respound to 1 - 10v, previously volume was too low.
 -----------------------------
 
 ---v1.0.2---
