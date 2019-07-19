@@ -1,3 +1,8 @@
+
+---v1.0.4---
+Bug fix One Band.
+-----------------------------
+
 ---v1.0.3---
 Edits on module descriptions.
 Tweaked One Band. Code clean-up.
