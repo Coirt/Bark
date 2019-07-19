@@ -95,8 +95,7 @@ struct OneBand : Module {
 		configParam<tpGainVal>(PREPOST_PARAM, 0.f, 1.f, 0.f, "Meter", " Gain");
 		configParam<tpSwapLR>(SWAPLR_PARAM, 0.f, 1.f, 0.f, "Output");
 		configParam<tpEQprocess>(LISTEN_PARAM, 0.f, 1.f, 0.f, "EQ");
-
-		//TODO vumeter2
+		//Lights---
 		volUnitIndicatorPEAK.lambda = 1 / 0.1f;
 		vuDivider.setDivision(16);
 		lightDivider.setDivision(256);
