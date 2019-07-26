@@ -14,5 +14,4 @@ extern Model *modelbpmTrimLFO;
 extern Model *modelPolyMix;
 extern Model *modelClamp;
 extern Model *modelPolyX;
-extern Model *modelADSR;
 
