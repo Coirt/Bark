@@ -15,5 +15,4 @@ void init(rack::Plugin *p) {
 	p->addModel(modelPolyMix);
 	p->addModel(modelClamp);
 	p->addModel(modelPolyX);
-	p->addModel(modelADSR);
 }
