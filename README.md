@@ -42,7 +42,7 @@ TBD
 
 ---------
 Panel 7
-15x7 pixel panel for your rack with the custom grey bark colour
+15x7 panel for your rack with the custom grey bark colour
 
 ---------
 # Social
