@@ -1,7 +1,7 @@
 #include "plugin.hpp"
 
 /**
-Fundamental VCF by Andrew Best
+Fundamental VCF by Andrew Belt
 */
 
 static float clip(float x) {
