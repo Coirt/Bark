@@ -1,6 +1,6 @@
 {
   "slug": "Bark",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "license": "BSD-4-Clause",
   "name": "Coirt / Bark",
   "brand": "Bark",
@@ -36,22 +36,6 @@
     },
 
     {
-      "slug": "TestPanel",
-      "name": "Testing Panel",
-      "description": "Panel for testing\n",
-      "tags": [ "Utility" ],
-      "disabled": true
-    },
-
-    {
-      "slug": "ClockSeq16",
-      "name": "Clock Seq 16",
-      "description": "2 x 8 or 16 step sequencer\n",
-      "tags": [ "Sequencer" ],
-      "disabled": true
-    },
-
-    {
       "slug": "PolyMix",
       "name": "Polyphonic Mixer",
       "description": "One Cable(s),\n4x4 channel Mixer with send/return. Constant\npower pan law Aux pre solo/master\npost fader\n",
@@ -77,14 +61,6 @@
       "name": "Clamp",
       "description": "Feed signal, gained output won't\ngo over voltages set. Can also\nattenuvert signals, Invert\napplied to input.\n",
       "tags": [ "Utility", "Attenuator", "Dual", "Limiter" ]
-    },
-
-    {
-      "slug": "vuMeter2",
-      "name": "testMeter",
-      "description": "dev test\n",
-      "tags": [],
-      "disabled": true
     },
 
     {

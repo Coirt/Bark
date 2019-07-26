@@ -3,28 +3,6 @@
 
 using namespace barkComponents;
 
-struct tpChannelSelect : ParamQuantity {
-	std::string getDisplayValueString() override {
-		if (getValue() == 0.f)
-			return "1-4";
-		else if (getValue() == 1.f) {
-			return "5-8";
-		} else if (getValue() == 2.f) {
-			return "9-12";
-		} else
-			return "13-16";
-	}
-};
-
-struct tpOnOff : ParamQuantity {
-	std::string getDisplayValueString() override {
-		if (getValue() < 1.f)
-			return "On";
-		else
-			return "Off";
-	}
-};
-
 struct PolyMix : Module {
 	enum ParamIds {
 		CHSELECT_PARAM,
@@ -706,12 +684,12 @@ struct PolyMixWidget : ModuleWidget {
 		setModule(module);
 		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/BarkPolyMix.svg")));
 
-		int rackY = 380;
-		float chParamX[4] = { 14.44f, 47.42f, 82.68f, 115.54f }, chInvX[4] = { 11.53f, 44.37f, 79.74f, 112.6f },
-			chFaderX[4] = { 29.13f, 62.f, 97.38f, 130.24f }, chBtnX[4] = { 13.99f, 46.63f, 82.f, 114.86f };	//mY 128.82f sY 111.32f
+		constexpr int rackY = 380;
+		constexpr float chParamX[4] = { 14.453f, 47.311f, 82.689f, 115.546f }, chInvX[4] = { 11.53f, 44.37f, 79.74f, 112.6f },
+			chFaderX[4] = { 29.13f, 62.f, 97.38f, 130.24f }, chBtnX[4] = { 13.99f, 46.63f, 82.f, 114.86f };
 
-	  ///Ports---
-		  //Out---
+		///Ports---
+		//Out---
 		addOutput(createOutput<BarkOutPort350>(Vec(5.68f, rackY - 353.13f), module, PolyMix::OUTL_OUTPUT));
 		addOutput(createOutput<BarkOutPort350>(Vec(32.12f, rackY - 353.13f), module, PolyMix::OUTR_OUTPUT));
 		addOutput(createOutput<BarkOutPort350>(Vec(5.68f, rackY - 285.05f), module, PolyMix::AUX1SEND_OUTPUT));
@@ -724,13 +702,13 @@ struct PolyMixWidget : ModuleWidget {
 		addInput(createInput<BarkInPort350>(Vec(5.67f, rackY - 315.31f), module, PolyMix::AUX1RETURN_INPUT));
 		addInput(createInput<BarkInPort350>(Vec(32.90f, rackY - 315.31f), module, PolyMix::AUX2RETURN_INPUT));
 		//Knobs---
-		addParam(createParam<BarkKnob40>(Vec(69.49f, rackY - 292.32f), module, PolyMix::MASTERGAIN_PARAM));
+		addParam(createParam<BarkKnob_40>(Vec(69.49f, rackY - 292.32f), module, PolyMix::MASTERGAIN_PARAM));
 		addParam(createParam<BarkKnobSwitchSmall>(Vec(79.5f, rackY - 361.89f), module, PolyMix::CHSELECT_PARAM));
 		//Repeated---
 		for (int i = 0; i < 4; i++) {
-			addParam(createParam<BarkKnob20>(Vec(chParamX[i], rackY - 226.23f), module, PolyMix::AUX1_PARAM + i));
-			addParam(createParam<BarkKnob20>(Vec(chParamX[i], rackY - 197.21f), module, PolyMix::AUX2_PARAM + i));
-			addParam(createParam<BarkKnob20>(Vec(chParamX[i], rackY - 160.41f), module, PolyMix::PAN_PARAM + i));
+			addParam(createParam<BarkKnob_20>(Vec(chParamX[i], rackY - 226.21f), module, PolyMix::AUX1_PARAM + i));
+			addParam(createParam<BarkKnob_20>(Vec(chParamX[i], rackY - 195.53f), module, PolyMix::AUX2_PARAM + i));
+			addParam(createParam<BarkKnob_20>(Vec(chParamX[i], rackY - 160.4f), module, PolyMix::PAN_PARAM + i));
 			addParam(createParam<BarkFaderLong>(Vec(chFaderX[i], rackY - 131.06f), module, PolyMix::LEVEL_PARAM + i));
 			//Switch/Button---
 			addParam(createParam<BarkSwitchSmall>(Vec(chInvX[i], rackY - 92.27f), module, PolyMix::INVERT_PARAM + i));

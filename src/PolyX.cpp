@@ -3,15 +3,6 @@
 
 using namespace barkComponents;
 
-struct tpMute10v : ParamQuantity {//TODO come up with better tp
-	std::string getDisplayValueString() override {
-		if (getValue() < 1.f)
-			return "Open";
-		else
-			return "Mute";
-	}
-};
-
 struct PolyX : Module {
 	enum ParamIds {
 		ENUMS(MUTEFAKE_PARAM, 16),
@@ -51,14 +42,14 @@ struct PolyX : Module {
 		int lastCh = -1;
 		for (int ch = 0; ch < 16; ch++) {
 			float volt = 0.f;
-			if (inputs[MONO_INPUT + ch].isConnected()) { 
+			if (inputs[MONO_INPUT + ch].isConnected()) {
 				lastCh = ch;
 				params[MUTEFAKE_PARAM + ch].getValue() == 0.f ? volt = inputs[MONO_INPUT + ch].getVoltage() : volt = 0.f;
 				/***PolyMix
 				might need context menu options!
 				When polyaudio, disconnected channels that are unmuted send 10v that DC offsets that channel
 				When polylevel, no issue
-				When polypan, 
+				When polypan,
 				*/
 			} else if (!inputs[MONO_INPUT + ch].isConnected()) {
 				lastCh = ch;
@@ -72,19 +63,16 @@ struct PolyX : Module {
 		// Set channel lights infrequently
 		if (lightDivider.process()) {
 			for (int c = 0; c < 16; c++) {
-				
+
 				if (!inputs[MONO_INPUT + c].isConnected()) {
 					bool isRed = (c < outputs[POLY_OUTPUT].getChannels() && params[MUTEFAKE_PARAM + c].getValue() == 1.f);
 					bool isGreen = (c < outputs[POLY_OUTPUT].getChannels() && params[MUTEFAKE_PARAM + c].getValue() == 0.f);
 					lights[chMuteSTATE_LIGHT + c].setBrightness(isRed);
 					lights[chOpenSTATE_LIGHT + c].setBrightness(isGreen);
-					
+
 				}
 				if (inputs[MONO_INPUT + c].isConnected()) {
-					/***BUGFIX: if cable is not connected and state is open(green light)
-					when cable reconnected unable to tell if cable was connected. Light stuck on green*/
 					lights[chOpenSTATE_LIGHT + c].setBrightness(0);
-					//***BUGFIX
 					bool isBlue = (c < outputs[POLY_OUTPUT].getChannels() && params[MUTEFAKE_PARAM + c].getValue() == 0.f);//
 					bool isRed = (c < outputs[POLY_OUTPUT].getChannels() && params[MUTEFAKE_PARAM + c].getValue() == 1.f);
 					lights[chPolySTATE_LIGHT + c].setBrightness(isBlue);
@@ -93,60 +81,20 @@ struct PolyX : Module {
 			}
 		}
 
-	}//dsp
-
-	/*json_t *dataToJson() override {
-		json_t *rootJ = json_object();
-		json_object_set_new(rootJ, "channels", json_integer(channels));
-		return rootJ;
-	}
-
-	void dataFromJson(json_t *rootJ) override {
-		json_t *channelsJ = json_object_get(rootJ, "channels");
-		if (channelsJ)
-			channels = json_integer_value(channelsJ);
-	}
-*/
-};//module
-
-//struct PolyXChannelItem : MenuItem {
-//	PolyX *module;
-//	int channels;
-//	void onAction(const event::Action &e) override {
-//		module->channels = channels;
-//	}
-//};
-//
-//struct PolyXChannelsItem : MenuItem {
-//	PolyX *module;
-//	Menu *createChildMenu() override {
-//		Menu *menu = new Menu;
-//		for (int channels = -1; channels <= 16; channels++) {
-//			PolyXChannelItem *item = new PolyXChannelItem;
-//			if (channels < 0)
-//				item->text = "Automatic";
-//			else
-//				item->text = string::f("%d", channels);
-//			item->rightText = CHECKMARK(module->channels == channels);
-//			item->module = module;
-//			item->channels = channels;
-//			menu->addChild(item);
-//		}
-//		return menu;
-//	}
-//};
+	}//process
+};
 
 struct PolyXWidget : ModuleWidget {
 	PolyXWidget(PolyX *module) {
 		setModule(module);
 		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/BarkPolyX.svg")));
 
-		int rackY = 380;
-		float portY[8] = { 303.53f, 268.66f, 233.81f, 198.96f, 164.1f, 129.24f, 94.38f, 59.52f },
-			  btnY[8] = { 314.03f, 279.16f, 244.31f, 209.46f, 142.83f, 107.98f, 73.11f, 38.26f };
-		float lightCol1 = 44.12f, lightCol2 = lightCol1 + 6.f, lightCol3 = lightCol2 + 6.f, lightCol4 = lightCol3 + 6.f,
-			  lightRow1 = 353.17f, lightRow2 = lightRow1 - 6.1f, lightRow3 = lightRow2 - 6.1f, lightRow4 = lightRow3 - 6.1f,
-			  portC1X = 11.78f, portC2X = 39.f, btnC1 = 5.92f, btnC2 = 58.59f;
+		constexpr int rackY = 380;
+		constexpr float portY[8] = { 303.53f, 268.66f, 233.81f, 198.96f, 164.1f, 129.24f, 94.38f, 59.52f },
+						btnY[8] = { 314.03f, 279.16f, 244.31f, 209.46f, 142.83f, 107.98f, 73.11f, 38.26f };
+		constexpr float lightCol1 = 44.12f, lightCol2 = lightCol1 + 6.f, lightCol3 = lightCol2 + 6.f, lightCol4 = lightCol3 + 6.f,
+						lightRow1 = 353.17f, lightRow2 = lightRow1 - 6.1f, lightRow3 = lightRow2 - 6.1f, lightRow4 = lightRow3 - 6.1f,
+						portC1X = 11.78f, portC2X = 39.f, btnC1 = 5.92f, btnC2 = 58.59f;
 
 		///Ports---
 		//Out---
@@ -244,18 +192,6 @@ struct PolyXWidget : ModuleWidget {
 
 	}
 
-	////Context menu---
-	//void appendContextMenu(Menu *menu) override {
-	//	PolyX *module = dynamic_cast< PolyX* >(this->module);
-
-	//	menu->addChild(new MenuEntry);
-
-	//	PolyXChannelsItem *channelsItem = new PolyXChannelsItem;
-	//	channelsItem->text = "Channels";
-	//	channelsItem->rightText = RIGHT_ARROW;
-	//	channelsItem->module = module;
-	//	menu->addChild(channelsItem);
-	//}
 };
 
 Model *modelPolyX = createModel<PolyX, PolyXWidget>("PolyX");

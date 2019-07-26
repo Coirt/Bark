@@ -1,6 +1,6 @@
 #pragma once
 #include "rack.hpp"
-
+#include "dependancies/utility/tooltip.hpp"
 
 namespace barkComponents {
 	///Colour--------------------------------------------------
@@ -142,26 +142,13 @@ namespace barkComponents {
 		}
 	};
 
-	//struct BarkButtonMinus : app::SvgSwitch {
-	//	BarkButtonMinus() {
-	//		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonMinus.svg")));
-	//		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonMinus_0.svg")));
-	//	}
-	//};
-
-	//struct BarkButtonPlus : app::SvgSwitch {	//MomentarySwitch
-	//	BarkButtonPlus() {
-	//		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonPlus.svg")));
-	//		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonPlus_0.svg")));
-	//	}
-	//};
-
-	//struct BarkBtnLockSnap : app::SvgSwitch {
-	//	BarkBtnLockSnap() {
-	//		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonLock.svg")));
-	//		addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonUnlock.svg")));
-	//	}
-	//};
+	struct BarkPushButtonBig1 : app::SvgSwitch {
+		BarkPushButtonBig1() {
+			momentary = true;
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonRoundBig_0.svg")));
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonRoundBig_1.svg")));
+		}
+	};
 
 	////Slider----
 	struct BarkSlide1 : app::SvgSlider {
@@ -181,9 +168,8 @@ namespace barkComponents {
 			speed = 0.5f;
 			horizontal = true;
 		}
-		///turns off randomising
-		/*void randomize() override {}*/
 	};
+
 	struct BarkFaderLong : app::SvgSlider {
 		BarkFaderLong() {
 			minHandlePos = math::Vec(0, 95);
@@ -195,24 +181,6 @@ namespace barkComponents {
 	};
 	////Ports----
 	///Port In--
-	struct BarkInPort : app::SvgPort {
-		BarkInPort() {
-			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkInPort.svg")));
-		}
-	};
-
-	struct BarkInPort1 : app::SvgPort {
-		BarkInPort1() {
-			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkInPort1.svg")));
-		}
-	};
-
-	struct BarkInPort2 : app::SvgPort {
-		BarkInPort2() {
-			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkInPort2.svg")));
-		}
-	};
-
 	struct BarkPatchPortIn : app::SvgPort {
 		BarkPatchPortIn() {
 			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkPatchPortIn.svg")));
@@ -228,24 +196,6 @@ namespace barkComponents {
 		}
 	};
 	///Port Out--
-	struct BarkOutPort : app::SvgPort {
-		BarkOutPort() {
-			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkOutPort.svg")));
-		}
-	};
-
-	struct BarkOutPort1 : app::SvgPort {
-		BarkOutPort1() {
-			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkOutPort1.svg")));
-		}
-	};
-
-	struct BarkOutPort2 : app::SvgPort {
-		BarkOutPort2() {
-			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkOutPort2.svg")));
-		}
-	};
-
 	struct BarkPatchPortOut : app::SvgPort {
 		BarkPatchPortOut() {
 			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkPatchPortOut.svg")));
@@ -279,75 +229,45 @@ namespace barkComponents {
 		}
 	};
 
-	struct BarkKnob9 : app::SvgKnob {
-		BarkKnob9() {
+	struct BarkKnob_20 : app::SvgKnob {
+		BarkKnob_20() {
 			minAngle = -0.835 * M_PI;
 			maxAngle = 0.831 * M_PI;
-			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkKnob9.svg")));
-			sw->wrap();
-			box.size = sw->box.size;
-		}
-	};
-
-	struct BarkKnob20 : app::SvgKnob {
-		BarkKnob20() {
-			minAngle = -0.835 * M_PI;
-			maxAngle = 0.831 * M_PI;
-			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkKnob20.svg")));
+			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkKnob_20.svg")));
 			sw->wrap();
 			box.size = sw->box.size;
 			speed = 0.65f;
 		}
 	};
 
-	struct BarkKnob24 : app::SvgKnob {
-		BarkKnob24() {
-			minAngle = -0.835 * M_PI;
-			maxAngle = 0.831 * M_PI;
-			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkKnob24.svg")));
-			sw->wrap();
-			box.size = sw->box.size;
-		}
-	};
-
-	struct BarkKnob26 : app::SvgKnob {
-		BarkKnob26() {
+	struct BarkKnob_26 : app::SvgKnob {
+		BarkKnob_26() {
 			minAngle = -0.829 * M_PI;
 			maxAngle = 0.831 * M_PI;
-			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkKnob26.svg")));
+			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkKnob_26.svg")));
 			sw->wrap();
 			box.size = sw->box.size;
 			speed = 0.65f;
 		}
 	};
 
-	struct BarkKnob30a : app::SvgKnob {
-		BarkKnob30a() {
-			minAngle = -0.558 * M_PI;
-			maxAngle = 0.831 * M_PI;
-			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkKnob30.svg")));
-			sw->wrap();
-			box.size = sw->box.size;
-			speed = 0.7f;
-		}
-	};
-	
-	struct BarkKnob30b : app::SvgKnob {
-		BarkKnob30b() {
+	struct BarkKnob_30 : app::SvgKnob {
+		BarkKnob_30() {
 			minAngle = -0.835 * M_PI;
 			maxAngle = 0.831 * M_PI;
-			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkKnob30.svg")));
+			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkKnob_30.svg")));
 			sw->wrap();
 			box.size = sw->box.size;
 			speed = 0.7f;
+			shadow->box.pos = Vec(0, sw->box.size.y * 0.09f);
 		}
 	};
 
-	struct BarkKnob40 : app::SvgKnob {
-		BarkKnob40() {
+	struct BarkKnob_40 : app::SvgKnob {
+		BarkKnob_40() {
 			minAngle = -0.827 * M_PI;
 			maxAngle = 0.825 * M_PI;
-			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkKnob40.svg")));
+			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkKnob_40.svg")));
 			sw->wrap();
 			box.size = sw->box.size;
 			speed = 0.8f;
@@ -355,21 +275,11 @@ namespace barkComponents {
 		}
 	};
 
-	struct BarkKnob57 : app::SvgKnob {
-		BarkKnob57() {
-			minAngle = -0.835 * M_PI;
-			maxAngle = 0.831 * M_PI;
-			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkKnob57.svg")));
-			sw->wrap();
-			box.size = sw->box.size;
-		}
-	};
-
-	struct BarkKnob70 : app::SvgKnob {
-		BarkKnob70() {
+	struct BarkKnob_60 : app::SvgKnob {
+		BarkKnob_60() {
 			minAngle = -0.83 * M_PI;
 			maxAngle = 0.828 * M_PI;
-			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkKnob70.svg")));
+			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkKnob_60.svg")));
 			sw->wrap();
 			box.size = sw->box.size;
 			speed = 0.5f;
@@ -377,46 +287,20 @@ namespace barkComponents {
 		}
 	};
 
-	struct BarkKnob70Snap : app::SvgKnob {
-		BarkKnob70Snap() {	//bpmTrimLFO, 
+	struct BarkKnob_60snap : BarkKnob_60 {
+		BarkKnob_60snap() {
 			snap = true;
-			minAngle = -0.83 * M_PI;
-			maxAngle = 0.828 * M_PI;
-			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkKnob70.svg")));
-			sw->wrap();
-			box.size = sw->box.size;
-			shadow->box.pos = Vec(0, sw->box.size.y * 0.05);
-		}
-	};
-
-	struct BarkKnob84 : app::SvgKnob {
-		BarkKnob84() {
-			minAngle = -0.835 * M_PI;
-			maxAngle = 0.831 * M_PI;
-			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkKnob84.svg")));
-			sw->wrap();
-			box.size = sw->box.size;
-		}
-	};
-
-	struct BarkKnob92 : app::SvgKnob {
-		BarkKnob92() {
-			minAngle = -0.83 * M_PI;
-			maxAngle = 0.83 * M_PI;
-			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkKnob92.svg")));
-			sw->wrap();
-			box.size = sw->box.size;
-		}
-	};
-
-	struct KnobTest1 : app::SvgKnob {
-		KnobTest1() {
-			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/KnobTest1.svg")));
-
 		}
 	};
 
 	///Light----
+	struct greenRedLight : GrayModuleLightWidget {
+		greenRedLight() {
+			addBaseColor(BARK_GREEN);
+			addBaseColor(BARK_RED);
+		}
+	};
+
 	struct greenLight : GrayModuleLightWidget {
 		greenLight() {
 			addBaseColor(BARK_GREEN);
@@ -491,6 +375,14 @@ namespace barkComponents {
 		BigLight() {
 			this->box.size = Vec(8, 8);//px
 			this->bgColor = nvgRGBA(192, 192, 192, 32);//silver
+		}
+	};
+
+	template <typename BASE>
+	struct LessBigLight : BASE {
+		LessBigLight() {
+			this->box.size = Vec(6.5f, 6.5f);//px
+			this->bgColor = nvgRGBA(192, 192, 192, 16);//silver
 		}
 	};
 

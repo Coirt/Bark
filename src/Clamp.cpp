@@ -3,33 +3,6 @@
 
 using namespace barkComponents;
 
-struct tpCeiling : ParamQuantity {
-	std::string getDisplayValueString() override {
-		if (getValue() < 1.f)
-			return "Off";
-		else
-			return "-0.1dB";
-	}
-};
-
-struct tpOnOff : ParamQuantity {
-	std::string getDisplayValueString() override {
-		if (getValue() < 1.f)
-			return "On";
-		else
-			return "Off";
-	}
-};
-
-struct tpOnOffBtn : ParamQuantity {
-	std::string getDisplayValueString() override {
-		if (getValue() > 0.f)
-			return "On";
-		else
-			return "Off";
-	}
-};
-
 struct Clamp : Module {
 	enum ParamIds {
 		MAX_PARAM,
@@ -58,7 +31,7 @@ struct Clamp : Module {
 	Clamp() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
 		configParam(MAX_PARAM, -10.f, 10.f, 10.f, "Max", "v");
-		configParam<tpCeiling>(CEILING_PARAM, 0.f, 1.f, 0.f, "Celing");//roughly 9.94v == -0.1dB
+		configParam<tpCeiling>(CEILING_PARAM, 0.f, 1.f, 0.f, "Celing");
 		configParam(MIN_PARAM, -10.f, 10.f, -10.f, "Min", "v");
 		configParam<tpOnOff>(LINKMINMAX_PARAM, 0.f, 1.f, 1.f, "Link");
 		configParam(_2BY_PARAM, -2.f, 2.f, 1.f, "Multiplier");
@@ -133,10 +106,11 @@ struct voltDisplayWidget : TransparentWidget {
 	}
 
 	void draw(const DrawArgs &voltDisp) override {
-		NVGcolor backgroundColor = nvgRGB(97, 54, 57);
+		NVGcolor backgroundColor = nvgRGB(26, 26, 36);
 		NVGcolor borderColor = nvgRGB(0, 0, 0);
 		NVGcolor gradStartCol = nvgRGBA(255, 255, 244, 17);
 		NVGcolor gradEndCol = nvgRGBA(0, 0, 0, 15);
+		NVGcolor textColor = nvgRGB(63, 154, 0);
 		nvgBeginPath(voltDisp.vg);
 		nvgRoundedRect(voltDisp.vg, 0.0, 0.0, box.size.x, box.size.y, 0.75);
 		nvgFillColor(voltDisp.vg, backgroundColor);
@@ -151,14 +125,11 @@ struct voltDisplayWidget : TransparentWidget {
 		char display_string[10];
 		sprintf(display_string, "%5.2f", *value);
 		Vec textPos = Vec(25.0f, 10.55f);		//		box.size = Vec(50.728f, 13.152f);
-		////NVGcolor textColor = nvgRGB(0xdf, 0xd2, 0x2c);
 		nvgFillColor(voltDisp.vg, nvgTransRGBA(nvgRGB(0xdf, 0xd2, 0x2c), 16));
 		nvgText(voltDisp.vg, textPos.x, textPos.y, "$$$$", NULL);
-		////textColor = nvgRGB(0xda, 0xe9, 0x29);
 		nvgFillColor(voltDisp.vg, nvgTransRGBA(nvgRGB(0xda, 0xe9, 0x29), 11));
 		nvgText(voltDisp.vg, textPos.x, textPos.y, "##.##", NULL);
-		////textColor = nvgRGB(93, 193, 57);
-		nvgFillColor(voltDisp.vg, nvgRGB(93, 193, 57));
+		nvgFillColor(voltDisp.vg, textColor);
 		nvgText(voltDisp.vg, textPos.x, textPos.y, display_string, NULL);
 		//---------Gradient Screen
 		nvgRoundedRect(voltDisp.vg, 0.f, 0.f, box.size.x, box.size.y, .75f);
@@ -176,8 +147,9 @@ struct ClampWidget : ModuleWidget {
 		setModule(module);
 		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/BarkClamp.svg")));
 
-		int rackY = 380; 
-		float portLX = 4.11f, portRX = 31.67f, inY = 187.78f, outY = 60.18f, att1xPos[2] = { 4.77f, 44.48f }, att2xPos[2] = { 15.34f, 34.15f };
+		constexpr int rackY = 380;
+		constexpr float portLX = 4.11f, portRX = 31.67f, inY = 187.78f, outY = 60.18f,
+						att1xPos[2] = { 4.77f, 44.48f }, att2xPos[2] = { 15.34f, 34.15f };
 		///Ports---
 		//Out---
 		addOutput(createOutput<BarkOutPort350>(Vec(portLX, rackY - outY), module, Clamp::OUTL_OUTPUT));
@@ -186,23 +158,22 @@ struct ClampWidget : ModuleWidget {
 		addInput(createInput<BarkInPort350>(Vec(portLX, rackY - inY), module, Clamp::INL_INPUT));
 		addInput(createInput<BarkInPort350>(Vec(portRX, rackY - inY), module, Clamp::INR_INPUT));
 		//Knobs---
-		addParam(createParam<BarkKnob40>(Vec(15.37f, rackY - 332.7f), module, Clamp::MAX_PARAM));
-		addParam(createParam<BarkKnob40>(Vec(15.37f, rackY - 258.62f), module, Clamp::MIN_PARAM));
-		addParam(createParam<BarkKnob20>(Vec(20.f, rackY - 155.16f), module, Clamp::_2BY_PARAM));
-		addParam(createParam<BarkKnob40>(Vec(10.6f - .55f, rackY - 118.5f), module, Clamp::GAIN_PARAM));
+		addParam(createParam<BarkKnob_40>(Vec(14.677f, rackY - 333.8f), module, Clamp::MAX_PARAM));
+		addParam(createParam<BarkKnob_40>(Vec(14.677f, rackY - 259.8f), module, Clamp::MIN_PARAM));
+		addParam(createParam<BarkKnob_20>(Vec(20.f, rackY - 155.16f), module, Clamp::_2BY_PARAM));
+		addParam(createParam<BarkKnob_40>(Vec(10.f, rackY - 119.14f), module, Clamp::GAIN_PARAM));
 		//Switch---
-		addParam(createParam<BarkSwitchSmallSide>(Vec(26.68f, rackY - 283.7f), module, Clamp::LINKMINMAX_PARAM));	//switchsmallside == 26.68f, rackY - 283.7f
+		addParam(createParam<BarkSwitchSmallSide>(Vec(26.68f, rackY - 283.7f), module, Clamp::LINKMINMAX_PARAM));
 		//button---
-		addParam(createParam<BarkPushButton1>(Vec(2.42f, rackY - 334.44f), module, Clamp::CEILING_PARAM));	//switch == 2.36f, rackY - 336.04f, button X == 5.8f
-		addParam(createParam<BarkPushButton1>(Vec(att1xPos[0], rackY - 146.75f), module, Clamp::ATTENUVERT_BUTTONS + 0));	//switch == 2.36f, rackY - 336.04f, button X == 5.8f
-		addParam(createParam<BarkPushButton1>(Vec(att1xPos[1], rackY - 146.75f), module, Clamp::ATTENUVERT_BUTTONS + 1));	//switch == 2.36f, rackY - 336.04f, button X == 5.8f
-		addParam(createParam<BarkPushButton1>(Vec(att2xPos[0], rackY - 132.07f), module, Clamp::ATTENUVERT_BUTTONS + 2));	//switch == 2.36f, rackY - 336.04f, button X == 5.8f
-		addParam(createParam<BarkPushButton1>(Vec(att2xPos[1], rackY - 132.07f), module, Clamp::ATTENUVERT_BUTTONS + 3));	//switch == 2.36f, rackY - 336.04f, button X == 5.8f
+		addParam(createParam<BarkPushButton1>(Vec(2.42f, rackY - 334.44f), module, Clamp::CEILING_PARAM));
+		addParam(createParam<BarkPushButton1>(Vec(att1xPos[0], rackY - 146.75f), module, Clamp::ATTENUVERT_BUTTONS + 0));
+		addParam(createParam<BarkPushButton1>(Vec(att1xPos[1], rackY - 146.75f), module, Clamp::ATTENUVERT_BUTTONS + 1));
+		addParam(createParam<BarkPushButton1>(Vec(att2xPos[0], rackY - 132.07f), module, Clamp::ATTENUVERT_BUTTONS + 2));
+		addParam(createParam<BarkPushButton1>(Vec(att2xPos[1], rackY - 132.07f), module, Clamp::ATTENUVERT_BUTTONS + 3));
 		//screw---
 		addChild(createWidget<BarkScrew2>(Vec(box.size.x - 13, 3)));				//pos2
 		addChild(createWidget<BarkScrew3>(Vec(2, 367.2f)));						//pos3
 		//Display---
-		//if not NULL i.e. in the browser don't draw display's
 		if (module != NULL) {
 			voltDisplayWidget *maxVolt = createWidget<voltDisplayWidget>(Vec(4.61f, rackY - 355.65f));
 			maxVolt->box.size = Vec(50.728f, 13.152f);

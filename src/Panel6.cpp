@@ -34,9 +34,9 @@ struct Panel6Widget : ModuleWidget {
 		setModule(module);
 		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/BarkPanel6.svg")));
 
-		//int rackY = 380;
+		//constexpr int rackY = 380;
 
-		box.size = Vec(6 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT);
+		box.size = Vec(7 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT);
 
 		//screw... *whispers* 'all of them'
 		addChild(createWidget<BarkScrew1>(Vec(2, 3)));							//pos1

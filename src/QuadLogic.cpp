@@ -4,8 +4,8 @@
 
 using namespace barkComponents;
 
-struct QuadLogic : Module
-{
+struct QuadLogic : Module {
+
 	enum ParamIds { NUM_PARAMS };
 
 	enum InputIds {
@@ -77,7 +77,7 @@ struct QuadLogicWidget : ModuleWidget {
 		setModule(module);
 		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/BarkQuadLogic.svg")));
 
-		int rackY = 380;
+		constexpr int rackY = 380;
 
 		//PortIn---
 		addInput(createInput<BarkPatchPortIn>(Vec(8.45f, rackY - 348.52f + 0.35f),  module, QuadLogic::LOGIC_A1_INPUT));

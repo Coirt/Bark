@@ -1,43 +1,10 @@
 #include "plugin.hpp"
 #include "barkComponents.hpp"
 #include "dependancies/dsp/simdLFO.hpp"
-/* delete in next update
-#include <sstream>
-#include <iomanip>
-#include <string>
-#include <cstring>
-#include <iostream>
-delete in next update */
 
 using namespace barkComponents;
 
-struct tpPolarVal : ParamQuantity {
-	std::string getDisplayValueString() override {
-		if (getValue() > 0.f)
-			return "Uni-";
-		else
-			return "Bi-";
-	}
-};
-
-struct tpPhaseVal : ParamQuantity {
-	std::string getDisplayValueString() override {
-		if (getValue() > 0.f)
-			return "0";
-		else
-			return "180";
-	}
-};
-
-struct tpWave : ParamQuantity {
-	std::string getDisplayValueString() override {
-		if (getValue() >= 0.f && getValue() <= 0.001f) { return "Sine"; }
-		else if (getValue() >= 1.f && getValue() <= 1.001f) { return "Saw"; }
-		else if (getValue() >= 2.f && getValue() <= 2.001f) { return "Triangle"; }
-		else if (getValue() > 2.998f) { return "Square"; }
-		else return  std::to_string(getValue());
-	}
-};
+constexpr int rackY = 380;
 
 struct TrimLFO : Module {
 	enum ParamIds {
@@ -92,16 +59,14 @@ struct TrimLFO : Module {
 	float volts2 = 0.f;
 	float freqHz = 1.f;
 	
-
 	TrimLFO() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
 		configParam(FREQ_PARAM, -16.f, 4.f, 1.f, "Freq", " Hz", 2.f, 1.f * std::pow(2.f, params[FREQ_PARAM].getValue()));
-		//	, "Hz" 1.f * std::pow(2.f, frq + fine)
 		//TODO: fix the scale of finetune%
 		configParam(FINE_PARAM, -0.06798301f, 0.06798301f, 0.f, "Fine Tune", "%", 0.f, 18.9702f, 0.f);
 		// negatiuve value difference == 0.01645129630197%
-		configParam(OFFSET1_PARAM, -10.f, 10.f, 0.f, "Offset 1");
-		configParam(OFFSET2_PARAM, -10.f, 10.f, 10.f, "Offset 2");
+		configParam(OFFSET1_PARAM, -10.f, 10.f, 0.f, "Offset 1", "v");
+		configParam(OFFSET2_PARAM, -10.f, 10.f, 10.f, "Offset 2", "v");
 		configParam(PW_PARAM, 0.01f, .99f, 0.5f, "Pulse Width", "%", 0.f, 100.f, -50.f);
 		configParam(FM1_PARAM, 0.f, 1.f, 0.f, "Freq Mod 1", "%", 0.f, 100.f);
 		configParam(FM2_PARAM, 0.f, 1.f, 0.f, "Freq Mod 2", "%", 0.f, 100.f);
@@ -121,8 +86,8 @@ struct TrimLFO : Module {
 
 	void process(const ProcessArgs &args) override {
 		float pwKnob = params[PW_PARAM].getValue(), pwmKnob = params[PWM_PARAM].getValue();
-		float out1a = simd::clamp(params[OFFSET1_PARAM].getValue(), -10.f, 10.f),	//Normal +-10v
-			out2a = simd::clamp(params[OFFSET2_PARAM].getValue(), -10.f, 10.f),	//Normal +-10v
+		float out1a = simd::clamp(params[OFFSET1_PARAM].getValue(), -10.f, 10.f),
+			out2a = simd::clamp(params[OFFSET2_PARAM].getValue(), -10.f, 10.f),
 			fineTune = 4 * dsp::quadraticBipolar(params[FINE_PARAM].getValue());		//TODO: pow this
 		float_4 sinValue, sawValue, triValue, sqrValue;
 
@@ -149,7 +114,6 @@ struct TrimLFO : Module {
 			float_4 resetPhase = params[RESET_PARAM].getValue();
 			//setReset(internal, external)
 			oscillator->setReset(resetPhase, inputs[RESET_INPUT].getVoltageSimd<float_4>(i));
-			//oscillator->setReset(inputs[RESET_INPUT].getVoltage() || params[RESET_PARAM].getValue());
 
 			//initialise oscilators
 			sinValue = 5.f * oscillator->sin();
@@ -177,7 +141,7 @@ struct TrimLFO : Module {
 			}
 			///saw.tri----
 			else if (wavemixParamVal < 2.f) {	//1.0f saw
-				xFade = simd::crossfade(sawValue, triValue, waveMixParam - 1.f); ///some of the higher voltages get lost TODO: fix that - 1.2 maybe
+				xFade = simd::crossfade(sawValue, triValue, waveMixParam - 1.f);
 				outputs[trimLFO_OUTPUT].setVoltageSimd(simd::fmax(out1a, simd::fmin(out2a, xFade)), i);
 			}
 			///tri.sqr----
@@ -240,11 +204,12 @@ struct FreqDisplayWidget : TransparentWidget {
 	}
 
 	void draw(const DrawArgs &freqDisp) override {
-		float spacer = 40.f;
-		NVGcolor backgroundColor = nvgRGB(97, 54, 57);		//CreamyRed
-		NVGcolor borderColor = nvgRGB(0, 0, 0);				//Black
+		constexpr float spacer = 40.f;
+		NVGcolor backgroundColor = nvgRGB(26, 26, 36);		//CreamyRed 97, 54, 57
+		NVGcolor borderColor = nvgRGB(0, 0, 0);
 		NVGcolor gradStartCol = nvgRGBA(255, 255, 244, 17);
 		NVGcolor gradEndCol = nvgRGBA(0, 0, 0, 15);
+		NVGcolor textColor = nvgRGB(63, 154, 0);
 		nvgBeginPath(freqDisp.vg);
 		nvgRoundedRect(freqDisp.vg, 0.0, 0.0, box.size.x, box.size.y, 0.75);
 		nvgFillColor(freqDisp.vg, backgroundColor);
@@ -258,13 +223,11 @@ struct FreqDisplayWidget : TransparentWidget {
 		nvgTextLetterSpacing(freqDisp.vg, .1f);
 		Vec textPos = Vec(85.798f / 2.0f - 8.0f, 10.673f);
 		//----- "Hz"
-		NVGcolor textColor = nvgRGB(93, 193, 57);		//97, 193, 57 == Green
 		nvgFillColor(freqDisp.vg, nvgTransRGBA(textColor, 255));
 		char display_stringHz[10];
 		snprintf(display_stringHz, sizeof(display_stringHz), "%0.52f", *freqHz);
 		nvgText(freqDisp.vg, textPos.x + spacer, textPos.y, "Hz", NULL);
 		nvgText(freqDisp.vg, textPos.x, textPos.y, display_stringHz, NULL);		
-		textColor = nvgRGB(93, 193, 57);
 		nvgFillColor(freqDisp.vg, textColor);
 		//---------Gradient Screen
 		nvgRoundedRect(freqDisp.vg, 0.f, 0.f, box.size.x, box.size.y, .75f);
@@ -285,10 +248,11 @@ struct VoltsDisplayWidget : TransparentWidget {
 	}
 
 	void draw(const DrawArgs &voltDisp) override {
-		NVGcolor backgroundColor = nvgRGB(97, 54, 57);
+		NVGcolor backgroundColor = nvgRGB(26, 26, 36);
 		NVGcolor borderColor = nvgRGB(0, 0, 0);
 		NVGcolor gradStartCol = nvgRGBA(255, 255, 244, 17);
 		NVGcolor gradEndCol = nvgRGBA(0, 0, 0, 15);
+		NVGcolor textColor = nvgRGB(63, 154, 0);
 		nvgBeginPath(voltDisp.vg);
 		nvgRoundedRect(voltDisp.vg, 0.0, 0.0, box.size.x, box.size.y, 0.75);
 		nvgFillColor(voltDisp.vg, backgroundColor);
@@ -307,7 +271,7 @@ struct VoltsDisplayWidget : TransparentWidget {
 		nvgText(voltDisp.vg, textPos.x, textPos.y, "$$$$", NULL);
 		nvgFillColor(voltDisp.vg, nvgTransRGBA(nvgRGB(0xda, 0xe9, 0x29), 11));
 		nvgText(voltDisp.vg, textPos.x, textPos.y, "##.##", NULL);
-		nvgFillColor(voltDisp.vg, nvgRGB(93, 193, 57));
+		nvgFillColor(voltDisp.vg, textColor);
 		nvgText(voltDisp.vg, textPos.x, textPos.y, display_string, NULL);
 		//---------Gradient Screen
 		nvgRoundedRect(voltDisp.vg, 0.f, 0.f, box.size.x, box.size.y, .75f);
@@ -323,32 +287,31 @@ struct TrimLFOWidget : ModuleWidget {
 		setModule(module);
 		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/BarkTrimLFO.svg")));
 		
-		int rackY = 380;
 		///Ports---
 		//Out---
 		addOutput(createOutput<BarkOutPort350>(Vec(13.28f, rackY - 52.35f), module, TrimLFO::SIN_OUTPUT));
 		addOutput(createOutput<BarkOutPort350>(Vec(46.58f, rackY - 52.35f), module, TrimLFO::SAW_OUTPUT));
 		addOutput(createOutput<BarkOutPort350>(Vec(79.68f, rackY - 52.35f), module, TrimLFO::TRI_OUTPUT));
 		addOutput(createOutput<BarkOutPort350>(Vec(113.245f, rackY - 52.35f), module, TrimLFO::SQR_OUTPUT));
-		addOutput(createOutput<BarkOutPort350>(Vec(14.57f, rackY - 275.08f), module, TrimLFO::OUT1_OUTPUT));					//2v sin
-		addOutput(createOutput<BarkOutPort350>(Vec(112.09f, rackY - 275.08f), module, TrimLFO::OUT2_OUTPUT));				//2v sqr
-		addOutput(createOutput<BarkOutPort350>(Vec(42.11f + 0.35f, rackY - 275.08f), module, TrimLFO::OUT1a_OUTPUT));		//Offset1
-		addOutput(createOutput<BarkOutPort350>(Vec(84.18f, rackY - 275.08f), module, TrimLFO::OUT2a_OUTPUT));				//Offset2
-		addOutput(createOutput<BarkPatchPortOut>(Vec(63.35f, rackY - 332.02f), module, TrimLFO::trimLFO_OUTPUT));			//trimmed offset output 
+		addOutput(createOutput<BarkOutPort350>(Vec(14.57f, rackY - 275.08f), module, TrimLFO::OUT1_OUTPUT));	
+		addOutput(createOutput<BarkOutPort350>(Vec(112.09f, rackY - 275.08f), module, TrimLFO::OUT2_OUTPUT));
+		addOutput(createOutput<BarkOutPort350>(Vec(42.11f + 0.35f, rackY - 275.08f), module, TrimLFO::OUT1a_OUTPUT));
+		addOutput(createOutput<BarkOutPort350>(Vec(84.18f, rackY - 275.08f), module, TrimLFO::OUT2a_OUTPUT));
+		addOutput(createOutput<BarkPatchPortOut>(Vec(63.35f, rackY - 332.02f), module, TrimLFO::trimLFO_OUTPUT));
 		//In---
-		addInput(createInput<BarkInPort350>(Vec(27.06f, rackY - 82.70f), module, TrimLFO::FM1_INPUT));
-		addInput(createInput<BarkInPort350>(Vec(63.25f, rackY - 82.70f), module, TrimLFO::FM2_INPUT));
-		addInput(createInput<BarkInPort350>(Vec(99.66f, rackY - 82.70f), module, TrimLFO::PW_INPUT));
+		addInput(createInput<BarkInPort350>(Vec(22.7f, rackY - 82.70f), module, TrimLFO::FM1_INPUT));
+		addInput(createInput<BarkInPort350>(Vec(63.f, rackY - 82.70f), module, TrimLFO::FM2_INPUT));
+		addInput(createInput<BarkInPort350>(Vec(103.3f, rackY - 82.70f), module, TrimLFO::PW_INPUT));
 		addInput(createInput<BarkInPort350>(Vec(119.89f, rackY - 164.05f), module, TrimLFO::RESET_INPUT));
 		//Knobs---
-		addParam(createParam<BarkKnob70>(Vec(39.66f, rackY - 217.01f), module, TrimLFO::FREQ_PARAM));
+		addParam(createParam<BarkKnob_60>(Vec(45.12f, rackY - 217.87f), module, TrimLFO::FREQ_PARAM));
 		addParam(createParam<BarkScrew01>(Vec(box.size.x - 13, 367.2f), module, TrimLFO::FINE_PARAM));
-		addParam(createParam<BarkKnob40>(Vec(20.48f, rackY - 329.58f), module, TrimLFO::OFFSET1_PARAM));
-		addParam(createParam<BarkKnob40>(Vec(89.7f, rackY - 329.58f), module, TrimLFO::OFFSET2_PARAM));
-		addParam(createParam<BarkKnob26>(Vec(5.19f, rackY - 167.6f), module, TrimLFO::PW_PARAM));
-		addParam(createParam<BarkKnob26>(Vec(25.32f, rackY - 122.3f), module, TrimLFO::FM1_PARAM));
-		addParam(createParam<BarkKnob26>(Vec(61.65f, rackY - 122.3f), module, TrimLFO::FM2_PARAM));
-		addParam(createParam<BarkKnob26>(Vec(98.06f, rackY - 122.3f), module, TrimLFO::PWM_PARAM));
+		addParam(createParam<BarkKnob_40>(Vec(20.38f, rackY - 329.78f), module, TrimLFO::OFFSET1_PARAM));
+		addParam(createParam<BarkKnob_40>(Vec(89.6f, rackY - 329.78f), module, TrimLFO::OFFSET2_PARAM));
+		addParam(createParam<BarkKnob_30>(Vec(4.08f, rackY - 170.f), module, TrimLFO::PW_PARAM));
+		addParam(createParam<BarkKnob_30>(Vec(20.31f, rackY - 124.64f), module, TrimLFO::FM1_PARAM));
+		addParam(createParam<BarkKnob_30>(Vec(60.499f, rackY - 124.64f), module, TrimLFO::FM2_PARAM));
+		addParam(createParam<BarkKnob_30>(Vec(100.909f, rackY - 124.64f), module, TrimLFO::PWM_PARAM));
 		addParam(createParam<BarkSlide1>(Vec(25.41f, rackY - 57.f), module, TrimLFO::WAVEMIX_PARAM));
 		//Switch---
 		addParam(createParam<BarkSwitch>(Vec(8.67f, rackY - 217.06f), module, TrimLFO::OFFSET_PARAM));
@@ -364,15 +327,15 @@ struct TrimLFOWidget : ModuleWidget {
 		//Screw---
 		addChild(createWidget<BarkScrew3>(Vec(2, 3)));		//pos1
 		//Light---
-		addChild(createLight<SmallLight<GreenRedLight>>(Vec(71.93f, rackY - 230.22f), module, TrimLFO::PHASE_POS_LIGHT));
+		addChild(createLight<LessBigLight<greenRedLight>>(Vec(71.87f, rackY - 152.63f), module, TrimLFO::PHASE_POS_LIGHT));
 		//------------------------------
 		//if not NULL i.e. in the browser don't draw display's
 		if (module != NULL) {
-			VoltsDisplayWidget *display1 = createWidget<VoltsDisplayWidget>(Vec(15.009f, 33.05f));
+			VoltsDisplayWidget *display1 = createWidget<VoltsDisplayWidget>(Vec(15.009f, 31.05f));
 			display1->box.size = Vec(50.728f, 13.152f);
 			display1->value = &module->volts1;
 			addChild(display1);
-			VoltsDisplayWidget *display2 = createWidget<VoltsDisplayWidget>(Vec(84.228f, 33.05f));
+			VoltsDisplayWidget *display2 = createWidget<VoltsDisplayWidget>(Vec(84.228f, 31.05f));
 			display2->box.size = Vec(50.728f, 13.152f);
 			display2->value = &module->volts2;
 			addChild(display2);
@@ -452,8 +415,8 @@ struct bpmTrimLFO : Module {
 		configParam(FREQ_PARAM, -16.f, 4.f, 1.f, "Freq", " BPM", 2.f, 1.f * simd::pow(2.f, params[FREQ_PARAM].getValue()) * 60);
 		configParam(FINE_PARAM, -0.06798301f, 0.06798301f, 0.f, "Fine Tune", "%", 0.f, 18.9702f, 0.f);
 		configParam(BPM_PARAM, -1.0136f / 2, 0.952f / 2, 0.f, "Fine Tune", "%", 0.f, 100.f, 0.f);
-		configParam(OFFSET1_PARAM, -10.f, 10.f, 0.f, "Offset 1");
-		configParam(OFFSET2_PARAM, -10.f, 10.f, 10.f, "Offset 2");
+		configParam(OFFSET1_PARAM, -10.f, 10.f, 0.f, "Offset 1", "v");
+		configParam(OFFSET2_PARAM, -10.f, 10.f, 10.f, "Offset 2", "v");
 		configParam(PW_PARAM, 0.01f, .99f, 0.5f, "Pulse Width", "%", 0.f, 100.f, -50.f);
 		configParam(FM1_PARAM, 0.f, 1.f, 0.f, "Freq Mod 1", "%", 0.f, 100.f);
 		configParam(FM2_PARAM, 0.f, 1.f, 0.f, "Freq Mod 2", "%", 0.f, 100.f);
@@ -473,8 +436,8 @@ struct bpmTrimLFO : Module {
 
 	void process(const ProcessArgs &args) override {		
 		float pwKnob = params[PW_PARAM].getValue(), pwmKnob = params[PWM_PARAM].getValue();
-		float out1a = simd::clamp(params[OFFSET1_PARAM].getValue(), -10.f, 10.f),	//Normal +-10v
-			out2a = simd::clamp(params[OFFSET2_PARAM].getValue(), -10.f, 10.f),	//Normal +-10v
+		float out1a = simd::clamp(params[OFFSET1_PARAM].getValue(), -10.f, 10.f),
+			out2a = simd::clamp(params[OFFSET2_PARAM].getValue(), -10.f, 10.f),
 			fineTune = 4.f * dsp::quadraticBipolar(params[FINE_PARAM].getValue()) + 
 			3.f * dsp::quadraticBipolar(params[BPM_PARAM].getValue());		//TODO: pow this
 		float_4 sinValue, sawValue, triValue, sqrValue;
@@ -502,7 +465,6 @@ struct bpmTrimLFO : Module {
 			float_4 resetPhase = params[RESET_PARAM].getValue();
 			//setReset(internal, external)
 			oscillator->setReset(resetPhase, inputs[RESET_INPUT].getVoltageSimd<float_4>(i));
-			//oscillator->setReset(inputs[RESET_INPUT].getVoltage() || params[RESET_PARAM].getValue());
 
 			//initialise oscilators
 			sinValue = 5.f * oscillator->sin();
@@ -530,7 +492,7 @@ struct bpmTrimLFO : Module {
 			}
 			///saw.tri----
 			else if (wavemixParamVal < 2.f) {	//1.0f saw
-				xFade = simd::crossfade(sawValue, triValue, waveMixParam - 1.f); ///some of the higher voltages get lost TODO: fix that - 1.2 maybe
+				xFade = simd::crossfade(sawValue, triValue, waveMixParam - 1.f);
 				outputs[trimLFO_OUTPUT].setVoltageSimd(simd::fmax(out1a, simd::fmin(out2a, xFade)), i);
 			}
 			///tri.sqr----
@@ -594,11 +556,12 @@ struct bpmFreqDisplayWidget : TransparentWidget {
 	}
 
 	void draw(const DrawArgs &freqDisp) override {
-		float spacer = 40.f;
-		NVGcolor backgroundColor = nvgRGB(97, 54, 57);		//CreamyRed
-		NVGcolor borderColor = nvgRGB(0, 0, 0);				//Black
+		constexpr float spacer = 40.f;
+		NVGcolor backgroundColor = nvgRGB(26, 26, 36);
+		NVGcolor borderColor = nvgRGB(0, 0, 0);
 		NVGcolor gradStartCol = nvgRGBA(255, 255, 244, 17);
 		NVGcolor gradEndCol = nvgRGBA(0, 0, 0, 15);
+		NVGcolor textColor = nvgRGB(63, 154, 0);
 		nvgBeginPath(freqDisp.vg);
 		nvgRoundedRect(freqDisp.vg, 0.f, 0.f, box.size.x, box.size.y, .75f);
 		nvgFillColor(freqDisp.vg, backgroundColor);
@@ -609,17 +572,15 @@ struct bpmFreqDisplayWidget : TransparentWidget {
 		nvgTextAlign(freqDisp.vg, NVG_ALIGN_CENTER);
 		nvgFontSize(freqDisp.vg, 16);
 		nvgFontFaceId(freqDisp.vg, font->handle);
-		//TODO: fix letter spacing previous 0.6.2 -1.0 in v1 too small for 0.7, 0.3 etc values
 		nvgTextLetterSpacing(freqDisp.vg, -.75f);
 		Vec textPos = Vec(85.798f / 2.f - 8.f, 10.673f);
 		//----- "BPM"
-		NVGcolor textColor = nvgRGB(93, 193, 57);		//97, 193, 57 == Green
 		nvgFillColor(freqDisp.vg, nvgTransRGBA(textColor, 255));
 		char display_stringBPM[8];
 		snprintf(display_stringBPM, sizeof(display_stringBPM), "%0.52f", *freqHz * 60);
 		nvgText(freqDisp.vg, textPos.x + spacer - 5, textPos.y, "BPM", NULL);
 		nvgText(freqDisp.vg, textPos.x - 5, textPos.y, display_stringBPM, NULL);
-		textColor = nvgRGB(93, 193, 57);
+		//textColor = nvgRGB(68, 255, 78);
 		nvgFillColor(freqDisp.vg, textColor);
 		//---------Gradient Screen
 		nvgRoundedRect(freqDisp.vg, 0.f, 0.f, box.size.x, box.size.y, .75f);
@@ -630,7 +591,7 @@ struct bpmFreqDisplayWidget : TransparentWidget {
 
 	}
 };
-//*///-------------------------------------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------------------------------------
 struct bpmVoltsDisplayWidget : TransparentWidget {
 	bpmTrimLFO *module;
 	float *value;
@@ -641,10 +602,11 @@ struct bpmVoltsDisplayWidget : TransparentWidget {
 	}
 
 	void draw(const DrawArgs &voltDisp) override {
-		NVGcolor backgroundColor = nvgRGB(97, 54, 57);
+		NVGcolor backgroundColor = nvgRGB(26, 26, 36);
 		NVGcolor borderColor = nvgRGB(0, 0, 0);
 		NVGcolor gradStartCol = nvgRGBA(255, 255, 244, 17);
 		NVGcolor gradEndCol = nvgRGBA(0, 0, 0, 15);
+		NVGcolor textColor = nvgRGB(63, 154, 0);
 		nvgBeginPath(voltDisp.vg);
 		nvgRoundedRect(voltDisp.vg, 0.0, 0.0, box.size.x, box.size.y, 0.75);
 		nvgFillColor(voltDisp.vg, backgroundColor);
@@ -659,14 +621,11 @@ struct bpmVoltsDisplayWidget : TransparentWidget {
 		char display_string[10];
 		sprintf(display_string, "%5.2f", *value);
 		Vec textPos = Vec(25.0f, 10.55f);		//		box.size = Vec(50.728f, 13.152f);
-		////NVGcolor textColor = nvgRGB(0xdf, 0xd2, 0x2c);
 		nvgFillColor(voltDisp.vg, nvgTransRGBA(nvgRGB(0xdf, 0xd2, 0x2c), 16));
 		nvgText(voltDisp.vg, textPos.x, textPos.y, "$$$$", NULL);
-		////textColor = nvgRGB(0xda, 0xe9, 0x29);
 		nvgFillColor(voltDisp.vg, nvgTransRGBA(nvgRGB(0xda, 0xe9, 0x29), 11));
 		nvgText(voltDisp.vg, textPos.x, textPos.y, "##.##", NULL);
-		////textColor = nvgRGB(93, 193, 57);
-		nvgFillColor(voltDisp.vg, nvgRGB(93, 193, 57));
+		nvgFillColor(voltDisp.vg, textColor);
 		nvgText(voltDisp.vg, textPos.x, textPos.y, display_string, NULL);
 		//---------Gradient Screen
 		nvgRoundedRect(voltDisp.vg, 0.f, 0.f, box.size.x, box.size.y, .75f);
@@ -682,7 +641,6 @@ struct bpmTrimLFOWidget : ModuleWidget {
 		setModule(module);
 		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/BarkTrimLFObpm.svg")));
 		
-		int rackY = 380;
 		///Ports---
 		//Out---
 		addOutput(createOutput<BarkOutPort350>(Vec(13.28f, rackY - 52.35f), module, bpmTrimLFO::SIN_OUTPUT));
@@ -695,20 +653,20 @@ struct bpmTrimLFOWidget : ModuleWidget {
 		addOutput(createOutput<BarkOutPort350>(Vec(84.18f, rackY - 275.08f), module, bpmTrimLFO::OUT2a_OUTPUT));	
 		addOutput(createOutput<BarkPatchPortOut>(Vec(63.35f, rackY - 332.02f), module, bpmTrimLFO::trimLFO_OUTPUT));	
 		//In---
-		addInput(createInput<BarkInPort350>(Vec(27.06f, rackY - 82.70f), module, bpmTrimLFO::FM1_INPUT));
-		addInput(createInput<BarkInPort350>(Vec(63.25f, rackY - 82.70f), module, bpmTrimLFO::FM2_INPUT));
-		addInput(createInput<BarkInPort350>(Vec(99.66f, rackY - 82.70f), module, bpmTrimLFO::PW_INPUT));
+		addInput(createInput<BarkInPort350>(Vec(22.7f, rackY - 82.70f), module, bpmTrimLFO::FM1_INPUT));
+		addInput(createInput<BarkInPort350>(Vec(63.f, rackY - 82.70f), module, bpmTrimLFO::FM2_INPUT));
+		addInput(createInput<BarkInPort350>(Vec(103.3f, rackY - 82.70f), module, bpmTrimLFO::PW_INPUT));
 		addInput(createInput<BarkInPort350>(Vec(119.89f, rackY - 164.05f), module, bpmTrimLFO::RESET_INPUT));
 		//Knobs---
-		addParam(createParam<BarkKnob70Snap>(Vec(39.66f, rackY - 217.01f), module, bpmTrimLFO::FREQ_PARAM));
+		addParam(createParam<BarkKnob_60snap>(Vec(45.12f, rackY - 217.87f), module, bpmTrimLFO::FREQ_PARAM));
 		addParam(createParam<BarkScrew01>(Vec(box.size.x - 13, 367.2f), module, bpmTrimLFO::FINE_PARAM));
 		addParam(createParam<BarkScrew02>(Vec(2, 3), module, bpmTrimLFO::BPM_PARAM));
-		addParam(createParam<BarkKnob40>(Vec(20.48f, rackY - 329.58f), module, bpmTrimLFO::OFFSET1_PARAM));
-		addParam(createParam<BarkKnob40>(Vec(89.7f, rackY - 329.58f), module, bpmTrimLFO::OFFSET2_PARAM));
-		addParam(createParam<BarkKnob26>(Vec(5.19f, rackY - 167.6f), module, bpmTrimLFO::PW_PARAM));
-		addParam(createParam<BarkKnob26>(Vec(25.32f, rackY - 122.3f), module, bpmTrimLFO::FM1_PARAM));
-		addParam(createParam<BarkKnob26>(Vec(61.65f, rackY - 122.3f), module, bpmTrimLFO::FM2_PARAM));
-		addParam(createParam<BarkKnob26>(Vec(98.06f, rackY - 122.3f), module, bpmTrimLFO::PWM_PARAM));
+		addParam(createParam<BarkKnob_40>(Vec(20.38f, rackY - 329.78f), module, bpmTrimLFO::OFFSET1_PARAM));
+		addParam(createParam<BarkKnob_40>(Vec(89.6f, rackY - 329.78f), module, bpmTrimLFO::OFFSET2_PARAM));
+		addParam(createParam<BarkKnob_30>(Vec(4.08f, rackY - 170.f), module, bpmTrimLFO::PW_PARAM));
+		addParam(createParam<BarkKnob_30>(Vec(20.31f, rackY - 124.64f), module, bpmTrimLFO::FM1_PARAM));
+		addParam(createParam<BarkKnob_30>(Vec(60.499f, rackY - 124.64f), module, bpmTrimLFO::FM2_PARAM));
+		addParam(createParam<BarkKnob_30>(Vec(100.909f, rackY - 124.64f), module, bpmTrimLFO::PWM_PARAM));
 		addParam(createParam<BarkSlide1>(Vec(25.41f, rackY - 57.f), module, bpmTrimLFO::WAVEMIX_PARAM));
 		//Switch---
 		addParam(createParam<BarkSwitch>(Vec(8.67f, rackY - 217.06f), module, bpmTrimLFO::OFFSET_PARAM));
@@ -724,16 +682,15 @@ struct bpmTrimLFOWidget : ModuleWidget {
 		//Screw---
 		//addChild(createWidget<BarkScrew3>(Vec(2, 3)));		//pos1
 		//Light---
-		addChild(createLight<SmallLight<GreenRedLight>>(Vec(71.93f, rackY - 230.22f), module, bpmTrimLFO::PHASE_POS_LIGHT));
+		addChild(createLight<LessBigLight<greenRedLight>>(Vec(71.87f, rackY - 152.63f), module, bpmTrimLFO::PHASE_POS_LIGHT));
 		
 		//------------------------------bpmTrimLFO
-		//if not NULL i.e. in the browser don't draw display's
 		if (module != NULL) {
-			bpmVoltsDisplayWidget *display4 = createWidget<bpmVoltsDisplayWidget>(Vec(15.009f, 33.05f));
+			bpmVoltsDisplayWidget *display4 = createWidget<bpmVoltsDisplayWidget>(Vec(15.009f, 31.05f));
 			display4->box.size = Vec(50.728f, 13.152f);
 			display4->value = &module->volts1bpm;
 			addChild(display4);
-			bpmVoltsDisplayWidget *display5 = createWidget<bpmVoltsDisplayWidget>(Vec(84.228f, 33.05f));
+			bpmVoltsDisplayWidget *display5 = createWidget<bpmVoltsDisplayWidget>(Vec(84.228f, 31.05f));
 			display5->box.size = Vec(50.728f, 13.152f);
 			display5->value = &module->volts2bpm;
 			addChild(display5);

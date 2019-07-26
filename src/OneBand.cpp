@@ -5,42 +5,6 @@
 
 using namespace barkComponents;
 
-struct tpEQstatus : ParamQuantity {
-	std::string getDisplayValueString() override {
-		if (getValue() < 1.f)
-			return "On";
-		else
-			return "Off";
-	}
-};
-
-struct tpEQprocess : ParamQuantity {
-	std::string getDisplayValueString() override {
-		if (getValue() > 0.f)
-			return "Listen";
-		else
-			return "Process";
-	}
-};
-
-struct tpSwapLR : ParamQuantity {
-	std::string getDisplayValueString() override {
-		if (getValue() < 1.f)
-			return "L/R";
-		else
-			return "R/L";
-	}
-};
-
-struct tpGainVal : ParamQuantity {
-	std::string getDisplayValueString() override {
-		if (getValue() < 1.f)
-			return "Pre";
-		else
-			return "Post";
-	}
-};
-
 struct OneBand : Module {
 	enum ParamIds {
 		EQGAIN_PARAM,
@@ -91,7 +55,7 @@ struct OneBand : Module {
 		configParam(EQBANDWIDTH_PARAM, .1f, 40.f, 15.f, "Q Factor");
 		configParam(OUTGAIN_PARAM, 0.f, 7.f, 2.f, "Output Gain", "dB", -10, 20, -13.f);	//needs diff offset, TODO: show 0dB by default? or meter dB?
 		//Switch---
-		configParam<tpEQstatus>(EQBYPASS_PARAM, 0.f, 1.f, 0.f, "EQ");
+		configParam<tpOnOff>(EQBYPASS_PARAM, 0.f, 1.f, 0.f, "EQ");
 		configParam<tpGainVal>(PREPOST_PARAM, 0.f, 1.f, 0.f, "Meter", " Gain");
 		configParam<tpSwapLR>(SWAPLR_PARAM, 0.f, 1.f, 0.f, "Output");
 		configParam<tpEQprocess>(LISTEN_PARAM, 0.f, 1.f, 0.f, "EQ");
@@ -214,8 +178,8 @@ struct OneBandWidget : ModuleWidget {
 		setModule(module);
 		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/Bark1Band.svg")));
 
-		int rackY = 380;
-		float floatyMcFloatFace = 16.11f, lightXpos = 45.5f, offsetKnobs = 0.47f;
+		constexpr int rackY = 380;
+		constexpr float floatyMcFloatFace = 16.11f, lightXpos = 45.5f, offsetKnobs = 0.47f;
 
 		///Ports---
 		//Out---
@@ -230,10 +194,10 @@ struct OneBandWidget : ModuleWidget {
 		addInput(createInput<BarkPatchPortIn>(Vec(2.16f, rackY - 307.59f), module, OneBand::FREQMOD_INPUT));
 		addInput(createInput<BarkPatchPortIn>(Vec(33.78f, rackY - 248.26f), module, OneBand::BWMOD_INPUT));
 		//Knobs---
-		addParam(createParam<BarkKnob26>(Vec(10.2f - offsetKnobs, rackY - 349.73f), module, OneBand::EQGAIN_PARAM));
-		addParam(createParam<BarkKnob26>(Vec(24.95f - offsetKnobs, rackY - 291.2f), module, OneBand::EQFREQ_PARAM));
-		addParam(createParam<BarkKnob26>(Vec(10.68f - offsetKnobs, rackY - 231.51f), module, OneBand::EQBANDWIDTH_PARAM));
-		addParam(createParam<BarkKnob30b>(Vec(8.29f, rackY - 107.46f), module, OneBand::OUTGAIN_PARAM));
+		addParam(createParam<BarkKnob_26>(Vec(10.21f, rackY - 349.76f), module, OneBand::EQGAIN_PARAM));
+		addParam(createParam<BarkKnob_26>(Vec(25.09f, rackY - 291.05f), module, OneBand::EQFREQ_PARAM));
+		addParam(createParam<BarkKnob_26>(Vec(10.82f, rackY - 231.36f), module, OneBand::EQBANDWIDTH_PARAM));
+		addParam(createParam<BarkKnob_30>(Vec(8.77f, rackY - 106.79f), module, OneBand::OUTGAIN_PARAM));
 		//Switch---
 		addParam(createParam<BarkSwitchSmall>(Vec(41.29f, rackY - 355.97f), module, OneBand::EQBYPASS_PARAM));
 		addParam(createParam<BarkSwitchSmall>(Vec(11.26f, rackY - 136.57f), module, OneBand::PREPOST_PARAM));
