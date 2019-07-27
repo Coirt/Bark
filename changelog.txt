@@ -1,4 +1,8 @@
 
+---v1.1.1---
+Tweaked knob/panel design
+-----------------------------
+
 ---v1.1.0---
 All panels and components updated. Note: Trim LFO ports changed position.
 -----------------------------
