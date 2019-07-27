@@ -3,7 +3,7 @@
 # Bark
 VCVrack Modules
 
-![pack](image/splashv1.1.0.png)
+![pack](image/Splash_v1.1.1.png)
 
 
 # Trim LFO v1.1.0
