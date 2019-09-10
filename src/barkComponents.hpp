@@ -2,6 +2,8 @@
 #include "rack.hpp"
 #include "dependancies/utility/tooltip.hpp"
 
+///VS2019 test
+
 namespace barkComponents {
 	///Colour--------------------------------------------------
 	static const NVGcolor BARK_GREEN = nvgRGBA(73, 191, 0, 255);
