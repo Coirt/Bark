@@ -413,6 +413,21 @@ namespace barkComponents {
 			this->borderColor = nvgRGBA(56, 56, 56, 45);//panel
 		}
 	};
+	
+	template <typename BASE>
+	struct SmallestLightInverse : BASE {
+		SmallestLightInverse() {
+			this->box.size = Vec(3, 3);//px
+			this->bgColor = nvgRGBA(56, 56, 56, 128);//panel
+			this->borderColor = nvgRGBA(30, 31, 0, 45);//black
+		}
+	};
 
+	//Common co-ordinates
+	///openGL / inkscape co-ordinates negotiation
+	static constexpr int rackY = 380;
+	///VU Lights: OneBand, EOSum
+	static constexpr float lightY[8] = {232.548f, 233.548f, 246.099f, 257.650f, 269.201f, 280.752f, 292.303f, 303.854f};
+	
 }//namespace barkComponents
 
