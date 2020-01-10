@@ -144,6 +144,14 @@ namespace barkComponents {
 		}
 	};
 
+	struct BarkPushButton3 : app::SvgSwitch {
+		BarkPushButton3() {
+			momentary = false;
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonRound1_3.svg")));
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonRound1_4.svg")));
+		}
+	};
+
 	struct BarkPushButtonBig1 : app::SvgSwitch {
 		BarkPushButtonBig1() {
 			momentary = true;
@@ -155,7 +163,6 @@ namespace barkComponents {
 	////Slider----
 	struct BarkSlide1 : app::SvgSlider {
 		BarkSlide1() {
-			///TODO: toggle for snap / fade or momentary button to snap to nearest
 			math::Vec position = math::Vec(0.f, 0.f);
 			maxHandlePos = math::Vec(95.f, 0.f).plus(position);
 			minHandlePos = math::Vec(-5.f, 0.f).plus(position);
@@ -424,7 +431,7 @@ namespace barkComponents {
 	};
 
 	//Common co-ordinates
-	///openGL / inkscape co-ordinates negotiation
+	///openGL / inkscape_v0.92.x co-ordinates negotiation
 	static constexpr int rackY = 380;
 	///VU Lights: OneBand, EOSum
 	static constexpr float lightY[8] = {232.548f, 233.548f, 246.099f, 257.650f, 269.201f, 280.752f, 292.303f, 303.854f};
