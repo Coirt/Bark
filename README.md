@@ -1,12 +1,12 @@
-### V1.1.0
+### V1.2.0
 
 # Bark
 VCVrack Modules
 
-![pack](image/Splash_v1.1.1.PNG)
+![pack](image/Splash_v1.2.0.PNG)
 
 
-# Trim LFO v1.1.0
+# Trim LFO v1.2.0
 LFO module with two offset knobs which trims the top and bottom values from the LFO leaving the original waveform intact. Has the
 extra function of mixing the diffent waveforms when the offsets are left full, but those can be trimmed also. If you click click on the
 "RST" text under the RESET port it will manually reset the LFO. The result of this will also change the LFO's phase.
@@ -36,6 +36,9 @@ Just like VCV Merge except 16 channels are always on, when there is no input con
 when off sends 0v. When there is an input connected you can mute the signal using the buttons or pass the connected input to the poly
 out. Created to get around an issue with level/pan inputs on Poly Mix as you need to send a 1v signal to a previous level if there is a
 level mod on a channel further in the chain. For pan mute the signal 0v (centre pan) for level unmute the signal (10v).
+
+# EO Sum v1.2.0
+Sums polyphonic channels and distributes odd / even channel numbers.
 
 # Seq32
 TBD
