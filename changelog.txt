@@ -1,3 +1,7 @@
+---v1.2.0---
+Added new module EO Sum: Sums poly channels and distrbutes odd / even ch# to individual outputs.
+Trim LFO: Fixed an issue with the triangle wave not set to correct value on snap.
+-----------------------------
 
 ---v1.1.1---
 Tweaked knob/panel design
