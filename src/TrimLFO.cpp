@@ -4,7 +4,7 @@
 
 using namespace barkComponents;
 
-constexpr int rackY = 380;
+//constexpr int rackY = 380;
 
 struct TrimLFO : Module {
 	enum ParamIds {
