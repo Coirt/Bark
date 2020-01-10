@@ -89,7 +89,7 @@ struct PolyXWidget : ModuleWidget {
 		setModule(module);
 		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/BarkPolyX.svg")));
 
-		constexpr int rackY = 380;
+		//constexpr int rackY = 380;
 		constexpr float portY[8] = { 303.53f, 268.66f, 233.81f, 198.96f, 164.1f, 129.24f, 94.38f, 59.52f },
 						btnY[8] = { 314.03f, 279.16f, 244.31f, 209.46f, 142.83f, 107.98f, 73.11f, 38.26f };
 		constexpr float lightCol1 = 44.12f, lightCol2 = lightCol1 + 6.f, lightCol3 = lightCol2 + 6.f, lightCol4 = lightCol3 + 6.f,
