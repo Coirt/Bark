@@ -136,7 +136,7 @@ struct voltDisplayWidget : TransparentWidget {
 		//(startX,startY)-(endX,endY) should be the reverse of inkscape coordinates 
 		float gradHeight = 12.728f;
 		nvgFillPaint(voltDisp.vg, nvgLinearGradient(voltDisp.vg, 71.5f, gradHeight - 4.98f, 70.61f, 
-													gradHeight - 10.11f, gradStartCol, gradEndCol));
+							    gradHeight - 10.11f, gradStartCol, gradEndCol));
 		nvgFill(voltDisp.vg);
 	}
 };
@@ -147,9 +147,9 @@ struct ClampWidget : ModuleWidget {
 		setModule(module);
 		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/BarkClamp.svg")));
 
-		constexpr int rackY = 380;
+		//constexpr int rackY = 380;
 		constexpr float portLX = 4.11f, portRX = 31.67f, inY = 187.78f, outY = 60.18f,
-						att1xPos[2] = { 4.77f, 44.48f }, att2xPos[2] = { 15.34f, 34.15f };
+				att1xPos[2] = { 4.77f, 44.48f }, att2xPos[2] = { 15.34f, 34.15f };
 		///Ports---
 		//Out---
 		addOutput(createOutput<BarkOutPort350>(Vec(portLX, rackY - outY), module, Clamp::OUTL_OUTPUT));
