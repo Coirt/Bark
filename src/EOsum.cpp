@@ -96,7 +96,7 @@ struct EOsum : Module {
 struct EOsumWidget : ModuleWidget {
 	EOsumWidget(EOsum *module) {
 		setModule(module);
-		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/BarkEOsum2.svg")));
+		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/BarkEOsum.svg")));
 
 		box.size = Vec(4 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT);
 		///Ports---
@@ -109,11 +109,11 @@ struct EOsumWidget : ModuleWidget {
 		addParam(createParam<BarkKnob_40>(Vec(10.f, 112.624f), module, EOsum::ODDLVL_PARAM));
 		addParam(createParam<BarkKnob_40>(Vec(10.f, 173.672f), module, EOsum::EVENLVL_PARAM));
 		//screw---
-		addChild(createWidget<BarkScrew1>(Vec(2, 3)));							//pos1
+		addChild(createWidget<BarkScrew1>(Vec(2, 3)));						//pos1
 		addChild(createWidget<BarkScrew3>(Vec(box.size.x - 13, 367.2)));			//pos4
 		///Light---
 		constexpr float lightCol1 = 19.5f, lightCol2 = lightCol1 + 6.f, lightCol3 = lightCol2 + 6.f, lightCol4 = lightCol3 + 6.f,
-						lightRow1 = 26.815f, lightRow2 = lightRow1 + 6.109f, lightRow3 = lightRow2 + 6.109f, lightRow4 = lightRow3 + 6.109f;
+				lightRow1 = 26.815f, lightRow2 = lightRow1 + 6.109f, lightRow3 = lightRow2 + 6.109f, lightRow4 = lightRow3 + 6.109f;
 		//Poly Light--
 		addChild(createLight<SmallestLightInverse<PolyLight>>(Vec(lightCol1, lightRow1), module, EOsum::chPolySTATE_LIGHT + 0));
 		addChild(createLight<SmallestLightInverse<PolyLight>>(Vec(lightCol2, lightRow1), module, EOsum::chPolySTATE_LIGHT + 1));
@@ -134,7 +134,6 @@ struct EOsumWidget : ModuleWidget {
 		///VU Light--
 		//Odd-
 		constexpr float lightXpos1 = 12.512f, lightXpos2 = 40.494f;
-		//constexpr float lightY[8] = {232.548f, 233.548f, 246.099f, 257.650f, 269.201f, 280.752f, 292.303f, 303.854f};
 		addChild(createLight<BiggerLight<clipLight>>(Vec(lightXpos1 - 1, lightY[0]), module, EOsum::ODDVU_LIGHTS + 0));
 		addChild(createLight<BigLight<redLight>>(Vec(lightXpos1, lightY[1]), module, EOsum::ODDVU_LIGHTS + 1));
 		addChild(createLight<BigLight<orangeLight>>(Vec(lightXpos1, lightY[2]), module, EOsum::ODDVU_LIGHTS + 2));
