@@ -17,7 +17,7 @@
     {
       "slug": "EOsum",
       "name": "EO Sum",
-      "description": "Sums polyphonic channels and\ndistributes them to outputs\nbased on odd / even channel\nnumbers.",
+      "description": "Sums polyphonic channels and\ndistributes them to outputs\nbased on odd or even channel\nnumbers.",
       "tags": [ "Polyphonic", "Utility" ]
     },
     
