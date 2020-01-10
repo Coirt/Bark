@@ -684,7 +684,7 @@ struct PolyMixWidget : ModuleWidget {
 		setModule(module);
 		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/BarkPolyMix.svg")));
 
-		constexpr int rackY = 380;
+		//constexpr int rackY = 380;
 		constexpr float chParamX[4] = { 14.453f, 47.311f, 82.689f, 115.546f }, chInvX[4] = { 11.53f, 44.37f, 79.74f, 112.6f },
 			chFaderX[4] = { 29.13f, 62.f, 97.38f, 130.24f }, chBtnX[4] = { 13.99f, 46.63f, 82.f, 114.86f };
 

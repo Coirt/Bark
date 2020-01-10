@@ -4,7 +4,7 @@
 
 using namespace barkComponents;
 
-constexpr int rackY = 380;
+//constexpr int rackY = 380;
 
 struct TrimLFO : Module {
 	enum ParamIds {
@@ -146,7 +146,7 @@ struct TrimLFO : Module {
 			}
 			///tri.sqr----
 			else if (wavemixParamVal < 3.f) { //2.0f tri
-				xFade = simd::crossfade(triValue, sqrValue, waveMixParam - 1.95f);//2.f
+				xFade = simd::crossfade(triValue, sqrValue, waveMixParam - 2.f);//2.f
 				outputs[trimLFO_OUTPUT].setVoltageSimd(simd::fmax(out1a, simd::fmin(out2a, xFade)), i);
 			}
 			///sqr----
@@ -497,7 +497,7 @@ struct bpmTrimLFO : Module {
 			}
 			///tri.sqr----
 			else if (wavemixParamVal < 3.f) { //2.0f tri
-				xFade = simd::crossfade(triValue, sqrValue, waveMixParam - 1.95f);//2.f
+				xFade = simd::crossfade(triValue, sqrValue, waveMixParam - 2.f);//2.f
 				outputs[trimLFO_OUTPUT].setVoltageSimd(simd::fmax(out1a, simd::fmin(out2a, xFade)), i);
 			}
 			///sqr----
