@@ -1,6 +1,8 @@
 ---v1.2.0---
 Added new module EO Sum: Sums poly channels and distrbutes odd / even ch# to individual outputs.
 Trim LFO: Fixed an issue with the triangle wave not set to correct value on snap.
+PolyX: Added context menu option to select max channels, auto channels still sets to 16 channels.
+       Added new components for mute / open states to make them more visable.
 -----------------------------
 
 ---v1.1.1---
