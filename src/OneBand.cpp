@@ -178,7 +178,7 @@ struct OneBandWidget : ModuleWidget {
 		setModule(module);
 		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/Bark1Band.svg")));
 
-		constexpr int rackY = 380;
+		//constexpr int rackY = 380;
 		constexpr float floatyMcFloatFace = 16.11f, lightXpos = 45.5f, offsetKnobs = 0.47f;
 
 		///Ports---
