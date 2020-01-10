@@ -31,8 +31,8 @@ struct EOsum : Module {
 
 	EOsum() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-		configParam(EVENLVL_PARAM, 0.f, 1.f, 1.f, "Level", "%", 0.f, 100.f);
-		configParam(ODDLVL_PARAM, 0.f, 1.f, 1.f, "Level", "%", 0.f, 100.f);
+		configParam(EVENLVL_PARAM, 0.f, 1.f, 1.f, "Even Level", "%", 0.f, 100.f);
+		configParam(ODDLVL_PARAM, 0.f, 1.f, 1.f, "Odd Level", "%", 0.f, 100.f);
 
 		vuMeterOdd.lambda = 1 / 0.1f;
 		vuDividerOdd.setDivision(16);
@@ -44,25 +44,24 @@ struct EOsum : Module {
 	void process(const ProcessArgs &args) override {
 		
 		float sumOdd = (inputs[POLY_INPUT].getVoltage(0) +
-					   inputs[POLY_INPUT].getVoltage(2) +
-					   inputs[POLY_INPUT].getVoltage(4) +
-					   inputs[POLY_INPUT].getVoltage(6) +
-					   inputs[POLY_INPUT].getVoltage(8) +
-					   inputs[POLY_INPUT].getVoltage(10) +
-					   inputs[POLY_INPUT].getVoltage(12) +
-					   inputs[POLY_INPUT].getVoltage(14));
+				inputs[POLY_INPUT].getVoltage(2) +
+				inputs[POLY_INPUT].getVoltage(4) +
+				inputs[POLY_INPUT].getVoltage(6) +
+				inputs[POLY_INPUT].getVoltage(8) +
+				inputs[POLY_INPUT].getVoltage(10) +
+				inputs[POLY_INPUT].getVoltage(12) +
+				inputs[POLY_INPUT].getVoltage(14));
 		float sumEven = (inputs[POLY_INPUT].getVoltage(1) +
-						inputs[POLY_INPUT].getVoltage(3) +
-						inputs[POLY_INPUT].getVoltage(5) +
-						inputs[POLY_INPUT].getVoltage(7) +
-						inputs[POLY_INPUT].getVoltage(9) +
-						inputs[POLY_INPUT].getVoltage(11) +
-						inputs[POLY_INPUT].getVoltage(13) +
-						inputs[POLY_INPUT].getVoltage(15));
+				 inputs[POLY_INPUT].getVoltage(3) +
+				 inputs[POLY_INPUT].getVoltage(5) +
+				 inputs[POLY_INPUT].getVoltage(7) +
+				 inputs[POLY_INPUT].getVoltage(9) +
+				 inputs[POLY_INPUT].getVoltage(11) +
+				 inputs[POLY_INPUT].getVoltage(13) +
+				 inputs[POLY_INPUT].getVoltage(15));
+		
 		sumOdd *= params[ODDLVL_PARAM].getValue();
 		sumEven *= params[EVENLVL_PARAM].getValue();
-		outputs[MONOODD_OUTPUT].setVoltage(sumOdd);
-		outputs[MONOEVEN_OUTPUT].setVoltage(sumEven);
 		
 		if (vuDividerOdd.process()) {
 			vuMeterOdd.process(args.sampleTime * vuDividerOdd.getDivision(), sumOdd / 10.f);
@@ -87,8 +86,10 @@ struct EOsum : Module {
 			
 		}
 		
-	}
-
+		outputs[MONOODD_OUTPUT].setVoltage(sumOdd);
+		outputs[MONOEVEN_OUTPUT].setVoltage(sumEven);
+	
+	}//process
 };
 
 
