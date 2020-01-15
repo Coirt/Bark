@@ -61,4 +61,4 @@ You can find more information in the [Wiki](https://github.com/Coirt/Bark/wiki)
 
 --------
 I like to read 'expensive' programming books so donations would be much appreciated, 
-so if you would like contribute to developement you can do so by making a donation [here](https://www.paypal.me/philgolden)
+so if you would like contribute to development you can do so by making a donation [here](https://www.paypal.me/philgolden)
