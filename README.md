@@ -60,5 +60,5 @@ Test builds can be viewed on my YouTube [Channel](https://www.youtube.com/channe
 You can find more information in the [Wiki](https://github.com/Coirt/Bark/wiki)
 
 --------
-I like to read 'expensive' programming books so donations would be much appreciated, 
-so if you would like contribute to developement you can do so by making a donation [here](https://www.paypal.me/philgolden)
+ 
+If you would like contribute to development a donation would be very much appreciated, you can do so [here](https://www.paypal.me/philgolden)
