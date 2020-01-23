@@ -107,7 +107,7 @@ struct PolyXChannelsItem : MenuItem {
 		for (int channels = -1; channels <= 16; channels++) {
 			PolyXChannelItem* item = new PolyXChannelItem;
 			if (channels < 0)
-				item->text = "Automatic";
+				item->text = "All";
 			else
 				item->text = string::f("%d", channels);
 			item->rightText = CHECKMARK(module->channels == channels);
