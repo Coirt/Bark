@@ -1,9 +1,9 @@
 {
-  "slug": "Bark",
-  "version": "1.2.0",
+  "slug": "Bark_dev",
+  "version": "1.2.1",
   "license": "BSD-4-Clause",
   "name": "Coirt / Bark",
-  "brand": "Bark",
+  "brand": "Bark_beta_1.2.1",
   "author": "Phil Golden",
   "authorEmail": "philg@live.ie",
   "authorUrl": "https://github.com/Coirt",
@@ -15,12 +15,40 @@
   "modules": [
 
     {
+      "slug": "LMH2",
+      "name": "Low Mid High EQ",
+      "description": "Attenuating EQ with mid boost.",
+      "tags": [ "EQ", "Attenuator" ]
+    },
+
+    {
+      "slug": "LMH",
+      "name": "Low Mid High EQ\n\nReduced CPU load!\n\n",
+      "description": "Attenuating EQ with mid boost.",
+      "tags": [ "EQ", "Attenuator" ]
+    },
+
+    {
+      "slug": "SHTH2",
+      "name": "Sample & Hold / Track & Hold Poly",
+      "description": "Sample & Hold | Track & Hold",
+      "tags": [ "Polyphonic", "Sample and hold", "Dual" ]
+    },
+
+    {
+      "slug": "SHTH",
+      "name": "Sample & Hold / Track & Hold Mono",
+      "description": "Sample & Hold | Track & Hold",
+      "tags": [ "Sample and hold", "Dual" ]
+    },
+
+    {
       "slug": "EOsum",
       "name": "EO Sum",
-      "description": "Sums polyphonic channels and\ndistributes them to outputs\nbased on odd or even channel\nnumbers.",
+      "description": "Sums polyphonic channels and\ndistributes them to outputs\nbased on odd / even channel\nnumbers.",
       "tags": [ "Polyphonic", "Utility" ]
     },
-    
+
     {
       "slug": "TrimLFO",
       "name": "Trim LFO Hz",
@@ -32,7 +60,7 @@
       "slug": "OneBand",
       "name": "One Band",
       "description": "Dual-Mono parametric EQ\n",
-      "tags": [ "Equalizer", "Attenuator" ]
+      "tags": [ "EQ", "Attenuator" ]
     },
 
     {
