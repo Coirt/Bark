@@ -122,3 +122,31 @@ struct tpCeiling : ParamQuantity {
 			return "-0.1dB";
 	}
 };
+
+///SHTH---------------------------
+struct tpMode_sh : ParamQuantity {
+	std::string getDisplayValueString() override {
+		if (getValue() < 1.f)
+			return "Sample & Hold";
+		else
+			return "Track & Hold";
+	}
+};
+
+struct tpMode_th : ParamQuantity {
+	std::string getDisplayValueString() override {
+		if (getValue() < 1.f)
+			return "Track & Hold";
+		else
+			return "Sample & Hold";
+	}
+};
+
+struct tpPlusMinus : ParamQuantity {
+	std::string getDisplayValueString() override {
+		if (getValue() > 0.f)
+			return "+/-";
+		else
+			return "+";
+	}
+};
