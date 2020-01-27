@@ -15,3 +15,7 @@ extern Model *modelPolyMix;
 extern Model *modelClamp;
 extern Model *modelPolyX;
 extern Model *modelEOsum;
+extern Model *modelSHTH;
+extern Model *modelSHTH2;
+extern Model *modelLMH;
+extern Model *modelLMH2;
