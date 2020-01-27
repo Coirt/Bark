@@ -16,4 +16,9 @@ void init(rack::Plugin *p) {
 	p->addModel(modelClamp);
 	p->addModel(modelPolyX);
 	p->addModel(modelEOsum);
+	p->addModel(modelSHTH);
+	p->addModel(modelSHTH2);
+	p->addModel(modelLMH);
+	p->addModel(modelLMH2);
 }
+
