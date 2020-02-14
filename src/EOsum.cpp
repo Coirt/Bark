@@ -110,8 +110,8 @@ struct EOsumWidget : ModuleWidget {
 		addParam(createParam<BarkKnob_40>(Vec(10.f, 112.624f), module, EOsum::ODDLVL_PARAM));
 		addParam(createParam<BarkKnob_40>(Vec(10.f, 173.672f), module, EOsum::EVENLVL_PARAM));
 		//screw---
-		addChild(createWidget<BarkScrew1>(Vec(2, 3)));						//pos1
-		addChild(createWidget<BarkScrew3>(Vec(box.size.x - 13, 367.2)));			//pos4
+		addChild(createWidget<BarkScrew1>(Vec(2.7f, 2.7f)));						//pos1
+		addChild(createWidget<BarkScrew3>(Vec(box.size.x - 12.3f, 367.7f)));			//pos4
 		///Light---
 		constexpr float lightCol1 = 19.5f, lightCol2 = lightCol1 + 6.f, lightCol3 = lightCol2 + 6.f, lightCol4 = lightCol3 + 6.f,
 				lightRow1 = 26.815f, lightRow2 = lightRow1 + 6.109f, lightRow3 = lightRow2 + 6.109f, lightRow4 = lightRow3 + 6.109f;
