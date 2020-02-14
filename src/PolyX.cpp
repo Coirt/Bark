@@ -168,8 +168,8 @@ struct PolyXWidget : ModuleWidget {
 		addParam(createParam<BarkPushButton3>(Vec(btnC1, rackY - btnY[7]), module, PolyX::MUTEFAKE_PARAM + 14));
 		addParam(createParam<BarkPushButton3>(Vec(btnC2, rackY - btnY[7]), module, PolyX::MUTEFAKE_PARAM + 15));
 		//screw---
-		addChild(createWidget<BarkScrew3>(Vec(2, 3)));					//pos1
-		addChild(createWidget<BarkScrew4>(Vec(box.size.x - 13, 367.2)));		//pos4
+		addChild(createWidget<BarkScrew3>(Vec(2.7f, 2.7f)));				//pos1
+		addChild(createWidget<BarkScrew4>(Vec(box.size.x - 12.3f, 367.7f)));		//pos4
 		//Light---
 		///lightRow1
 		addChild(createLight<SmallestLightInverse<PolyLight>>(Vec(lightCol1, rackY - lightRow1), module, PolyX::chPolySTATE_LIGHT + 0));//on mono in
