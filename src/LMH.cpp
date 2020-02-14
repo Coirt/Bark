@@ -317,8 +317,8 @@ struct LMH2Widget : ModuleWidget {
 		//Switch---
 		addParam(createParam<BarkPushButton2>(Vec(knbX, 155.767f), module, LMH2::INV_PARAM));
 		//screw---
-		addChild(createWidget<BarkScrew3>(Vec(2, 3)));							//pos1
-		addChild(createWidget<BarkScrew1>(Vec(box.size.x - 13, 367.2)));			//pos4
+		addChild(createWidget<BarkScrew3>(Vec(2.7f, 2.7f)));					//pos1
+		addChild(createWidget<BarkScrew1>(Vec(box.size.x - 12.3f, 367.7f)));			//pos4
 	}
 };
 
