@@ -219,8 +219,8 @@ struct OneBandWidget : ModuleWidget {
 		addParam(createParam<BarkSwitchSmallSide>(Vec(21.89f, rackY - 161.23f), module, OneBand::SWAPLR_PARAM));
 		addParam(createParam<BarkSwitchSmall>(Vec(40.4f, rackY - 212.39f), module, OneBand::LISTEN_PARAM));
 		//TODO: Screw Positions
-		addChild(createWidget<BarkScrew1>(Vec(box.size.x - 13, 3)));			//pos2
-		addChild(createWidget<BarkScrew2>(Vec(2, 367.2f)));						//pos3
+		addChild(createWidget<BarkScrew1>(Vec(box.size.x - 12.3f, 2.7f)));			//pos2
+		addChild(createWidget<BarkScrew2>(Vec(2.7f, 367.7f)));					//pos3
 		//Light---
 		addChild(createLight<SmallerLightFA<ParamInLight>>(Vec(floatyMcFloatFace, rackY - 280.05f), module, OneBand::FreqParamOn));
 		addChild(createLight<SmallerLightFA<ParamInLight>>(Vec(floatyMcFloatFace, rackY - 261.72f), module, OneBand::FreqParamOff));
