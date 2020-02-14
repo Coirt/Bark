@@ -680,8 +680,8 @@ struct PolyMixWidget : ModuleWidget {
 
 		}
 		//Screws---
-		addChild(createWidget<BarkScrew4>(Vec(3, 3)));					//pos1
-		addChild(createWidget<BarkScrew1>(Vec(box.size.x - 13, 367.2)));		//pos4
+		addChild(createWidget<BarkScrew4>(Vec(2.7f, 2.7f)));				//pos1
+		addChild(createWidget<BarkScrew1>(Vec(box.size.x - 12.3f, 367.7f)));		//pos4
 		//Light---
 
 	}
