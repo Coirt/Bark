@@ -659,8 +659,8 @@ struct bpmTrimLFOWidget : ModuleWidget {
 		addInput(createInput<BarkInPort350>(Vec(119.89f, rackY - 164.05f), module, bpmTrimLFO::RESET_INPUT));
 		//Knobs---
 		addParam(createParam<BarkKnob_60snap>(Vec(45.12f, rackY - 217.87f), module, bpmTrimLFO::FREQ_PARAM));
-		addParam(createParam<BarkScrew01>(Vec(box.size.x - 13, 367.2f), module, bpmTrimLFO::FINE_PARAM));
-		addParam(createParam<BarkScrew02>(Vec(2, 3), module, bpmTrimLFO::BPM_PARAM));
+		addParam(createParam<BarkScrew01>(Vec(box.size.x - 12.3f, 367.7f), module, bpmTrimLFO::FINE_PARAM));
+		addParam(createParam<BarkScrew02>(Vec(2.7f, 2.7f), module, bpmTrimLFO::BPM_PARAM));
 		addParam(createParam<BarkKnob_40>(Vec(20.38f, rackY - 329.78f), module, bpmTrimLFO::OFFSET1_PARAM));
 		addParam(createParam<BarkKnob_40>(Vec(89.6f, rackY - 329.78f), module, bpmTrimLFO::OFFSET2_PARAM));
 		addParam(createParam<BarkKnob_30>(Vec(4.08f, rackY - 170.f), module, bpmTrimLFO::PW_PARAM));
