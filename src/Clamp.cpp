@@ -171,8 +171,8 @@ struct ClampWidget : ModuleWidget {
 		addParam(createParam<BarkPushButton1>(Vec(att2xPos[0], rackY - 132.07f), module, Clamp::ATTENUVERT_BUTTONS + 2));
 		addParam(createParam<BarkPushButton1>(Vec(att2xPos[1], rackY - 132.07f), module, Clamp::ATTENUVERT_BUTTONS + 3));
 		//screw---
-		addChild(createWidget<BarkScrew2>(Vec(box.size.x - 13, 3)));				//pos2
-		addChild(createWidget<BarkScrew3>(Vec(2, 367.2f)));						//pos3
+		addChild(createWidget<BarkScrew2>(Vec(box.size.x - 12.3f, 2.7f)));				//pos2
+		addChild(createWidget<BarkScrew3>(Vec(2.7, 367.2f)));						//pos3
 		//Display---
 		if (module != NULL) {
 			voltDisplayWidget *maxVolt = createWidget<voltDisplayWidget>(Vec(4.61f, rackY - 355.65f));
