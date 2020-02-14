@@ -38,11 +38,11 @@ struct Panel6Widget : ModuleWidget {
 
 		box.size = Vec(7 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT);
 
-		//screw... *whispers* 'all of them'
-		addChild(createWidget<BarkScrew1>(Vec(2, 3)));							//pos1
-		addChild(createWidget<BarkScrew2>(Vec(box.size.x - 13, 3)));				//pos2
-		addChild(createWidget<BarkScrew3>(Vec(2, 367.2f)));						//pos3
-		addChild(createWidget<BarkScrew4>(Vec(box.size.x - 13, 367.2)));			//pos4
+		//screw...
+		addChild(createWidget<BarkScrew1>(Vec(2.7f, 2.7f)));					//pos1
+		addChild(createWidget<BarkScrew2>(Vec(box.size.x - 12.3f, 2.7f)));			//pos2
+		addChild(createWidget<BarkScrew3>(Vec(2.7f, 367.7f)));					//pos3
+		addChild(createWidget<BarkScrew4>(Vec(box.size.x - 12.3f, 367.7f)));			//pos4
 	}
 };
 
