@@ -160,4 +160,4 @@ struct LMHWidget : ModuleWidget {
 	}
 };
 
-Model *modelLMH2 = createModel<LMH2, LMH2Widget>("LMH2");
+Model *modelLMH = createModel<LMH, LMHWidget>("LMH");
