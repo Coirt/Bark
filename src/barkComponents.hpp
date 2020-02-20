@@ -3,6 +3,17 @@
 #include "dependancies/utility/tooltip.hpp"
 
 namespace barkComponents {
+
+#define FONT_SIZE 12.75f
+#define LETTER_SPACING 1
+#define TEXT_POS_Y 10.5f
+
+#define MAX_CH 16
+
+#define FONT APP->window->loadFont(asset::plugin(pluginInstance, "res/GelPen_3.ttf"))
+#define DEBUG_START_STRING "\n-------------------------------\n---       DEBUG START       ---\n-------------------------------"
+#define DEBUG_END_STRING "\n-------------------------------\n---        DEBUG END        ---\n-------------------------------"
+	
 	///Colour--------------------------------------------------
 	static const NVGcolor BARK_GREEN = nvgRGBA(73, 191, 0, 255);
 	static const NVGcolor BARK_YELLOW1 = nvgRGBA(255, 212, 42, 255);
@@ -125,7 +136,7 @@ namespace barkComponents {
 			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkBTNSoloUp.svg")));
 		}
 	};
-	
+
 	struct BarkPushButton1 : app::SvgSwitch {
 		BarkPushButton1() {
 			momentary = true;
@@ -136,7 +147,6 @@ namespace barkComponents {
 
 	struct BarkPushButton2 : app::SvgSwitch {
 		BarkPushButton2() {
-			momentary = false;
 			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonRound1_0.svg")));
 			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonRound1_1.svg")));
 		}
@@ -144,7 +154,6 @@ namespace barkComponents {
 
 	struct BarkPushButton3 : app::SvgSwitch {
 		BarkPushButton3() {
-			momentary = false;
 			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonRound1_3.svg")));
 			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonRound1_4.svg")));
 		}
@@ -152,9 +161,34 @@ namespace barkComponents {
 
 	struct BarkPushButton4 : app::SvgSwitch {
 		BarkPushButton4() {
-			momentary = false;
 			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonRound1_0.svg")));
 			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonRound1_3.svg")));
+		}
+	};
+
+	struct BarkPushButtonSH : app::SvgSwitch {
+		BarkPushButtonSH() {
+			shadow->opacity = 0.f;
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonRound1_0sh.svg")));
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonRound1_3sh.svg")));
+		}
+	};
+
+	struct BarkPushButtonInc : app::SvgSwitch {
+		BarkPushButtonInc() {
+			shadow->opacity = 0.f;
+			momentary = true;
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonIncDec_0.svg")));
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonIncDec_1.svg")));
+		}
+	};
+
+	struct BarkPushButtonDec : app::SvgSwitch {
+		BarkPushButtonDec() {
+			shadow->opacity = 0.f;
+			momentary = true;
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonIncDec_0.svg")));
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonIncDec_2.svg")));
 		}
 	};
 
@@ -292,6 +326,18 @@ namespace barkComponents {
 
 	struct BarkKnob_40 : app::SvgKnob {
 		BarkKnob_40() {
+			minAngle = -0.827 * M_PI;
+			maxAngle = 0.825 * M_PI;
+			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkKnob_40.svg")));
+			sw->wrap();
+			box.size = sw->box.size;
+			speed = 0.8f;
+			shadow->box.pos = Vec(0, sw->box.size.y * 0.07f);
+		}
+	};
+
+	struct BarkKnob_40s : app::SvgKnob {
+		BarkKnob_40s() {
 			minAngle = -0.827 * M_PI;
 			maxAngle = 0.825 * M_PI;
 			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkKnob_40.svg")));
