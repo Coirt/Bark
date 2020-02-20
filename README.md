@@ -1,4 +1,4 @@
-### V1.2.1 pre-release beta
+### V1.2.2 pre-release beta
 
 # Bark
 VCVrack Modules
