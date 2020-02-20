@@ -21,6 +21,6 @@ void init(rack::Plugin *p) {
 	p->addModel(modelSHTH);
 	p->addModel(modelLMH);
 	//p->addModel(modelLMH2);
-	p->addModel(modeltestButtonDelay);
+	//p->addModel(modeltestButtonDelay);
 }
 
