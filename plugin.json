@@ -15,10 +15,10 @@
   "modules": [
 
     {
-      "slug": "LMH2",
-      "name": "Low Mid High EQ",
-      "description": "Attenuating EQ with mid boost.",
-      "tags": [ "EQ", "Attenuator" ]
+      "slug": "testButtonDelay",
+      "name": "testButtonDelay",
+      "description": "",
+      "tags": []
     },
 
     {
@@ -29,17 +29,10 @@
     },
 
     {
-      "slug": "SHTH2",
-      "name": "Sample & Hold / Track & Hold Poly",
-      "description": "Sample & Hold | Track & Hold",
-      "tags": [ "Polyphonic", "Sample and hold", "Dual" ]
-    },
-
-    {
       "slug": "SHTH",
-      "name": "Sample & Hold / Track & Hold Mono",
+      "name": "S&H / T&H",
       "description": "Sample & Hold | Track & Hold",
-      "tags": [ "Sample and hold", "Dual" ]
+      "tags": [ "Polyphonic", "Sample and hold" ]
     },
 
     {
