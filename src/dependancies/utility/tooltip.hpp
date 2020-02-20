@@ -1,5 +1,7 @@
 #include "plugin.hpp"
 
+#define BLANK "\n"
+
 //General-----------------------
 struct tpOnOff : ParamQuantity {
 	std::string getDisplayValueString() override {
@@ -26,7 +28,22 @@ struct tpCycled : ParamQuantity {
 			return "Cycled";
 	}
 };
-
+struct tpDone : ParamQuantity {
+	std::string getDisplayValueString() override {
+		if (getValue() < 1.f)
+			return BLANK;
+		else
+			return "\nDone ";
+	}
+};
+struct tpIntExt : ParamQuantity {
+	std::string getDisplayValueString() override {
+		if (getValue() > 0.f)
+			return "\nInternal";
+		else
+			return "\nExternal";
+	}
+};
 struct tpGainVal : ParamQuantity {
 	std::string getDisplayValueString() override {
 		if (getValue() < 1.f)
@@ -150,3 +167,12 @@ struct tpPlusMinus : ParamQuantity {
 			return "+";
 	}
 };
+
+/*-------------------------------------------------------------------------------------------*/
+/*-----------------------------------       MACROS        -----------------------------------*/
+/*-------------------------------------------------------------------------------------------*/
+
+///DEBUG()---------------------------
+inline const char * const BoolToString(bool b) {
+	return b ? "True" : "False";
+}
