@@ -15,13 +15,6 @@
   "modules": [
 
     {
-      "slug": "testButtonDelay",
-      "name": "testButtonDelay",
-      "description": "",
-      "tags": []
-    },
-
-    {
       "slug": "LMH",
       "name": "Low Mid High EQ\n\nReduced CPU load!\n\n",
       "description": "Attenuating EQ with mid boost.",
