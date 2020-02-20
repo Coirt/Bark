@@ -1,24 +1,26 @@
-#include "rack.hpp"
+#include "plugin.hpp"
 
+Plugin *pluginInstance;
 
-using namespace rack;
+void init(rack::Plugin *p) {
 
-extern Plugin *pluginInstance;
+	pluginInstance = p;
 
-//Modules
-extern Model *modelTrimLFO;
-extern Model *modelQuadLogic;
-extern Model *modelPanel6;
-extern Model *modelOneBand;
-extern Model *modelbpmTrimLFO;
-extern Model *modelPolyMix;
-extern Model *modelClamp;
-extern Model *modelPolyX;
-extern Model *modelEOsum;
-//extern Model *modelSHTH;
-//extern Model *modelSHTH2;
-extern Model *modelSHTH;
-extern Model *modelLMH;
-//extern Model *modelLMH2;
-extern Model *modeltestButtonDelay;
+	// p->addModel(model---);
+	p->addModel(modelTrimLFO);
+	p->addModel(modelQuadLogic);
+	p->addModel(modelPanel6);
+	p->addModel(modelOneBand);
+	p->addModel(modelbpmTrimLFO);
+	p->addModel(modelPolyMix);
+	p->addModel(modelClamp);
+	p->addModel(modelPolyX);
+	p->addModel(modelEOsum);
+	//p->addModel(modelSHTH_1);
+	//p->addModel(modelSHTH2);
+	p->addModel(modelSHTH);
+	p->addModel(modelLMH);
+	//p->addModel(modelLMH2);
+	p->addModel(modeltestButtonDelay);
+}
 
