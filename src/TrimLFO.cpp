@@ -4,8 +4,6 @@
 
 using namespace barkComponents;
 
-//constexpr int rackY = 380;
-
 struct TrimLFO : Module {
 	enum ParamIds {
 		OFFSET1_PARAM, 
@@ -81,7 +79,7 @@ struct TrimLFO : Module {
 		configParam(SETsqr_PARAM, 0.f, 1.f, 0.f, "Top Output Square");
 		configParam(SETbi_PARAM, 0.f, 1.f, 0.f, "Set Offsets Bipolar");
 		configParam(SETuni_PARAM, 0.f, 1.f, 0.f, "Set Offsets Unipolar");
-		lightDivider.setDivision(8);
+		lightDivider.setDivision(256);
 	}
 
 	void process(const ProcessArgs &args) override {
@@ -189,9 +187,20 @@ struct TrimLFO : Module {
 			params[OFFSET_PARAM].setValue(1.f);
 		}
 
-		float oscillatorLight = oscillators[0].light().s[0];
-		lights[PHASE_POS_LIGHT].setSmoothBrightness(oscillatorLight, args.sampleTime * lightDivider.getDivision());
-		lights[PHASE_NEG_LIGHT].setSmoothBrightness(-oscillatorLight, args.sampleTime * lightDivider.getDivision());
+		if (lightDivider.process()) {
+			bool isUni = params[OFFSET_PARAM].getValue();
+			if (isUni) {
+				//lights[PHASE_POS_LIGHT].setSmoothBrightness(oscillatorLight, args.sampleTime * lightDivider.getDivision());
+				lights[PHASE_POS_LIGHT].setBrightness(outputs[trimLFO_OUTPUT].getVoltage() / 10);
+			} else {
+				//lights[PHASE_POS_LIGHT].setSmoothBrightness(oscillatorLight, args.sampleTime * lightDivider.getDivision());
+				lights[PHASE_POS_LIGHT].setBrightness(outputs[trimLFO_OUTPUT].getVoltage() / 5);
+				//lights[PHASE_NEG_LIGHT].setSmoothBrightness(-oscillatorLight, args.sampleTime * lightDivider.getDivision());
+				lights[PHASE_NEG_LIGHT].setBrightness(-outputs[trimLFO_OUTPUT].getVoltage() / 5);
+			}
+		}
+		
+		
 	}
 };
 ////---------------------------------------------------------------------------------------------------------------------------
@@ -200,7 +209,7 @@ struct FreqDisplayWidget : TransparentWidget {
 	std::shared_ptr<Font> font;
 
 	FreqDisplayWidget() {
-		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/segoescb.ttf"));
+		font = FONT;
 	}
 
 	void draw(const DrawArgs &freqDisp) override {
@@ -218,14 +227,14 @@ struct FreqDisplayWidget : TransparentWidget {
 		nvgStrokeColor(freqDisp.vg, borderColor);
 		nvgStroke(freqDisp.vg);
 		nvgTextAlign(freqDisp.vg, 1 << 1);
-		nvgFontSize(freqDisp.vg, 16);
+		nvgFontSize(freqDisp.vg, FONT_SIZE);
 		nvgFontFaceId(freqDisp.vg, font->handle);
-		nvgTextLetterSpacing(freqDisp.vg, .1f);
-		Vec textPos = Vec(85.798f / 2.0f - 8.0f, 10.673f);
+		nvgTextLetterSpacing(freqDisp.vg, LETTER_SPACING/* / 10*/);
+		Vec textPos = Vec(85.798f / 2.0f - 8.0f, TEXT_POS_Y);
 		//----- "Hz"
 		nvgFillColor(freqDisp.vg, nvgTransRGBA(textColor, 255));
 		char display_stringHz[10];
-		snprintf(display_stringHz, sizeof(display_stringHz), "%0.52f", *freqHz);
+		snprintf(display_stringHz, sizeof(display_stringHz), "%0.7f", *freqHz);
 		nvgText(freqDisp.vg, textPos.x + spacer, textPos.y, "Hz", NULL);
 		nvgText(freqDisp.vg, textPos.x, textPos.y, display_stringHz, NULL);		
 		nvgFillColor(freqDisp.vg, textColor);
@@ -244,7 +253,7 @@ struct VoltsDisplayWidget : TransparentWidget {
 	std::shared_ptr<Font> font;
 
 	VoltsDisplayWidget() {
-		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/segoescb.ttf"));
+		font = FONT;
 	}
 
 	void draw(const DrawArgs &voltDisp) override {
@@ -261,12 +270,12 @@ struct VoltsDisplayWidget : TransparentWidget {
 		nvgStrokeColor(voltDisp.vg, borderColor);
 		nvgStroke(voltDisp.vg);
 		nvgTextAlign(voltDisp.vg, 1 << 1);
-		nvgFontSize(voltDisp.vg, 18);
+		nvgFontSize(voltDisp.vg, FONT_SIZE);
 		nvgFontFaceId(voltDisp.vg, font->handle);
-		nvgTextLetterSpacing(voltDisp.vg, 0.75);
-		char display_string[10];
-		sprintf(display_string, "%5.2f", *value);
-		Vec textPos = Vec(25.0f, 10.55f);
+		nvgTextLetterSpacing(voltDisp.vg, LETTER_SPACING);
+		char display_string[9];
+		sprintf(display_string, "%0.4f", *value);
+		Vec textPos = Vec(25.364f, TEXT_POS_Y);
 		nvgFillColor(voltDisp.vg, nvgTransRGBA(nvgRGB(0xdf, 0xd2, 0x2c), 16));
 		nvgText(voltDisp.vg, textPos.x, textPos.y, "$$$$", NULL);
 		nvgFillColor(voltDisp.vg, nvgTransRGBA(nvgRGB(0xda, 0xe9, 0x29), 11));
@@ -305,7 +314,7 @@ struct TrimLFOWidget : ModuleWidget {
 		addInput(createInput<BarkInPort350>(Vec(119.89f, rackY - 164.05f), module, TrimLFO::RESET_INPUT));
 		//Knobs---
 		addParam(createParam<BarkKnob_60>(Vec(45.12f, rackY - 217.87f), module, TrimLFO::FREQ_PARAM));
-		addParam(createParam<BarkScrew01>(Vec(box.size.x - 12.3f, 367.7f), module, TrimLFO::FINE_PARAM));
+		addParam(createParam<BarkScrew01>(Vec(box.size.x - 13, 367.2f), module, TrimLFO::FINE_PARAM));
 		addParam(createParam<BarkKnob_40>(Vec(20.38f, rackY - 329.78f), module, TrimLFO::OFFSET1_PARAM));
 		addParam(createParam<BarkKnob_40>(Vec(89.6f, rackY - 329.78f), module, TrimLFO::OFFSET2_PARAM));
 		addParam(createParam<BarkKnob_30>(Vec(4.08f, rackY - 170.f), module, TrimLFO::PW_PARAM));
@@ -325,7 +334,7 @@ struct TrimLFOWidget : ModuleWidget {
 		addParam(createParam<BarkButton1>(Vec(10.55f, rackY - 191.09f), module, TrimLFO::SETbi_PARAM));
 		addParam(createParam<BarkButton1>(Vec(10.55f, rackY - 228.33f), module, TrimLFO::SETuni_PARAM));
 		//Screw---
-		addChild(createWidget<BarkScrew3>(Vec(2.7f, 2.7f)));		//pos1
+		addChild(createWidget<BarkScrew3>(Vec(2, 3)));		//pos1
 		//Light---
 		addChild(createLight<LessBigLight<greenRedLight>>(Vec(71.87f, rackY - 152.63f), module, TrimLFO::PHASE_POS_LIGHT));
 		//------------------------------
@@ -431,7 +440,7 @@ struct bpmTrimLFO : Module {
 		configParam(SETsqr_PARAM, 0.f, 1.f, 0.f, "Top Output Square");
 		configParam(SETbi_PARAM, 0.f, 1.f, 0.f, "Set Offsets Bipolar");
 		configParam(SETuni_PARAM, 0.f, 1.f, 0.f, "Set Offsets Unipolar");
-		lightDivider.setDivision(8);
+		lightDivider.setDivision(256);
 	}
 
 	void process(const ProcessArgs &args) override {		
@@ -540,9 +549,20 @@ struct bpmTrimLFO : Module {
 			params[OFFSET_PARAM].setValue(1.f);
 		}
 
-		float oscillatorLight = oscillators[0].light().s[0];
-		lights[PHASE_POS_LIGHT].setSmoothBrightness(oscillatorLight, args.sampleTime * lightDivider.getDivision());
-		lights[PHASE_NEG_LIGHT].setSmoothBrightness(-oscillatorLight, args.sampleTime * lightDivider.getDivision());
+
+		if (lightDivider.process()) {
+			bool isUni = params[OFFSET_PARAM].getValue();
+			if (isUni) {
+				//lights[PHASE_POS_LIGHT].setSmoothBrightness(oscillatorLight, args.sampleTime * lightDivider.getDivision());
+				lights[PHASE_POS_LIGHT].setBrightness(outputs[trimLFO_OUTPUT].getVoltage() / 10);
+			} else {
+				//lights[PHASE_POS_LIGHT].setSmoothBrightness(oscillatorLight, args.sampleTime * lightDivider.getDivision());
+				lights[PHASE_POS_LIGHT].setBrightness(outputs[trimLFO_OUTPUT].getVoltage() / 5);
+				//lights[PHASE_NEG_LIGHT].setSmoothBrightness(-oscillatorLight, args.sampleTime * lightDivider.getDivision());
+				lights[PHASE_NEG_LIGHT].setBrightness(-outputs[trimLFO_OUTPUT].getVoltage() / 5);
+			}
+		}
+		
 	}
 };
 
@@ -552,7 +572,7 @@ struct bpmFreqDisplayWidget : TransparentWidget {
 	std::shared_ptr<Font> font;
 
 	bpmFreqDisplayWidget() {
-		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/segoescb.ttf"));
+		font = FONT;
 	}
 
 	void draw(const DrawArgs &freqDisp) override {
@@ -570,16 +590,18 @@ struct bpmFreqDisplayWidget : TransparentWidget {
 		nvgStrokeColor(freqDisp.vg, borderColor);
 		nvgStroke(freqDisp.vg);
 		nvgTextAlign(freqDisp.vg, NVG_ALIGN_CENTER);
-		nvgFontSize(freqDisp.vg, 16);
+		nvgFontSize(freqDisp.vg, FONT_SIZE);
 		nvgFontFaceId(freqDisp.vg, font->handle);
-		nvgTextLetterSpacing(freqDisp.vg, -.75f);
-		Vec textPos = Vec(85.798f / 2.f - 8.f, 10.673f);
+		nvgTextLetterSpacing(freqDisp.vg, LETTER_SPACING);
+		Vec textPos = Vec(85.798f / 2.f - 8.f, TEXT_POS_Y);
 		//----- "BPM"
 		nvgFillColor(freqDisp.vg, nvgTransRGBA(textColor, 255));
-		char display_stringBPM[8];
-		snprintf(display_stringBPM, sizeof(display_stringBPM), "%0.52f", *freqHz * 60);
-		nvgText(freqDisp.vg, textPos.x + spacer - 5, textPos.y, "BPM", NULL);
+		char display_stringBPM[9];
+		snprintf(display_stringBPM, sizeof(display_stringBPM), "%0.5f", *freqHz * 60);
 		nvgText(freqDisp.vg, textPos.x - 5, textPos.y, display_stringBPM, NULL);
+		nvgTextLetterSpacing(freqDisp.vg, LETTER_SPACING * .2f);
+		nvgText(freqDisp.vg, textPos.x + spacer - 8.5f, textPos.y, "BP", NULL);
+		nvgText(freqDisp.vg, textPos.x + spacer + 2.3f, textPos.y, "M", NULL);
 		//textColor = nvgRGB(68, 255, 78);
 		nvgFillColor(freqDisp.vg, textColor);
 		//---------Gradient Screen
@@ -598,7 +620,7 @@ struct bpmVoltsDisplayWidget : TransparentWidget {
 	std::shared_ptr<Font> font;
 
 	bpmVoltsDisplayWidget() {
-		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/segoescb.ttf"));
+		font = FONT;
 	}
 
 	void draw(const DrawArgs &voltDisp) override {
@@ -615,12 +637,12 @@ struct bpmVoltsDisplayWidget : TransparentWidget {
 		nvgStrokeColor(voltDisp.vg, borderColor);
 		nvgStroke(voltDisp.vg);
 		nvgTextAlign(voltDisp.vg, 1 << 1);
-		nvgFontSize(voltDisp.vg, 18);
+		nvgFontSize(voltDisp.vg, FONT_SIZE);
 		nvgFontFaceId(voltDisp.vg, font->handle);
-		nvgTextLetterSpacing(voltDisp.vg, 0.75);
-		char display_string[10];
-		sprintf(display_string, "%5.2f", *value);
-		Vec textPos = Vec(25.0f, 10.55f);		//		box.size = Vec(50.728f, 13.152f);
+		nvgTextLetterSpacing(voltDisp.vg, LETTER_SPACING);
+		char display_string[7];
+		sprintf(display_string, "%0.4f", *value);
+		Vec textPos = Vec(25.364f, TEXT_POS_Y);		//		box.size = Vec(50.728f, 13.152f);
 		nvgFillColor(voltDisp.vg, nvgTransRGBA(nvgRGB(0xdf, 0xd2, 0x2c), 16));
 		nvgText(voltDisp.vg, textPos.x, textPos.y, "$$$$", NULL);
 		nvgFillColor(voltDisp.vg, nvgTransRGBA(nvgRGB(0xda, 0xe9, 0x29), 11));
@@ -659,8 +681,8 @@ struct bpmTrimLFOWidget : ModuleWidget {
 		addInput(createInput<BarkInPort350>(Vec(119.89f, rackY - 164.05f), module, bpmTrimLFO::RESET_INPUT));
 		//Knobs---
 		addParam(createParam<BarkKnob_60snap>(Vec(45.12f, rackY - 217.87f), module, bpmTrimLFO::FREQ_PARAM));
-		addParam(createParam<BarkScrew01>(Vec(box.size.x - 12.3f, 367.7f), module, bpmTrimLFO::FINE_PARAM));
-		addParam(createParam<BarkScrew02>(Vec(2.7f, 2.7f), module, bpmTrimLFO::BPM_PARAM));
+		addParam(createParam<BarkScrew01>(Vec(box.size.x - 13, 367.2f), module, bpmTrimLFO::FINE_PARAM));
+		addParam(createParam<BarkScrew02>(Vec(2, 3), module, bpmTrimLFO::BPM_PARAM));
 		addParam(createParam<BarkKnob_40>(Vec(20.38f, rackY - 329.78f), module, bpmTrimLFO::OFFSET1_PARAM));
 		addParam(createParam<BarkKnob_40>(Vec(89.6f, rackY - 329.78f), module, bpmTrimLFO::OFFSET2_PARAM));
 		addParam(createParam<BarkKnob_30>(Vec(4.08f, rackY - 170.f), module, bpmTrimLFO::PW_PARAM));
