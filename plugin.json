@@ -1,5 +1,5 @@
 {
-  "slug": "Bark_dev",
+  "slug": "Bark",
   "version": "1.2.2",
   "license": "BSD-4-Clause",
   "name": "Coirt / Bark",
@@ -16,7 +16,7 @@
 
     {
       "slug": "LMH",
-      "name": "Low Mid High EQ\n\nReduced CPU load!\n\n",
+      "name": "Low Mid High EQ",
       "description": "Attenuating EQ with mid boost.",
       "tags": [ "EQ", "Attenuator" ]
     },
