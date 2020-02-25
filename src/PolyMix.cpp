@@ -40,6 +40,7 @@ struct PolyMix : Module {
 		NUM_LIGHTS
 	};
 
+	dsp::RCFilter dcblockL, dcblockR;
 
 	PolyMix() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
@@ -635,6 +636,16 @@ struct PolyMix : Module {
 		float outGain = params[MASTERGAIN_PARAM].getValue() * cvMasterLevel;
 		float Left = sumL[chSel] * outGain + ((return1 + return2) / 2), Right = sumR[chSel] * outGain + ((return1 + return2) / 2);
 
+		//simple dcblocker
+		float hpFreq = 16.35f;
+		dcblockL.setCutoff(hpFreq / args.sampleRate);
+		dcblockR.setCutoff(hpFreq / args.sampleRate);
+		dcblockL.process(Left);
+		dcblockR.process(Right);
+
+		Left -= dcblockL.lowpass();
+		Right -= dcblockL.lowpass();
+		
 		outputs[OUTL_OUTPUT].setVoltage(Left);
 		outputs[OUTR_OUTPUT].setVoltage(Right);
 
