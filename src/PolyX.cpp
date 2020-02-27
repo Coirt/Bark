@@ -5,6 +5,7 @@ using namespace barkComponents;
 
 struct PolyX : Module {
 	enum ParamIds {
+		MUTEALL_PARAM,
 		ENUMS(MUTEFAKE_PARAM, 16),
 		NUM_PARAMS
 	};
@@ -23,24 +24,30 @@ struct PolyX : Module {
 		NUM_LIGHTS
 	};
 
-	dsp::ClockDivider lightDivider;
+	dsp::ClockDivider lightDivider, setSafe;
+	dsp::BooleanTrigger setP1; dsp::BooleanTrigger setP2;
 	int channels;
 
 	PolyX() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+		configParam<tpMute10v>(MUTEALL_PARAM, 0.f, 2.f, 1.f, "Set Channels");
 		for (int i = 0; i < 16; i++) {
 			configParam<tpMute10v>(MUTEFAKE_PARAM + i, 0.f, 1.f, 1.f, "Voltage");
 		}
-		lightDivider.setDivision(8);//512
+		lightDivider.setDivision(512);//8
+		setSafe.setDivision(4);
 		onReset();
 	}
 
 	void onReset() override {
-		channels = -1;//Auto
+		channels = 4;	//Auto == -1
 	}
 
 	void process(const ProcessArgs &args) override {
 		int lastCh = -1;
+		bool setChannelState1 = setP1.process(params[MUTEALL_PARAM].getValue() == 1.f);
+		bool setChannelState2 = setP2.process(params[MUTEALL_PARAM].getValue() == 2.f);
+
 		for (int ch = 0; ch < 16; ch++) {
 			float volt = 0.f;
 			if (inputs[MONO_INPUT + ch].isConnected()) {
@@ -54,7 +61,23 @@ struct PolyX : Module {
 		}
 		// In order to allow 0 channels, modify channels directly instead of using `setChannels()`
 		outputs[POLY_OUTPUT].channels = (channels >= 0) ? channels : (lastCh + 1);
+		int nCh = channels == -1 ? MAX_CH : channels;
+		
+		
+		if (setChannelState1) {
+			for (int i = 0; i < nCh; i++) {
+				params[MUTEFAKE_PARAM + i].setValue(1.f);
+			}
+		}
 
+		if (setChannelState2) {
+			for (int i = 0; i < nCh; i++) {
+				params[MUTEFAKE_PARAM + i].setValue(0.f);
+			}
+			params[MUTEALL_PARAM].setValue(0.f);
+		}
+		
+		
 		// Set channel lights infrequently
 		if (lightDivider.process()) {
 			for (int c = 0; c < 16; c++) {
@@ -80,12 +103,12 @@ struct PolyX : Module {
 	///store channels to json and retrieve when loading patch
 	json_t* dataToJson() override {
 		json_t* rootJ = json_object();
-		json_object_set_new(rootJ, "channels", json_integer(channels));
+		json_object_set_new(rootJ, "Channels", json_integer(channels));
 		return rootJ;
 	}
 
 	void dataFromJson(json_t* rootJ) override {
-		json_t* channelsJ = json_object_get(rootJ, "channels");
+		json_t* channelsJ = json_object_get(rootJ, "Channels");
 		if (channelsJ)
 			channels = json_integer_value(channelsJ);
 	}
@@ -124,6 +147,9 @@ struct PolyXWidget : ModuleWidget {
 		setModule(module);
 		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/BarkPolyX.svg")));
 
+		box.size = Vec(5 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT);
+
+
 		constexpr float portY[8] = { 303.53f, 268.66f, 233.81f, 198.96f, 164.1f, 129.24f, 94.38f, 59.52f },
 				btnY[8] = { 314.03f, 279.16f, 244.31f, 209.46f, 142.83f, 107.98f, 73.11f, 38.26f };
 		constexpr float lightCol1 = 44.12f, lightCol2 = lightCol1 + 6.f, lightCol3 = lightCol2 + 6.f, lightCol4 = lightCol3 + 6.f,
@@ -151,6 +177,7 @@ struct PolyXWidget : ModuleWidget {
 		addInput(createInput<BarkPatchPortIn>(Vec(portC1X, rackY - portY[7]), module, PolyX::MONO_INPUT + 14));
 		addInput(createInput<BarkPatchPortIn>(Vec(portC2X, rackY - portY[7]), module, PolyX::MONO_INPUT + 15));
 		//Button---
+		addParam(createParam<BarkChBtnMute>(Vec(41.618f, 24.123f), module, PolyX::MUTEALL_PARAM));
 		addParam(createParam<BarkPushButton3>(Vec(btnC1, rackY - btnY[0]), module, PolyX::MUTEFAKE_PARAM + 0));
 		addParam(createParam<BarkPushButton3>(Vec(btnC2, rackY - btnY[0]), module, PolyX::MUTEFAKE_PARAM + 1));
 		addParam(createParam<BarkPushButton3>(Vec(btnC1, rackY - btnY[1]), module, PolyX::MUTEFAKE_PARAM + 2));
