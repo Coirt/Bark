@@ -1,6 +1,6 @@
 #include "plugin.hpp"
 #include "barkComponents.hpp"
-#include "dependancies/filt/biquad.cpp"
+#include "dependancies/filt/biquad.h"
 #include "dependancies/filt/lp24.cpp"
 
 using namespace barkComponents;
@@ -43,6 +43,7 @@ struct OneBand : Module {
 	dsp::VuMeter2 volUnitIndicatorPEAK;
 	dsp::ClockDivider vuDivider;
 	dsp::ClockDivider lightDivider;
+	dsp::ClockDivider step;
 	Biquad *parametricEQL = new Biquad();
 	Biquad *parametricEQR = new Biquad();
 	LadderFilter lpf24;		//smoothing
@@ -56,19 +57,20 @@ struct OneBand : Module {
 		configParam(OUTGAIN_PARAM, 0.f, 7.f, 2.f, "Output Gain", "dB", -10, 20, -13.f);	//needs diff offset, TODO: show 0dB by default? or meter dB?
 		//Switch---
 		configParam<tpOnOff>(EQBYPASS_PARAM, 0.f, 1.f, 0.f, "EQ");
-		configParam<tpGainVal>(PREPOST_PARAM, 0.f, 1.f, 0.f, "Meter", " Gain");
+		configParam<tpGainVal>(PREPOST_PARAM, 0.f, 1.f, 1.f, "Meter", " Gain");
 		configParam<tpSwapLR>(SWAPLR_PARAM, 0.f, 1.f, 0.f, "Output");
 		configParam<tpEQprocess>(LISTEN_PARAM, 0.f, 1.f, 0.f, "EQ");
 		//Lights---
 		volUnitIndicatorPEAK.lambda = 1 / 0.1f;
 		vuDivider.setDivision(16);
 		lightDivider.setDivision(256);
+		step.setDivision(2048);
 	}
 
 	void process(const ProcessArgs &args) override {
 		bool Listen = params[LISTEN_PARAM].getValue(), swapLR = params[SWAPLR_PARAM].getValue();
 		float inL = 0.0f, inR = 0.0f, outLdBVU = 0.0f, outRdBVU = 0.0f,
-			outL = clamp(outputs[OUTL_OUTPUT].getVoltage(), -9.9f, 9.9f), outR = clamp(outputs[OUTR_OUTPUT].getVoltage(), -9.9f, 9.9f),
+			outL = outputs[OUTL_OUTPUT].getVoltage(), outR = outputs[OUTR_OUTPUT].getVoltage(),
 			Gain = params[OUTGAIN_PARAM].getValue() / 2.0f;
 		double eqGain = params[EQGAIN_PARAM].getValue() * 5.0 + (clamp(inputs[GAINMOD_INPUT].getVoltage(), -6.5f, 6.5f) * 5.0), modInput, eqFreq,
 			eqQ = clamp(params[EQBANDWIDTH_PARAM].getValue(), .1f, 40.f) + (4.f * clamp(inputs[BWMOD_INPUT].getVoltage(), .1f, 40.f));
@@ -136,14 +138,17 @@ struct OneBand : Module {
 		} else if (!inputs[FREQMOD_INPUT].isConnected()) {
 			biquadFreq = eqFreq * 20.;	//exp
 		}
-
+		
 		//Q
 		biquadQ = eqQ;
 		//Bypass EQ
 		params[EQBYPASS_PARAM].getValue() < 1.f ? biquadGain = eqGain : biquadGain = 0.0;
 		//set Biquad Values
-		parametricEQL->setBiquad(bq_type_peak, biquadFreq / sampRate, biquadQ, biquadGain);
-		parametricEQR->setBiquad(bq_type_peak, biquadFreq / sampRate, biquadQ, biquadGain);
+		if (step.process()) {
+			parametricEQL->setBiquad(bq_type_peak, biquadFreq / sampRate, biquadQ, biquadGain);
+			parametricEQR->setBiquad(bq_type_peak, biquadFreq / sampRate, biquadQ, biquadGain);
+		}
+		
 		//Listen to EQ
 		if (Listen == 1) {//invert input
 			if (swapLR == 1) {
@@ -179,7 +184,7 @@ struct OneBandWidget : ModuleWidget {
 		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/Bark1Band.svg")));
 
 		//constexpr int rackY = 380;
-		constexpr float floatyMcFloatFace = 16.11f, lightXpos = 45.5f, offsetKnobs = 0.47f;
+		constexpr float floatyMcFloatFace = 16.11f, lightXpos = 45.5f;
 
 		///Ports---
 		//Out---
@@ -204,8 +209,8 @@ struct OneBandWidget : ModuleWidget {
 		addParam(createParam<BarkSwitchSmallSide>(Vec(21.89f, rackY - 161.23f), module, OneBand::SWAPLR_PARAM));
 		addParam(createParam<BarkSwitchSmall>(Vec(40.4f, rackY - 212.39f), module, OneBand::LISTEN_PARAM));
 		//TODO: Screw Positions
-		addChild(createWidget<BarkScrew1>(Vec(box.size.x - 13, 3)));			//pos2
-		addChild(createWidget<BarkScrew2>(Vec(2, 367.2f)));						//pos3
+		addChild(createWidget<BarkScrew1>(Vec(box.size.x - 12.3f, 2.7f)));		//pos2
+		addChild(createWidget<BarkScrew2>(Vec(2.7f, 367.7f)));					//pos3
 		//Light---
 		addChild(createLight<SmallerLightFA<ParamInLight>>(Vec(floatyMcFloatFace, rackY - 280.05f), module, OneBand::FreqParamOn));
 		addChild(createLight<SmallerLightFA<ParamInLight>>(Vec(floatyMcFloatFace, rackY - 261.72f), module, OneBand::FreqParamOff));

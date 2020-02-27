@@ -98,8 +98,8 @@ struct QuadLogicWidget : ModuleWidget {
 		addOutput(createOutput<BarkPatchPortOut>(Vec(8.1f + 0.35f, rackY - 77.73f + 0.35f),  module, QuadLogic::MAX4_OUTPUT));
 		addOutput(createOutput<BarkPatchPortOut>(Vec(42.71f, rackY - 77.73f + 0.35f),  module, QuadLogic::MIN4_OUTPUT));
 		//screw---
-		addChild(createWidget<BarkScrew1>(Vec(2, 367.2f)));						//pos3
-		addChild(createWidget<BarkScrew3>(Vec(box.size.x - 13, 3)));				//pos2
+		addChild(createWidget<BarkScrew1>(Vec(2.7f, 367.7f)));						//pos3
+		addChild(createWidget<BarkScrew3>(Vec(box.size.x - 12.3f, 2.7f)));				//pos2
 		//Lights---
 		addChild(createLight<SmallLight<GreenRedLight>>(Vec(34.82f - 0.35f, rackY - 326.8f), module, QuadLogic::LOGIC_POS1_LIGHT));
 		addChild(createLight<SmallLight<GreenRedLight>>(Vec(34.82f - 0.35f, rackY - 240.7f), module, QuadLogic::LOGIC_POS2_LIGHT));

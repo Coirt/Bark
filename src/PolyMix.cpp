@@ -1,5 +1,6 @@
 #include "plugin.hpp"
 #include "barkComponents.hpp"
+#include "dependancies/dsp/cpPan.h"
 
 using namespace barkComponents;
 
@@ -39,6 +40,7 @@ struct PolyMix : Module {
 		NUM_LIGHTS
 	};
 
+	dsp::RCFilter dcblockL, dcblockR;
 
 	PolyMix() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
@@ -54,44 +56,6 @@ struct PolyMix : Module {
 			configParam<tpOnOff>(MUTE_PARAM + i, 0.f, 1.f, 1.f, "Mute Ch " + std::to_string(i + 1));
 			configParam<tpOnOff>(SOLO_PARAM + i, 0.f, 1.f, 1.f, "Solo Ch " + std::to_string(i + 1));	
 		}
-	}
-
-	//pseudo---------------------------------------
-		//float constPowPan(float position) {
-		//	PANPOS pos;
-		//	/* pi/2: 1/4 cycle of a sinusoid */
-		//	const double  piovr2 = 4.0 * atan(1.0) * 0.5;		//	M_PI_2 == 1.57079632679489661923
-		//	const double  root2ovr2 = sqrt(2.0) * 0.5;			//	M_SQRT1_2 == 0.707106781186547524401
-		//	params[PAN_PARAM].getValue();//±0.707106781186547524401
-		//	/* scale position to fit the pi/2 range */
-		//	double thispos = position * piovr2;			// paramvalue min == -M_SQRT1_2, max == M_SQRT1_2, thispos == ±1.1107207345395915617532801458281
-		//	/* each channel uses a 1/4 of a cycle */
-		//	double angle = thispos * 0.5;				// 1.1107207345395915617532801458281 / 2 == ±0.55536036726979578087664007291405
-
-		//	pos.left = root2ovr2 * (cos(angle) - sin(angle));
-		//	pos.right = root2ovr2 * (cos(angle) + sin(angle));
-		//	return pos;
-		//}
-	//pseudo---------------------------------------
-
-
-	/***Constant Power Pan ---
-	Referenced Richard Dobson, Antonio Grazioli(Autodafe)/Alfredo Santamaria(AS)
-	*/
-	float cpPanL(float bal, float cv) {//Left Signal
-		float position = bal + cv / 5, power;
-		float thisPos = simd::clamp(position, -1.f, 1.f) * M_PI_2;	//min -1.57 max 1.57
-		float angle = thisPos / 2;	//min -0.785 max 0.785
-		power = M_SQRT1_2 * (simd::cos(angle) - simd::sin(angle));
-		return power;
-	}
-
-	float cpPanR(float bal, float cv) {//Right Signal
-		float position = bal + cv / 5, power;
-		float thisPos = simd::clamp(position, -1.f, 1.f) * M_PI_2;
-		float angle = thisPos / 2;
-		power = M_SQRT1_2 * (simd::cos(angle) + simd::sin(angle));
-		return power;
 	}
 
 	void process(const ProcessArgs &args) override {
@@ -672,6 +636,16 @@ struct PolyMix : Module {
 		float outGain = params[MASTERGAIN_PARAM].getValue() * cvMasterLevel;
 		float Left = sumL[chSel] * outGain + ((return1 + return2) / 2), Right = sumR[chSel] * outGain + ((return1 + return2) / 2);
 
+		//simple dcblocker
+		float hpFreq = 16.35f;
+		dcblockL.setCutoff(hpFreq / args.sampleRate);
+		dcblockR.setCutoff(hpFreq / args.sampleRate);
+		dcblockL.process(Left);
+		dcblockR.process(Right);
+
+		Left -= dcblockL.lowpass();
+		Right -= dcblockL.lowpass();
+		
 		outputs[OUTL_OUTPUT].setVoltage(Left);
 		outputs[OUTR_OUTPUT].setVoltage(Right);
 
@@ -717,8 +691,8 @@ struct PolyMixWidget : ModuleWidget {
 
 		}
 		//Screws---
-		addChild(createWidget<BarkScrew4>(Vec(3, 3)));					//pos1
-		addChild(createWidget<BarkScrew1>(Vec(box.size.x - 13, 367.2)));		//pos4
+		addChild(createWidget<BarkScrew4>(Vec(2.7f, 2.7f)));				//pos1
+		addChild(createWidget<BarkScrew1>(Vec(box.size.x - 12.3f, 367.7f)));		//pos4
 		//Light---
 
 	}

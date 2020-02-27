@@ -2,9 +2,19 @@
 #include "rack.hpp"
 #include "dependancies/utility/tooltip.hpp"
 
-///VS2019 test
-
 namespace barkComponents {
+
+#define FONT_SIZE 12.75f
+#define LETTER_SPACING 1
+#define TEXT_POS_Y 10.5f
+
+#define MAX_CH 16
+
+#define FONT APP->window->loadFont(asset::plugin(pluginInstance, "res/GelPen_3.ttf"))
+	
+#define DEBUG_START_STRING "\n-------------------------------\n---       DEBUG START       ---\n-------------------------------"
+#define DEBUG_END_STRING "\n-------------------------------\n---        DEBUG END        ---\n-------------------------------"
+	
 	///Colour--------------------------------------------------
 	static const NVGcolor BARK_GREEN = nvgRGBA(73, 191, 0, 255);
 	static const NVGcolor BARK_YELLOW1 = nvgRGBA(255, 212, 42, 255);
@@ -127,7 +137,18 @@ namespace barkComponents {
 			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkBTNSoloUp.svg")));
 		}
 	};
-	
+
+	struct BarkChBtnMute : app::SvgSwitch {
+		BarkChBtnMute() {
+			shadow->opacity = 0.f;
+			//momentary = true;
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkChMute_2.svg")));
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkChMute_1.svg")));
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkChMute_0.svg")));
+
+		}
+	};
+
 	struct BarkPushButton1 : app::SvgSwitch {
 		BarkPushButton1() {
 			momentary = true;
@@ -138,7 +159,6 @@ namespace barkComponents {
 
 	struct BarkPushButton2 : app::SvgSwitch {
 		BarkPushButton2() {
-			momentary = false;
 			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonRound1_0.svg")));
 			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonRound1_1.svg")));
 		}
@@ -146,9 +166,41 @@ namespace barkComponents {
 
 	struct BarkPushButton3 : app::SvgSwitch {
 		BarkPushButton3() {
-			momentary = false;
 			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonRound1_3.svg")));
 			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonRound1_4.svg")));
+		}
+	};
+
+	struct BarkPushButton4 : app::SvgSwitch {
+		BarkPushButton4() {
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonRound1_0.svg")));
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonRound1_3.svg")));
+		}
+	};
+
+	struct BarkPushButtonSH : app::SvgSwitch {
+		BarkPushButtonSH() {
+			shadow->opacity = 0.f;
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonRound1_0sh.svg")));
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonRound1_3sh.svg")));
+		}
+	};
+
+	struct BarkPushButtonInc : app::SvgSwitch {
+		BarkPushButtonInc() {
+			shadow->opacity = 0.f;
+			momentary = true;
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonIncDec_0.svg")));
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonIncDec_1.svg")));
+		}
+	};
+
+	struct BarkPushButtonDec : app::SvgSwitch {
+		BarkPushButtonDec() {
+			shadow->opacity = 0.f;
+			momentary = true;
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonIncDec_0.svg")));
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkButtonIncDec_2.svg")));
 		}
 	};
 
@@ -163,6 +215,7 @@ namespace barkComponents {
 	////Slider----
 	struct BarkSlide1 : app::SvgSlider {
 		BarkSlide1() {
+			///TODO: toggle for snap / fade or momentary button to snap to nearest
 			math::Vec position = math::Vec(0.f, 0.f);
 			maxHandlePos = math::Vec(95.f, 0.f).plus(position);
 			minHandlePos = math::Vec(-5.f, 0.f).plus(position);
@@ -260,6 +313,17 @@ namespace barkComponents {
 		}
 	};
 
+	struct BarkKnob_26i : app::SvgKnob {
+		BarkKnob_26i() {
+			minAngle = -1 * M_PI;
+			maxAngle = 1 * M_PI;
+			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkKnob_26.svg")));
+			sw->wrap();
+			box.size = sw->box.size;
+			speed = 0.65f;
+		}
+	};
+
 	struct BarkKnob_30 : app::SvgKnob {
 		BarkKnob_30() {
 			minAngle = -0.835 * M_PI;
@@ -274,6 +338,18 @@ namespace barkComponents {
 
 	struct BarkKnob_40 : app::SvgKnob {
 		BarkKnob_40() {
+			minAngle = -0.827 * M_PI;
+			maxAngle = 0.825 * M_PI;
+			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkKnob_40.svg")));
+			sw->wrap();
+			box.size = sw->box.size;
+			speed = 0.8f;
+			shadow->box.pos = Vec(0, sw->box.size.y * 0.07f);
+		}
+	};
+
+	struct BarkKnob_40s : app::SvgKnob {
+		BarkKnob_40s() {
 			minAngle = -0.827 * M_PI;
 			maxAngle = 0.825 * M_PI;
 			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkKnob_40.svg")));
@@ -301,6 +377,8 @@ namespace barkComponents {
 			snap = true;
 		}
 	};
+
+	
 
 	///Light----
 	struct greenRedLight : GrayModuleLightWidget {
@@ -404,7 +482,7 @@ namespace barkComponents {
 	};
 
 	template <typename BASE>
-	struct SmallerLightFA : BASE {
+	struct SmallerLightFA : BASE {//Invisible
 		SmallerLightFA() {
 			this->box.size = Vec(4, 4);//px
 			this->bgColor = nvgRGBA(56, 56, 56, 255);//panel
@@ -420,7 +498,7 @@ namespace barkComponents {
 			this->borderColor = nvgRGBA(56, 56, 56, 45);//panel
 		}
 	};
-	
+
 	template <typename BASE>
 	struct SmallestLightInverse : BASE {
 		SmallestLightInverse() {
@@ -431,10 +509,10 @@ namespace barkComponents {
 	};
 
 	//Common co-ordinates
-	///openGL / inkscape_v0.92.x co-ordinates negotiation
+	///openGL / inkscape co-ordinates negotiation
 	static constexpr int rackY = 380;
 	///VU Lights: OneBand, EOSum
 	static constexpr float lightY[8] = {232.548f, 233.548f, 246.099f, 257.650f, 269.201f, 280.752f, 292.303f, 303.854f};
-	
+	///
 }//namespace barkComponents
 
