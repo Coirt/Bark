@@ -137,6 +137,17 @@ namespace barkComponents {
 		}
 	};
 
+	struct BarkChBtnMute : app::SvgSwitch {
+		BarkChBtnMute() {
+			shadow->opacity = 0.f;
+			//momentary = true;
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkChMute_2.svg")));
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkChMute_1.svg")));
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkChMute_0.svg")));
+
+		}
+	};
+
 	struct BarkPushButton1 : app::SvgSwitch {
 		BarkPushButton1() {
 			momentary = true;
