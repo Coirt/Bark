@@ -35,14 +35,14 @@ struct Clamp : Module {
 		configParam(MAX_PARAM, -10.f, 10.f, 10.f, "Max", "v");
 		configParam<tpCeiling>(CEILING_PARAM, 0.f, 1.f, 0.f, "Celing");
 		configParam(MIN_PARAM, -10.f, 10.f, -10.f, "Min", "v");
-		configParam/*<tpOnOff>*/(LINKMINMAX_PARAM, 0.f, 1.f, 1.f, "Link");
+		configParam<tpOnOff>(LINKMINMAX_PARAM, 0.f, 1.f, 1.f, "Link");
 		configParam(_2BY_PARAM, -2.f, 2.f, 1.f, "Multiplier");
 		configParam(GAIN_PARAM, 0.f, 4.f, 1.f, "Input Gain", "dB", -10, 40);
 		for (int i = 0; i < 4; i++) {
 			configParam<tpOnOffBtn>(ATTENUVERT_BUTTONS + i, 0.f, 1.f, 0.f, "Snap to");
 		}
 		step.setDivision(32);
-	}//config
+	}
 	
 	void process(const ProcessArgs &args) override {
 		bool linkParams = params[LINKMINMAX_PARAM].getValue() < 1.f;
@@ -55,14 +55,14 @@ struct Clamp : Module {
 		volt2 = params[MIN_PARAM].getValue();
 
 		
-			//------- one knob controls other, 
-			if (linkParams && prevVal1 != prevMax) {
-				params[MIN_PARAM].setValue(-prevVal1);
-			} if (linkParams && prevVal2 != prevMin) {
-				params[MAX_PARAM].setValue(-prevVal2);
-				prevMax = prevVal1;
-				prevMin = prevVal2;
-			} 
+		//------- one knob controls other, 
+		if (linkParams && prevVal1 != prevMax) {
+			params[MIN_PARAM].setValue(-prevVal1);
+		} if (linkParams && prevVal2 != prevMin) {
+			params[MAX_PARAM].setValue(-prevVal2);
+			prevMax = prevVal1;
+			prevMin = prevVal2;
+		} 
 
 		//pad 0.1dB
 		if (params[CEILING_PARAM].getValue() > 0.f) {
@@ -153,7 +153,6 @@ struct ClampWidget : ModuleWidget {
 		setModule(module);
 		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/BarkClamp.svg")));
 
-		//constexpr int rackY = 380;
 		constexpr float portLX = 4.11f, portRX = 31.67f, inY = 187.78f, outY = 60.18f,
 				att1xPos[2] = { 4.77f, 44.48f }, att2xPos[2] = { 15.34f, 34.15f };
 		///Ports---
