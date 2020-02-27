@@ -11,6 +11,7 @@ namespace barkComponents {
 #define MAX_CH 16
 
 #define FONT APP->window->loadFont(asset::plugin(pluginInstance, "res/GelPen_3.ttf"))
+	
 #define DEBUG_START_STRING "\n-------------------------------\n---       DEBUG START       ---\n-------------------------------"
 #define DEBUG_END_STRING "\n-------------------------------\n---        DEBUG END        ---\n-------------------------------"
 	
