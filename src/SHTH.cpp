@@ -30,16 +30,19 @@ struct SHTH : Module {
 	};
 
 	dsp::SchmittTrigger sampleTrg[MAX_CH];
-	dsp::SchmittTrigger nextChTrig, prevChTrig, paramsChanged;
+	dsp::SchmittTrigger nextChTrig, prevChTrig, paramsChange;
+	//dsp::SchmittTrigger paramsChanged1, paramsChanged2, paramsChanged3;
 	dsp::ClockDivider setSafely;
 
 	bool init = true;
 	bool gateCon = false;
 	bool btnPressed = false;
+	bool normalMode = true;
 	int nCh = 1;
 	int index;
 	int prevIndex;
 	int* displayNumber;
+	int overrideCh = 1;
 
 	float sample1[MAX_CH] = { 0.f };
 
@@ -63,12 +66,10 @@ struct SHTH : Module {
 		configParam(RANGE_PARAM, (1 / 12.0)* 6.f, 10.f, 1.f, "V/Oct Range", "v");
 		configParam(OFFSET_PARAM, -5.f, 5.f, 0.f, "Offset", "v");
 
-		//set dispaly to address of index
+		//set display to address of index
 		displayNumber = &index;
 		onInit();
-		setSafely.setDivision(64);
-		//set dispaly to address of index
-		displayNumber = &index;
+		setSafely.setDivision(256);
 	}
 
 	void onInit() {
@@ -76,14 +77,16 @@ struct SHTH : Module {
 			sampleParam[i] = false;
 			invertParam[i] = false;
 			polarpatParam[i] = false;
-			sampleNoise[i] = false;
-			scaleParam[i] = (1 / 12.0)* 6.f;
+			sampleNoise[i] = true;
+			scaleParam[i] = 1.f;
 			offsetParam[i] = 0.f;
 		}
 		index = 0;
 		prevIndex = 0;
 		nCh = 1;
+		overrideCh = 1;
 		init = true;
+		normalMode = true;
 		//debugReset();
 	}
 
@@ -91,35 +94,12 @@ struct SHTH : Module {
 		onInit();
 	}
 
-	//initilize array data for current nCh
-	void debugReset() {
-		if (index == prevIndex && init == true) {
-			init = !init;
-			//nCh = 1;
-			for (int i = 0; i < MAX_CH; i++) {
-				DEBUG("\n\n\n---     INITILIZATION     ---\n--- %s ---\n---      nCh = %d      ---\nPrevious index = %d, Index = %d\n\nS&H[%d] = %s\nInv[%d] = %s\nUni[%d] = %s\nNoise[%d] = %s\nScale[%d] = %f\nOffset[%d] = %f\n",
-					gateCon ? "GATE CONNECTED" : "GATE NOT CONNECTED", nCh,
-					prevIndex, index,
-					i, BoolToString(sampleParam[i]),
-					i, BoolToString(invertParam[i]),
-					i, BoolToString(polarpatParam[i]),
-					i, BoolToString(sampleNoise[i]),
-					i, scaleParam[i],
-					i, offsetParam[i]);
-			}
-			
-		}
-	}
-
 	void process(const ProcessArgs &args) override {
 		bool storeValues = false;
 		bool nextChannel = false;
 		bool prevChannel = false;
 		if (setSafely.process()) {
-			storeValues = paramsChanged.process(inputs[GATE_INPUT].getPolyVoltage(index) > 0/* |
-												params[SAMPLE_PARAM].getValue() > 0 |
-												params[POLE_PARAM].getValue() > 0 |
-												params[INVERT_PARAM].getValue() > 0*/);
+			storeValues = paramsChange.process(inputs[GATE_INPUT].getPolyVoltage(index) > .5f);
 		}
 		nextChannel = nextChTrig.process(params[INCREMENT_PARAM].getValue());
 		prevChannel = prevChTrig.process(params[DECREMENT_PARAM].getValue());
@@ -130,36 +110,21 @@ struct SHTH : Module {
 			outCon = outputs[OUT_OUTPUT].isConnected(),
 			noiseOnly = (outCon && (!inCon && !gateCon)),
 			gateOnly = (outCon && (!inCon && gateCon));
-			/*
-			setValues = params[SAMPLE_PARAM].getValue() > 0,
-			incCh = params[INCREMENT_PARAM].getValue() > 0,
-			decCh = params[DECREMENT_PARAM].getValue() > 0;
-			*/
-		
 
-		
 		//get number of channels
 		//noiseOnly ? nCh = 1 : nCh = inputs[GATE_INPUT].getChannels();
-		nCh = inputs[GATE_INPUT].isMonophonic() ? 1 : inputs[GATE_INPUT].getChannels();
+		/*
+		if (normalMode) {
+			nCh = inputs[GATE_INPUT].isMonophonic() ? 1 : inputs[GATE_INPUT].getChannels();
+		}
+		else {
+			nCh = overrideCh;
+		}*/
+		nCh = normalMode ? inputs[GATE_INPUT].isMonophonic() ? 1 : inputs[GATE_INPUT].getChannels() : overrideCh;
 		outputs[OUT_OUTPUT].setChannels(nCh);
 
 		//set noise nCh
 		float noise1[nCh];
-
-		/*
-		if (index > nCh - 1) {
-			index = index % index;
-			params[SMP_OR_TRK_PARAM].setValue(sampleParam[index]);
-
-			params[INVERT_PARAM].setValue(invertParam[index]);
-			params[POLE_PARAM].setValue(polarpatParam[index]);
-
-			params[SAMPLE_PARAM].setValue(sampleNoise[index]);
-
-			params[RANGE_PARAM].setValue(scaleParam[index]);
-			params[OFFSET_PARAM].setValue(offsetParam[index]);
-		}
-		*/
 
 		//S&H or T&H
 		for (int i = 0; i < nCh; i++) {
@@ -172,29 +137,26 @@ struct SHTH : Module {
 			bool ext[nCh];
 			ext[i] = sampleNoise[i];
 			float pole[nCh];
-			/**
-			where an in-coming signal is bipolar enabling 
-			uniParam will invert the signal and make it 
-			uni-polar where it is unipolar enabling uniParam 
-			will invert the signal making it bi-polar
-			NOTE: internal invert can still be used but 
-				  will have the inverse effect 
-				  i.e. on = !on, off = !off
-			*/
 			pole[i] = uniPolar[i] ? !ext[i] ? (scaleParam[i] / 2) - (scaleParam[i] * 5.5f) : (scaleParam[i] / 2) - scaleParam[i] : 0;
 
 			bool outputNoise[nCh];
 			outputNoise[i] = inputs[GATE_INPUT].getVoltage(i) == 0.f;
 
+			bool SrT1;
 			//process gate
-			bool SrT1 = sampleTrg[i].process(inputs[GATE_INPUT].getPolyVoltage(i));
+			if (normalMode) {
+				SrT1 = sampleTrg[i].process(inputs[GATE_INPUT].getPolyVoltage(i));
+			} 
+			else {
+				SrT1 = sampleTrg[i].process(inputs[GATE_INPUT].getVoltage());
+				//SrT1 = sampleTrg[i].process(inputs[GATE_INPUT].getPolyVoltage(overrideCh));
+			}
+
 			noise1[i] = random::uniform() * scaleParam[i] + pole[i];
 			//if S&H else T&H
 			if (isTH[i] ? sampleTrg[i].isHigh() : SrT1) {
 				//sample internal else external
 				sampleNoise[i] ? sample1[i] = noise1[i] :
-								//an incoming signal is assumed to be 10vpp divide the input by 10
-								//sample1[i] = (inputs[IN_INPUT].getVoltage(i) + 0.f) / scaleParam[i] + pole[i];	
 								sample1[i] = (inputs[IN_INPUT].getVoltage(i) * scaleParam[i] + pole[i]) / 10;	
 				
 			}
@@ -205,9 +167,9 @@ struct SHTH : Module {
 																		sample1[i] + offsetParam[i], i);
 		}
 
-		if (storeValues/* || nextChannel || prevChannel*/) {		//update param changes on gate or 
+		
+		if (storeValues) {
 			init = false;
-
 			sampleParam[index] = params[SMP_OR_TRK_PARAM].getValue();
 
 			invertParam[index] = params[INVERT_PARAM].getValue();
@@ -218,29 +180,12 @@ struct SHTH : Module {
 			scaleParam[index] = params[RANGE_PARAM].getValue();
 			offsetParam[index] = params[OFFSET_PARAM].getValue();
 		}
-
-		/*
-		if (btnPressed == true) {
-			init = false;
-
-			sampleParam[index] = params[SMP_OR_TRK_PARAM].getValue();
-
-			invertParam[index] = params[INVERT_PARAM].getValue();
-			polarpatParam[index] = params[POLE_PARAM].getValue();
-
-			sampleNoise[index] = params[SAMPLE_PARAM].getValue();
-
-			scaleParam[index] = params[RANGE_PARAM].getValue();
-			offsetParam[index] = params[OFFSET_PARAM].getValue();
-
-			btnPressed = !btnPressed;
-		}
-		*/
+		
 
 		if (nextChannel) {
 			init = false;
 			btnPressed = true;
-			
+
 			if (btnPressed == true) {
 				init = false;
 
@@ -278,7 +223,6 @@ struct SHTH : Module {
 		}
 
 		if (prevChannel && gateCon) {
-
 			init = false;
 			btnPressed = true;
 			
@@ -333,7 +277,7 @@ struct SHTH : Module {
 		json_t *scaleParametersJ = json_array();
 		json_t *offsetParametersJ = json_array();
 
-		for (int i = 0; i < MAX_CH; i++) {//MAX_CH, when nCh changes no data initilized
+		for (int i = 0; i < MAX_CH; i++) {
 			json_array_insert_new(sampleParametersJ, i, json_integer(sampleParam[i]));
 			json_array_insert_new(invertParametersJ, i, json_integer((int)invertParam[i]));
 			json_array_insert_new(polarityParametersJ, i, json_integer((int)polarpatParam[i]));
@@ -344,6 +288,8 @@ struct SHTH : Module {
 		
 		json_object_set_new(rootJ, "Current Index", json_integer(index));
 		json_object_set_new(rootJ, "Number of Channels", json_integer(nCh));
+		json_object_set_new(rootJ, "Mode", json_integer((int)normalMode));
+		json_object_set_new(rootJ, "Number of Channels Override", json_integer(overrideCh));
 		json_object_set_new(rootJ, "S&H (int)bool", sampleParametersJ);
 		json_object_set_new(rootJ, "Inverted (int)bool", invertParametersJ);
 		json_object_set_new(rootJ, "Uni-Polar (int)bool", polarityParametersJ);
@@ -363,6 +309,14 @@ struct SHTH : Module {
 		json_t *nChJ = json_object_get(rootJ, "Number of Channels");
 		if (nChJ) {
 			nCh = json_integer_value(nChJ);
+		}
+		json_t *modeJ = json_object_get(rootJ, "Mode");
+		if (modeJ) {
+			normalMode = json_integer_value(modeJ);
+		}
+		json_t *overrideChJ = json_object_get(rootJ, "Number of Channels Override");
+		if (overrideChJ) {
+			overrideCh = json_integer_value(overrideChJ);
 		}
 		json_t *sampleParametersJ = json_object_get(rootJ, "S&H (int)bool");
 		if (sampleParametersJ) {
@@ -427,6 +381,47 @@ struct SHTH : Module {
 	}
 };
 
+struct SHTHnChItem : MenuItem {
+	SHTH* module;
+	int channels;
+	void onAction(const event::Action& e) override {
+		module->overrideCh = channels;
+	}
+};
+
+struct SHTHChannelsItem : MenuItem {
+	SHTH* module;
+	Menu* createChildMenu() override {
+		Menu* nChans = new Menu;
+		for (int ch = 1; ch <= MAX_CH; ch++) {
+			if (module->normalMode) break;
+			SHTHnChItem* nChan = new SHTHnChItem;
+			if (ch == 1)
+				nChan->text = "Monophonic";
+			else
+				nChan->text = string::f("%d", ch);
+			nChan->rightText = CHECKMARK(module->overrideCh == ch);
+			nChan->module = module;
+			nChan->channels = ch;
+			nChans->addChild(nChan);
+		}
+		return nChans;
+	}
+};
+
+struct SHTHGateModeItem : MenuItem {
+	SHTH* module;
+	
+	void onAction(const event::Action &e) override {
+		if (module->normalMode) {
+			module->normalMode = false;
+		} else {
+			module->normalMode = true;
+		}
+		
+	}
+};
+
 struct ChannelNumberWidget : TransparentWidget {
 	SHTH *module;
 	int* chNum;
@@ -439,9 +434,9 @@ struct ChannelNumberWidget : TransparentWidget {
 
 	void draw(const DrawArgs &labelDisp) override {
 
-		NVGcolor textColor = nvgRGB(0xFF, 0xFF, 0xFF);		//White
+		NVGcolor textColor = nvgRGB(0xFF, 0xFF, 0xFF);
 
-		Vec textPos = Vec(22.5f, 281.089f);	//16 = 281.253f
+		Vec textPos = Vec(22.5f, 281.089f);
 
 		nvgTextAlign(labelDisp.vg, 1 << 1);
 		nvgFontSize(labelDisp.vg, 9);
@@ -450,7 +445,7 @@ struct ChannelNumberWidget : TransparentWidget {
 		char display_string_channel[5];
 		snprintf(display_string_channel, sizeof(display_string_channel), "%1.d", (*chNum) + 1);
 		nvgText(labelDisp.vg, textPos.x, textPos.y + 5.856f, display_string_channel, NULL);
-		nvgFillColor(labelDisp.vg, textColor);
+		nvgFillColor(labelDisp.vg, textColor);		
 
 	}
 };
@@ -490,6 +485,33 @@ struct SHTHWidget : ModuleWidget {
 			addChild(label);
 		}
 	}
+
+	void appendContextMenu(Menu* menu) override {
+		SHTH* module = dynamic_cast<SHTH*>(this->module);
+		assert(module);
+
+		int numCh = module->normalMode ? module->nCh : module->overrideCh;
+
+		//blank space
+		//menu->addChild(new MenuEntry);	
+		menu->addChild(new MenuSeparator());
+
+		SHTHGateModeItem *modeItem = new SHTHGateModeItem;
+		modeItem->text = "Mode: ";
+		modeItem->rightText = module->normalMode ? "Normal✔  Override" : "Normal   Override✔";
+		modeItem->module = module;
+		menu->addChild(modeItem);
+
+		SHTHChannelsItem* overrideChan = new SHTHChannelsItem;
+		overrideChan->text = "Number of Channels:       " + string::f("%d", numCh);
+		overrideChan->rightText = RIGHT_ARROW;
+		overrideChan->module = module;
+		//when normalMode == true disable menu
+		overrideChan->disabled = module->normalMode;
+		menu->addChild(overrideChan);
+		
+	}
+	
 };
 
 Model *modelSHTH = createModel<SHTH, SHTHWidget>("SHTH");
