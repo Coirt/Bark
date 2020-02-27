@@ -162,9 +162,9 @@ struct SHTH : Module {
 			}
 			//set outputs sampleInternal else sampleExternal
 			noiseOnly ? outputs[OUT_OUTPUT].setVoltage(inverted[i] ? -noise1[i] + offsetParam[i] :
-																	   noise1[i] + offsetParam[i], i) :
+														noise1[i] + offsetParam[i], i) :
 							outputs[OUT_OUTPUT].setVoltage(inverted[i] ? -sample1[i] + offsetParam[i] :
-																		sample1[i] + offsetParam[i], i);
+															sample1[i] + offsetParam[i], i);
 		}
 
 		
@@ -222,7 +222,7 @@ struct SHTH : Module {
 			btnPressed = !btnPressed;
 		}
 
-		if (prevChannel && gateCon) {
+		if (prevChannel) {
 			init = false;
 			btnPressed = true;
 			
@@ -245,7 +245,7 @@ struct SHTH : Module {
 			if (index > 0 && index < nCh) {
 				prevIndex = index;
 				index--;
-			} else if (index <= 0) {//index out of bounds of...
+			} else if (index <= 0) {
 				prevIndex = 0;
 				index = nCh - 1;
 			}
@@ -262,10 +262,7 @@ struct SHTH : Module {
 
 			btnPressed = !btnPressed;
 		}
-
-
 	}//process
-
 
 	json_t* dataToJson() override {
 
@@ -476,8 +473,8 @@ struct SHTHWidget : ModuleWidget {
 		addParam(createParam<BarkSwitchSmall>(Vec(5.264f, switchY), module, SHTH::INVERT_PARAM));
 		addParam(createParam<BarkSwitchSmall>(Vec(24.827f, switchY), module, SHTH::POLE_PARAM));
 		//screw---
-		addChild(createWidget<BarkScrew1>(Vec(2.7f, 2.7f)));				//pos1
-		addChild(createWidget<BarkScrew2>(Vec(box.size.x - 12.3f, 367.7f)));		//pos4
+		addChild(createWidget<BarkScrew1>(Vec(2.7f, 2.7f)));					//pos1
+		addChild(createWidget<BarkScrew2>(Vec(box.size.x - 12.3f, 367.7f)));	//pos4
 
 		if (module != NULL) {
 			ChannelNumberWidget *label = new ChannelNumberWidget;
