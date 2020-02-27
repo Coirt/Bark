@@ -146,17 +146,7 @@ struct OneBand : Module {
 		//set Biquad Values
 		if (step.process()) {
 			parametricEQL->setBiquad(bq_type_peak, biquadFreq / sampRate, biquadQ, biquadGain);
-			//parametricEQL->setType(bq_type_peak);
-			//parametricEQL->setFc(biquadFreq / sampRate);
-			//parametricEQL->setQ(biquadQ);
-			//parametricEQL->setPeakGain(biquadGain);
-			//parametricEQL->calcBiquad();
 			parametricEQR->setBiquad(bq_type_peak, biquadFreq / sampRate, biquadQ, biquadGain);
-			//parametricEQR->setType(bq_type_peak);
-			//parametricEQR->setFc(biquadFreq / sampRate);
-			//parametricEQR->setQ(biquadQ);
-			//parametricEQR->setPeakGain(biquadGain);
-			//parametricEQR->calcBiquad();
 		}
 		
 		//Listen to EQ
@@ -219,7 +209,7 @@ struct OneBandWidget : ModuleWidget {
 		addParam(createParam<BarkSwitchSmallSide>(Vec(21.89f, rackY - 161.23f), module, OneBand::SWAPLR_PARAM));
 		addParam(createParam<BarkSwitchSmall>(Vec(40.4f, rackY - 212.39f), module, OneBand::LISTEN_PARAM));
 		//TODO: Screw Positions
-		addChild(createWidget<BarkScrew1>(Vec(box.size.x - 12.3f, 2.7f)));			//pos2
+		addChild(createWidget<BarkScrew1>(Vec(box.size.x - 12.3f, 2.7f)));		//pos2
 		addChild(createWidget<BarkScrew2>(Vec(2.7f, 367.7f)));					//pos3
 		//Light---
 		addChild(createLight<SmallerLightFA<ParamInLight>>(Vec(floatyMcFloatFace, rackY - 280.05f), module, OneBand::FreqParamOn));
