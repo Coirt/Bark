@@ -13,8 +13,11 @@ extra function of mixing the diffent waveforms when the offsets are left full, b
 
 note: Two versions of the same module. A BPM value on the display and a Hz value on the display both are identical bar the display.
 
-# Quad Logic v1.1.0
-Because 1 just is not enough.
+# SHTH v1.2.4
+Polyphonic Sample and Hold and or Track and Hold. Control each connected channels params seperatly by increasing / decreasing channel 
+number. Gate signal dictates the number of channels or there is a context menu item to override this, with override enabled the first 
+gate channel sets the sample capture to each user set channel. Built in scale and offset for each channel, indevidual invert, polar 
+pattern, sampling mode (S&H / T&H) and or the ability to sample internal or external sources per channel polyphonically.
 
 # 1Band v1.2.4
 Dual Mono Parametric EQ with built in VU peak meter to see if the signal is clipping. Pre/Post gain to VU meters (pre EQ / Post EQ). 
@@ -45,15 +48,9 @@ Sums polyphonic channels and distributes odd / even channel numbers.
 Low Mid High, simple Attenuating EQ, Invert button to get rid or add some Muddiness. Use on a parallel channel on Poly Mix (connect to 
 AUX) can sound good for kick drums.
 
-# SHTH v1.2.4
-Polyphonic Sample and Hold and or Track and Hold. Control each connected channels params seperatly by increasing / decreasing channel 
-number. Gate signal dictates the number of channels or there is a context menu item to override this, with override enabled the first 
-gate channel sets the sample capture to each user set channel. Built in scale and offset for each channel, indevidual invert, polar 
-pattern, sampling mode (S&H / T&H) and or the ability to sample internal or external sources per channel polyphonically.
+# Quad Logic v1.1.0
+Because 1 just is not enough.
 
-
-# Seq32
-TBD
 
 ---------
 Panel 7
