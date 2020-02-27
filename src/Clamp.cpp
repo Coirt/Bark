@@ -178,7 +178,7 @@ struct ClampWidget : ModuleWidget {
 		//screw---
 		//screw---
 		addChild(createWidget<BarkScrew2>(Vec(box.size.x - 12.3f, 2.7f)));			//pos2
-		addChild(createWidget<BarkScrew3>(Vec(2.7, 367.2f)));						//pos3
+		addChild(createWidget<BarkScrew3>(Vec(2.7, 367.7f)));						//pos3
 		//Display---
 		if (module != NULL) {
 			voltDisplayWidget *maxVolt = createWidget<voltDisplayWidget>(Vec(4.61f, rackY - 355.65f));
