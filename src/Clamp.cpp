@@ -26,37 +26,43 @@ struct Clamp : Module {
 	};
 	enum LightIds {	NUM_LIGHTS };
 
-	float volt1, volt2, prevMax = 0.f, prevMin = 0.f;
+	dsp::ClockDivider step;
 
+	float volt1, volt2, prevMax = 0.f, prevMin = 0.f;
+	
 	Clamp() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
 		configParam(MAX_PARAM, -10.f, 10.f, 10.f, "Max", "v");
 		configParam<tpCeiling>(CEILING_PARAM, 0.f, 1.f, 0.f, "Celing");
 		configParam(MIN_PARAM, -10.f, 10.f, -10.f, "Min", "v");
-		configParam<tpOnOff>(LINKMINMAX_PARAM, 0.f, 1.f, 1.f, "Link");
+		configParam/*<tpOnOff>*/(LINKMINMAX_PARAM, 0.f, 1.f, 1.f, "Link");
 		configParam(_2BY_PARAM, -2.f, 2.f, 1.f, "Multiplier");
 		configParam(GAIN_PARAM, 0.f, 4.f, 1.f, "Input Gain", "dB", -10, 40);
 		for (int i = 0; i < 4; i++) {
 			configParam<tpOnOffBtn>(ATTENUVERT_BUTTONS + i, 0.f, 1.f, 0.f, "Snap to");
 		}
+		step.setDivision(32);
 	}//config
 	
 	void process(const ProcessArgs &args) override {
-		float prevVal1 = 0.f, prevVal2 = 0.f;
+		bool linkParams = params[LINKMINMAX_PARAM].getValue() < 1.f;
+		
+		float prevVal1, prevVal2;
 		prevVal1 = params[MAX_PARAM].getValue();
 		prevVal2 = params[MIN_PARAM].getValue();
 		//display
 		volt1 = params[MAX_PARAM].getValue();
 		volt2 = params[MIN_PARAM].getValue();
 
-		//------- one knob controls other, 
-		if (params[LINKMINMAX_PARAM].getValue() < 1.f && prevVal1 != prevMax) {
-			params[MIN_PARAM].setValue(-prevVal1);
-		} if (params[LINKMINMAX_PARAM].getValue() < 1.f && prevVal2 != prevMin) {
-			params[MAX_PARAM].setValue(-prevVal2);
-			prevMax = prevVal1;
-			prevMin = prevVal2;
-		}
+		
+			//------- one knob controls other, 
+			if (linkParams && prevVal1 != prevMax) {
+				params[MIN_PARAM].setValue(-prevVal1);
+			} if (linkParams && prevVal2 != prevMin) {
+				params[MAX_PARAM].setValue(-prevVal2);
+				prevMax = prevVal1;
+				prevMin = prevVal2;
+			} 
 
 		//pad 0.1dB
 		if (params[CEILING_PARAM].getValue() > 0.f) {
@@ -88,9 +94,9 @@ struct Clamp : Module {
 		///output---
 		//if not connected sets outputs to offsets
 		inputs[INL_INPUT].isConnected() == true ? 
-			outputs[OUTL_OUTPUT].setVoltage(inL) : outputs[OUTL_OUTPUT].setVoltage(params[MAX_PARAM].getValue());
+			outputs[OUTL_OUTPUT].setVoltage(inL) : outputs[OUTL_OUTPUT].setVoltage(volt1);
 		inputs[INL_INPUT].isConnected() == true ? 
-			outputs[OUTR_OUTPUT].setVoltage(inR) : outputs[OUTR_OUTPUT].setVoltage(params[MIN_PARAM].getValue());
+			outputs[OUTR_OUTPUT].setVoltage(inR) : outputs[OUTR_OUTPUT].setVoltage(volt2);
 				
 	}//process
 };
@@ -102,7 +108,7 @@ struct voltDisplayWidget : TransparentWidget {
 	std::shared_ptr<Font> font;
 
 	voltDisplayWidget() {
-		font = APP->window->loadFont(asset::plugin(pluginInstance, "res/segoescb.ttf"));
+		font = FONT;
 	}
 
 	void draw(const DrawArgs &voltDisp) override {
@@ -119,12 +125,12 @@ struct voltDisplayWidget : TransparentWidget {
 		nvgStrokeColor(voltDisp.vg, borderColor);
 		nvgStroke(voltDisp.vg);
 		nvgTextAlign(voltDisp.vg, 1 << 1);
-		nvgFontSize(voltDisp.vg, 18);
+		nvgFontSize(voltDisp.vg, FONT_SIZE);
 		nvgFontFaceId(voltDisp.vg, font->handle);
-		nvgTextLetterSpacing(voltDisp.vg, 0.75);
-		char display_string[10];
-		sprintf(display_string, "%5.2f", *value);
-		Vec textPos = Vec(25.0f, 10.55f);		//		box.size = Vec(50.728f, 13.152f);
+		nvgTextLetterSpacing(voltDisp.vg, LETTER_SPACING);
+		char display_string[7];
+		sprintf(display_string, "%0.4f", *value);
+		Vec textPos = Vec(25.364f, TEXT_POS_Y);		//		box.size = Vec(50.728f, 13.152f);
 		nvgFillColor(voltDisp.vg, nvgTransRGBA(nvgRGB(0xdf, 0xd2, 0x2c), 16));
 		nvgText(voltDisp.vg, textPos.x, textPos.y, "$$$$", NULL);
 		nvgFillColor(voltDisp.vg, nvgTransRGBA(nvgRGB(0xda, 0xe9, 0x29), 11));
@@ -158,8 +164,8 @@ struct ClampWidget : ModuleWidget {
 		addInput(createInput<BarkInPort350>(Vec(portLX, rackY - inY), module, Clamp::INL_INPUT));
 		addInput(createInput<BarkInPort350>(Vec(portRX, rackY - inY), module, Clamp::INR_INPUT));
 		//Knobs---
-		addParam(createParam<BarkKnob_40>(Vec(14.677f, rackY - 333.8f), module, Clamp::MAX_PARAM));
-		addParam(createParam<BarkKnob_40>(Vec(14.677f, rackY - 259.8f), module, Clamp::MIN_PARAM));
+		addParam(createParam<BarkKnob_40s>(Vec(14.677f, rackY - 333.8f), module, Clamp::MAX_PARAM));
+		addParam(createParam<BarkKnob_40s>(Vec(14.677f, rackY - 259.8f), module, Clamp::MIN_PARAM));
 		addParam(createParam<BarkKnob_20>(Vec(20.f, rackY - 155.16f), module, Clamp::_2BY_PARAM));
 		addParam(createParam<BarkKnob_40>(Vec(10.f, rackY - 119.14f), module, Clamp::GAIN_PARAM));
 		//Switch---
@@ -171,7 +177,8 @@ struct ClampWidget : ModuleWidget {
 		addParam(createParam<BarkPushButton1>(Vec(att2xPos[0], rackY - 132.07f), module, Clamp::ATTENUVERT_BUTTONS + 2));
 		addParam(createParam<BarkPushButton1>(Vec(att2xPos[1], rackY - 132.07f), module, Clamp::ATTENUVERT_BUTTONS + 3));
 		//screw---
-		addChild(createWidget<BarkScrew2>(Vec(box.size.x - 12.3f, 2.7f)));				//pos2
+		//screw---
+		addChild(createWidget<BarkScrew2>(Vec(box.size.x - 12.3f, 2.7f)));			//pos2
 		addChild(createWidget<BarkScrew3>(Vec(2.7, 367.2f)));						//pos3
 		//Display---
 		if (module != NULL) {
