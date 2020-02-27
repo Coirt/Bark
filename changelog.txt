@@ -1,3 +1,11 @@
+---v1.2.4---
+Added 2 new modules, SHTH: A fully polyphonic sample and hold / track and hold. MUD: Low Mid High simple attenuating EQ
+Optimised: Poly Mix, 1Band, Trim LFO.
+PolyX: Added a quick mute all button and changed default channels to 4.
+Trim LFO: Lights now follow selected top wave output (i.e. sin, tri, sqr, saw) and correctly turn green/red to corresponding polar 
+pattern
+-----------------------------
+
 ---v1.2.0---
 Added new module EO Sum: Sums poly channels and distrbutes odd / even ch# to individual outputs.
 Trim LFO: Fixed an issue with the triangle wave not set to correct value on snap.
