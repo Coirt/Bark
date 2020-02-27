@@ -173,6 +173,6 @@ struct tpPlusMinus : ParamQuantity {
 /*-------------------------------------------------------------------------------------------*/
 
 ///DEBUG()---------------------------
-inline const char * const BoolToString(bool b) {
-	return b ? "True" : "False";
-}
+//inline const char * const BoolToString(bool b) {
+//	return b ? "True" : "False";
+//}
