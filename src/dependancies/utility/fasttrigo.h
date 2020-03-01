@@ -42,7 +42,7 @@
 #ifdef QT_GUI_LIB
 #include <QtGui>
 #endif
-#include <intrin.h>
+//#include <intrin.h>
 #include <xmmintrin.h>
 #include <pmmintrin.h>
 
