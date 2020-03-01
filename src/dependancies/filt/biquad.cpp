@@ -20,7 +20,7 @@
 #include "biquad.h"
 #include "../utility/fasttrigo.h"
 
-using namespace FTA;
+using namespace std;
 
 Biquad::Biquad() {
     type = bq_type_lowpass;
