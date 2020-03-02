@@ -142,7 +142,7 @@ struct PolyMix : Module {
 			for (int i = 0; i < nChLevel; i++) {
 				//assign channels to arrays
 				polyChLevel[i] = inputs[POLYLEVEL_INPUT].getVoltage(i);	// recall
-				float cvLevel = simd::clamp(inputs[POLYLEVEL_INPUT].getPolyVoltage(i), 0.f, 1.f);
+				float cvLevel = simd::clamp(inputs[POLYLEVEL_INPUT].getPolyVoltage(i) / 10.f, 0.f, 1.f);
 				polyChAudioL[i] = polyChAudioR[i] *= cvLevel;
 			}
 		}
