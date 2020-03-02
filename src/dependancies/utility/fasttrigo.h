@@ -38,7 +38,7 @@
 #ifndef FASTTRIGO_H
 #define FASTTRIGO_H
 
-#include <math.h>
+#include <cmath>
 #ifdef QT_GUI_LIB
 #include <QtGui>
 #endif
