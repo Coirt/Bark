@@ -128,12 +128,19 @@ struct SHTH : Module {
 
 		//S&H or T&H
 		for (int i = 0; i < nCh; i++) {
-			bool isTH[nCh] = { false };
+			//bool isTH[nCh] = { false };
+			bool isTH[nCh];
+			std::fill(isTH, isTH + nCh, false);
 			isTH[i] = sampleParam[i];
-			bool inverted[nCh] = { false };
+			//bool inverted[nCh] = { false };
+			bool inverted[nCh];
+			std::fill(inverted, inverted + nCh, false);
 			inverted[i] = invertParam[i];
-			bool uniPolar[nCh] = { false };
+			//bool uniPolar[nCh] = { false };
+			bool uniPolar[nCh];
+			std::fill(uniPolar, uniPolar + nCh, false);
 			uniPolar[i] = polarpatParam[i];
+			
 			bool ext[nCh];
 			ext[i] = sampleNoise[i];
 			float pole[nCh];
