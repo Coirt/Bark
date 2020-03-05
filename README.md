@@ -16,7 +16,7 @@ note: Two versions of the same module. A BPM value on the display and a Hz value
 # SHTH v1.2.4
 Polyphonic Sample and Hold and or Track and Hold. Control each connected channels params seperatly by increasing / decreasing channel 
 number. Gate signal dictates the number of channels or there is a context menu item to override this, with override enabled the first 
-gate channel sets the sample capture to each user set channel. Built in scale and offset for each channel, indevidual invert, polar 
+gate channel sets the sample capture to each user set channel. Built in scale and offset for each channel, individual invert, polar 
 pattern, sampling mode (S&H / T&H) and or the ability to sample internal or external sources per channel polyphonically.
 
 # 1Band v1.2.4
