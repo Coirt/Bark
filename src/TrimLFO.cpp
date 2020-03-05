@@ -233,7 +233,7 @@ struct FreqDisplayWidget : TransparentWidget {
 		Vec textPos = Vec(85.798f / 2.0f - 8.0f, TEXT_POS_Y);
 		//----- "Hz"
 		nvgFillColor(freqDisp.vg, nvgTransRGBA(textColor, 255));
-		char display_stringHz[10];
+		char display_stringHz[11];
 		snprintf(display_stringHz, sizeof(display_stringHz), "%0.7f", *freqHz);
 		nvgText(freqDisp.vg, textPos.x + spacer, textPos.y, "Hz", NULL);
 		nvgText(freqDisp.vg, textPos.x, textPos.y, display_stringHz, NULL);		
@@ -273,7 +273,7 @@ struct VoltsDisplayWidget : TransparentWidget {
 		nvgFontSize(voltDisp.vg, FONT_SIZE);
 		nvgFontFaceId(voltDisp.vg, font->handle);
 		nvgTextLetterSpacing(voltDisp.vg, LETTER_SPACING);
-		char display_string[9];
+		char display_string[8];
 		sprintf(display_string, "%0.4f", *value);
 		Vec textPos = Vec(25.364f, TEXT_POS_Y);
 		nvgFillColor(voltDisp.vg, nvgTransRGBA(nvgRGB(0xdf, 0xd2, 0x2c), 16));
@@ -314,7 +314,7 @@ struct TrimLFOWidget : ModuleWidget {
 		addInput(createInput<BarkInPort350>(Vec(119.89f, rackY - 164.05f), module, TrimLFO::RESET_INPUT));
 		//Knobs---
 		addParam(createParam<BarkKnob_60>(Vec(45.12f, rackY - 217.87f), module, TrimLFO::FREQ_PARAM));
-		addParam(createParam<BarkScrew01>(Vec(box.size.x - 12.3f, 367.7f), module, TrimLFO::FINE_PARAM));
+		addParam(createParam<BarkScrew01>(Vec(box.size.x - 13, 367.2f), module, TrimLFO::FINE_PARAM));
 		addParam(createParam<BarkKnob_40>(Vec(20.38f, rackY - 329.78f), module, TrimLFO::OFFSET1_PARAM));
 		addParam(createParam<BarkKnob_40>(Vec(89.6f, rackY - 329.78f), module, TrimLFO::OFFSET2_PARAM));
 		addParam(createParam<BarkKnob_30>(Vec(4.08f, rackY - 170.f), module, TrimLFO::PW_PARAM));
@@ -334,7 +334,7 @@ struct TrimLFOWidget : ModuleWidget {
 		addParam(createParam<BarkButton1>(Vec(10.55f, rackY - 191.09f), module, TrimLFO::SETbi_PARAM));
 		addParam(createParam<BarkButton1>(Vec(10.55f, rackY - 228.33f), module, TrimLFO::SETuni_PARAM));
 		//Screw---
-		addChild(createWidget<BarkScrew3>(Vec(2.7f, 2.7f)));		//pos1
+		addChild(createWidget<BarkScrew3>(Vec(2, 3)));		//pos1
 		//Light---
 		addChild(createLight<LessBigLight<greenRedLight>>(Vec(71.87f, rackY - 152.63f), module, TrimLFO::PHASE_POS_LIGHT));
 		//------------------------------
@@ -596,8 +596,8 @@ struct bpmFreqDisplayWidget : TransparentWidget {
 		Vec textPos = Vec(85.798f / 2.f - 8.f, TEXT_POS_Y);
 		//----- "BPM"
 		nvgFillColor(freqDisp.vg, nvgTransRGBA(textColor, 255));
-		char display_stringBPM[9];
-		snprintf(display_stringBPM, sizeof(display_stringBPM), "%0.5f", *freqHz * 60);
+		char display_stringBPM[11];
+		snprintf(display_stringBPM, sizeof(display_stringBPM), "%0.5f", (*freqHz) * 60);
 		nvgText(freqDisp.vg, textPos.x - 5, textPos.y, display_stringBPM, NULL);
 		nvgTextLetterSpacing(freqDisp.vg, LETTER_SPACING * .2f);
 		nvgText(freqDisp.vg, textPos.x + spacer - 8.5f, textPos.y, "BP", NULL);
@@ -640,7 +640,7 @@ struct bpmVoltsDisplayWidget : TransparentWidget {
 		nvgFontSize(voltDisp.vg, FONT_SIZE);
 		nvgFontFaceId(voltDisp.vg, font->handle);
 		nvgTextLetterSpacing(voltDisp.vg, LETTER_SPACING);
-		char display_string[7];
+		char display_string[8];
 		sprintf(display_string, "%0.4f", *value);
 		Vec textPos = Vec(25.364f, TEXT_POS_Y);		//		box.size = Vec(50.728f, 13.152f);
 		nvgFillColor(voltDisp.vg, nvgTransRGBA(nvgRGB(0xdf, 0xd2, 0x2c), 16));
@@ -681,8 +681,8 @@ struct bpmTrimLFOWidget : ModuleWidget {
 		addInput(createInput<BarkInPort350>(Vec(119.89f, rackY - 164.05f), module, bpmTrimLFO::RESET_INPUT));
 		//Knobs---
 		addParam(createParam<BarkKnob_60snap>(Vec(45.12f, rackY - 217.87f), module, bpmTrimLFO::FREQ_PARAM));
-		addParam(createParam<BarkScrew01>(Vec(box.size.x - 12.3f, 367.7f), module, bpmTrimLFO::FINE_PARAM));
-		addParam(createParam<BarkScrew02>(Vec(2.7f, 2.7f), module, bpmTrimLFO::BPM_PARAM));
+		addParam(createParam<BarkScrew01>(Vec(box.size.x - 13, 367.2f), module, bpmTrimLFO::FINE_PARAM));
+		addParam(createParam<BarkScrew02>(Vec(2, 3), module, bpmTrimLFO::BPM_PARAM));
 		addParam(createParam<BarkKnob_40>(Vec(20.38f, rackY - 329.78f), module, bpmTrimLFO::OFFSET1_PARAM));
 		addParam(createParam<BarkKnob_40>(Vec(89.6f, rackY - 329.78f), module, bpmTrimLFO::OFFSET2_PARAM));
 		addParam(createParam<BarkKnob_30>(Vec(4.08f, rackY - 170.f), module, bpmTrimLFO::PW_PARAM));
