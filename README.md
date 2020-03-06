@@ -1,4 +1,4 @@
-### V1.2.4
+### V1.2.5
 
 # Bark
 VCVrack Modules
@@ -28,7 +28,7 @@ Frquency and Q.
 Polyphonic Mono to Stereo Mixer with 2 Aux Bus mutes/solo for each channel, Sums channels to the output 4x4. Select which channels to
 use with the Ch. knob i.e. 1-4 is polyphonic channels 1-4. 
 
-# Clamp v1.2.4
+# Clamp v1.2.5
 Clamps an Audio or CV signal to the min/max positions on the knobs, signal will not go over the values set. Attenuverts the incoming
 signal clamp is applied to the output. The buttons on the attenuverted signal can quickly snap to a position. Gain is applied before the
 clamp, Note: hard clips the signal to the voltages set so it will start to distort the signal if the gain is set too high. 
