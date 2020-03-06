@@ -29,8 +29,6 @@ struct Clamp : Module {
 	dsp::ClockDivider step;
 
 	float volt1, volt2, prevMax = 0.f, prevMin = 0.f;
-	float* ptrVolt1;
-	float* ptrVolt2;
 	
 	Clamp() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
@@ -44,8 +42,6 @@ struct Clamp : Module {
 			configParam<tpOnOffBtn>(ATTENUVERT_BUTTONS + i, 0.f, 1.f, 0.f, "Snap to");
 		}
 		step.setDivision(32);
-		ptrVolt1 = &volt1;
-		ptrVolt2 = &volt2;
 	}//config
 	
 	void process(const ProcessArgs &args) override {
@@ -132,7 +128,7 @@ struct voltDisplayWidget : TransparentWidget {
 		nvgFontSize(voltDisp.vg, FONT_SIZE);
 		nvgFontFaceId(voltDisp.vg, font->handle);
 		nvgTextLetterSpacing(voltDisp.vg, LETTER_SPACING);
-		char display_string[9];		//-10.0000
+		char display_string[9];
 		sprintf(display_string, "%0.4f", *value);
 		Vec textPos = Vec(25.364f, TEXT_POS_Y);		//		box.size = Vec(50.728f, 13.152f);
 		nvgFillColor(voltDisp.vg, nvgTransRGBA(nvgRGB(0xdf, 0xd2, 0x2c), 16));
@@ -182,16 +178,16 @@ struct ClampWidget : ModuleWidget {
 		//screw---
 		//screw---
 		addChild(createWidget<BarkScrew2>(Vec(box.size.x - 12.3f, 2.7f)));			//pos2
-		addChild(createWidget<BarkScrew3>(Vec(2.7, 367.7f)));						//pos3
+		addChild(createWidget<BarkScrew3>(Vec(2.7, 367.7f)));					//pos3
 		//Display---
 		if (module != NULL) {
 			voltDisplayWidget *maxVolt = createWidget<voltDisplayWidget>(Vec(4.61f, rackY - 355.65f));
 			maxVolt->box.size = Vec(50.728f, 13.152f);
-			maxVolt->value = module->ptrVolt1;
+			maxVolt->value = &module->volt1;
 			addChild(maxVolt);
 			voltDisplayWidget *minVolt = createWidget<voltDisplayWidget>(Vec(4.61f, rackY - 210.51f));
 			minVolt->box.size = Vec(50.728f, 13.152f);
-			minVolt->value = module->ptrVolt2;
+			minVolt->value = &module->volt2;
 			addChild(minVolt);
 		}
 	}
