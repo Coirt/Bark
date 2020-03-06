@@ -1,5 +1,5 @@
 ---v1.2.5---
-bug fixes on Mac
+bug fixes on Mac.
 
 ---v1.2.4---
 Added 2 new modules, SHTH: A fully polyphonic sample and hold / track and hold. MUD: Low Mid High simple attenuating EQ
