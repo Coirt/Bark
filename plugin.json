@@ -1,7 +1,7 @@
 {
   "slug": "Bark",
-  "version": "1.2.5",
-  "license": "BSD-4-Clause",
+  "version": "1.2.5-ONLY",
+  "license": "BSD-4-Clause--NotForRackV2",
   "name": "Coirt / Bark",
   "brand": "Bark",
   "author": "Phil Golden",
