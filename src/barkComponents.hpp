@@ -4,17 +4,21 @@
 
 namespace barkComponents {
 
+
 #define FONT_SIZE 12.75f
 #define LETTER_SPACING 1
 #define TEXT_POS_Y 10.5f
 
 #define MAX_CH 16
 
-#define FONT APP->window->loadFont(asset::plugin(pluginInstance, "res/GelPen_3.ttf"))
-	
+// check min plugin window
+//#define FONT APP->window->loadFont(asset::plugin(pluginInstance, "res/GelPen_3.ttf"))
+#define FONT "res/GelPen_3.ttf"
+
+//DEBUG(); helpful strings
 #define DEBUG_START_STRING "\n-------------------------------\n---       DEBUG START       ---\n-------------------------------"
 #define DEBUG_END_STRING "\n-------------------------------\n---        DEBUG END        ---\n-------------------------------"
-	
+
 	///Colour--------------------------------------------------
 	static const NVGcolor BARK_GREEN = nvgRGBA(73, 191, 0, 255);
 	static const NVGcolor BARK_YELLOW1 = nvgRGBA(255, 212, 42, 255);
@@ -28,6 +32,31 @@ namespace barkComponents {
 	///Colour--------------------------------------------------
 
 	////Screw----
+
+	struct RandomRotateScrew : app::SvgScrew {
+		widget::TransformWidget* tw;
+		RandomRotateScrew() {
+			fb->removeChild(sw);
+
+			tw = new TransformWidget();
+			tw->addChild(sw);
+			fb->addChild(tw);
+			tw->identity();
+
+			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkScrew1.svg")));
+
+			tw->box.size = sw->box.size;
+			box.size = tw->box.size;
+
+			float a = random::uniform() * M_PI;
+
+			math::Vec c = sw->box.getCenter();
+			tw->translate(c);
+			tw->rotate(a);
+			tw->translate(c.neg());
+		}
+	};
+
 	struct BarkScrew1 : app::SvgScrew {
 		BarkScrew1() {
 			sw->setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkScrew1.svg")));
@@ -62,15 +91,15 @@ namespace barkComponents {
 
 	struct BarkScrew01 : app::SvgKnob {
 		BarkScrew01() {
-			minAngle = -6.99 * M_PI;
-			maxAngle = 6.99 * M_PI;
+			minAngle = -10.0f * M_PI;
+			maxAngle = 10.0f * M_PI;
 			//sw->
 			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkScrew01.svg")));
 			sw->wrap();
 			box.size = sw->box.size;
 			speed = 0.18f;
 		}
-		void randomize() override {}
+		//void randomize() override {}
 	};
 
 	struct BarkScrew02 : app::SvgKnob {
@@ -82,7 +111,7 @@ namespace barkComponents {
 			box.size = sw->box.size;
 			speed = 0.5f;
 		}
-		void randomize() override {}
+		//void randomize() override {}
 	};
 
 	////Switch----
@@ -252,6 +281,7 @@ namespace barkComponents {
 	struct BarkInPort350 : app::SvgPort {
 		BarkInPort350() {
 			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkInPort350.svg")));
+			//setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkInPort350_vectorAlpha.svg")));
 			//blurRadius = 1.2f;
 			//void draw(const DrawArgs &args) override; {
 			//}
@@ -296,6 +326,17 @@ namespace barkComponents {
 			minAngle = -0.835 * M_PI;
 			maxAngle = 0.831 * M_PI;
 			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkKnob_20.svg")));
+			sw->wrap();
+			box.size = sw->box.size;
+			speed = 0.65f;
+		}
+	};
+
+	struct BarkKnob_22 : app::SvgKnob {//22.375
+		BarkKnob_22() {
+			minAngle = -0.835 * M_PI;
+			maxAngle = 0.831 * M_PI;
+			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkKnob_22.svg")));
 			sw->wrap();
 			box.size = sw->box.size;
 			speed = 0.65f;
@@ -351,7 +392,7 @@ namespace barkComponents {
 	struct BarkKnob_40s : app::SvgKnob {
 		BarkKnob_40s() {
 			minAngle = -0.827 * M_PI;
-			maxAngle = 0.825 * M_PI;
+			maxAngle = 0.827 * M_PI;
 			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkKnob_40.svg")));
 			sw->wrap();
 			box.size = sw->box.size;
@@ -381,12 +422,44 @@ namespace barkComponents {
 	
 
 	///Light----
-	struct greenRedLight : GrayModuleLightWidget {
-		greenRedLight() {
-			addBaseColor(BARK_GREEN);
-			addBaseColor(BARK_RED);
+	template <typename TBase = app::ModuleLightWidget>
+	struct TSvgLight : TBase {
+		widget::FramebufferWidget* fb;
+		widget::SvgWidget* sw;
+
+		TSvgLight() {
+			fb = new widget::FramebufferWidget;
+			this->addChild(fb);
+
+			sw = new widget::SvgWidget;
+			fb->addChild(sw);
+		}
+
+		void setSvg(std::shared_ptr<Svg> svg) {
+			sw->setSvg(svg);
+			fb->box.size = sw->box.size;
+			//this->box.size = sw->box.size;
 		}
 	};
+	typedef TSvgLight<> SvgLight;
+
+	template <typename TBase = app::ModuleLightWidget>
+	struct TGrayModuleLightWidget : TBase {
+		TGrayModuleLightWidget() {
+			this->bgColor = nvgRGBA(0x33, 0x33, 0x33, 0xff);
+			this->borderColor = nvgRGBA(0, 0, 0, 53);
+		}
+	};
+	typedef TGrayModuleLightWidget<> GrayModuleLightWidget;
+
+	template <typename TBase = GrayModuleLightWidget>
+	struct TGreenRedLight : TBase {
+		TGreenRedLight() {
+			this->addBaseColor(BARK_RED);
+			this->addBaseColor(BARK_GREEN);
+		}
+	};
+	typedef TGreenRedLight<> greenRedLight;
 
 	struct greenLight : GrayModuleLightWidget {
 		greenLight() {
@@ -448,7 +521,7 @@ namespace barkComponents {
 			addBaseColor(BARK_FAKEPOLY);
 		}
 	};
-	
+
 	template <typename BASE>
 	struct BiggerLight : BASE {
 		BiggerLight() {
@@ -457,27 +530,42 @@ namespace barkComponents {
 		}
 	};
 
-	template <typename BASE>
-	struct BigLight : BASE {
+	template <typename TBase>
+	struct BigLight : TSvgLight<TBase> {
 		BigLight() {
 			this->box.size = Vec(8, 8);//px
-			this->bgColor = nvgRGBA(192, 192, 192, 32);//silver
+			this->bgColor = nvgRGBA(192, 192, 192, 32);//fill color silver
+			this->setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkLightGraphics_0080.svg")));
+
 		}
 	};
 
-	template <typename BASE>
-	struct LessBigLight : BASE {
+	template <typename TBase>
+	struct LessBigLight : TSvgLight<TBase> {
 		LessBigLight() {
 			this->box.size = Vec(6.5f, 6.5f);//px
 			this->bgColor = nvgRGBA(192, 192, 192, 16);//silver
+
+			//setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkKnob_60.svg")));
+			this->setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkLightGraphics_0065.svg")));
 		}
 	};
 
-	template <typename BASE>
-	struct SmallerLight : BASE {
+	template <typename TBase>
+	struct Small_Light : TSvgLight<TBase> {
+		Small_Light() {
+			this->box.size = Vec(5.5f, 5.5f);//px
+			this->bgColor = nvgRGBA(192, 192, 192, 12);//silver
+			this->setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkLightGraphics_0055.svg")));
+		}
+	};
+
+	template <typename TBase>
+	struct SmallerLight : TSvgLight<TBase> {
 		SmallerLight() {
 			this->box.size = Vec(4, 4);//px
 			this->bgColor = nvgRGBA(192, 192, 192, 45);//silver
+			this->setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkLightGraphics_0040.svg")));
 		}
 	};
 
@@ -499,12 +587,13 @@ namespace barkComponents {
 		}
 	};
 
-	template <typename BASE>
-	struct SmallestLightInverse : BASE {
+	template <typename TBase>
+	struct SmallestLightInverse : TSvgLight<TBase> {
 		SmallestLightInverse() {
 			this->box.size = Vec(3, 3);//px
 			this->bgColor = nvgRGBA(56, 56, 56, 128);//panel
 			this->borderColor = nvgRGBA(30, 31, 0, 45);//black
+			this->setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkLightGraphics_0030.svg")));
 		}
 	};
 
