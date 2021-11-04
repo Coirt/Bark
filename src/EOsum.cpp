@@ -6,13 +6,13 @@ using namespace barkComponents;
 struct EOsum : Module {
 
 	std::vector<std::string> vuLightDescription = { "Clipping +0dB",
-												"-3dB to -0dB\n\nA white",
-												"-5dB to -2dB\nEach",
-												"-8dB to -6dB\nEach",
-												"-11dB to -9dB\nEach",
-												"-14dB to -12dB\nEach",
-												"-17dB to -15dB\nEach",
-												"-inf to -18dB\nEach"
+							"-3dB to -0dB\n\nA white",
+							"-5dB to -2dB\nEach",
+							"-8dB to -6dB\nEach",
+							"-11dB to -9dB\nEach",
+							"-14dB to -12dB\nEach",
+							"-17dB to -15dB\nEach",
+							"-inf to -18dB\nEach"
 	};
 
 	enum ParamIds {
