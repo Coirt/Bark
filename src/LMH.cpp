@@ -43,8 +43,17 @@ struct LMH : Module {
 		configParam(LOW_PARAM, 0.0, M_SQRT2, 1.0, "Low", " dB", -10, 40);
 		configParam(MUD_PARAM, 0.0, M_SQRT1_2, .5, "Mud", " dB", -10, 40, 6.0206 + 4.7684e-07);
 		configParam(HIGH_PARAM, 0.0, M_SQRT2, 1.0, "High", " dB", -10, 40);
-		configParam<tpOnOffBtn>(INV_PARAM, 0.f, 1.f, 0.f, "Mud");
+		//Switch---
+		configSwitch(INV_PARAM, 0.f, 1.f, 0.f, "Mud", { "Off","On" });
+		//Input---
+		configInput(IN_INPUT, "EQ");
+		//Output---
+		configOutput(OUT_OUTPUT, "EQ");
+		
 		step.setDivision(16);
+		
+		//Route Bypass---
+		configBypass(IN_INPUT, OUT_OUTPUT);
 	}
 
 	void process(const ProcessArgs &args) override {
@@ -110,8 +119,8 @@ struct LMHWidget : ModuleWidget {
 		addParam(createParam<BarkPushButton2>(Vec(knbX, 155.767f), module, LMH::INV_PARAM));
 		//screw---
 		//screw---
-		addChild(createWidget<BarkScrew3>(Vec(2.7f, 2.7f)));					//pos1
-		addChild(createWidget<BarkScrew1>(Vec(box.size.x - 12.3f, 367.7f)));			//pos4
+		addChild(createWidget<RandomRotateScrew>(Vec(2.7f, 2.7f)));					//pos1
+		addChild(createWidget<RandomRotateScrew>(Vec(box.size.x - 12.3f, 367.7f)));			//pos4
 	}
 };
 
