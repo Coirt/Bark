@@ -60,26 +60,50 @@ struct TrimLFO : Module {
 	TrimLFO() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
 		configParam(FREQ_PARAM, -16.f, 4.f, 1.f, "Freq", " Hz", 2.f, 1.f * std::pow(2.f, params[FREQ_PARAM].getValue()));
-		//TODO: fix the scale of finetune%
-		configParam(FINE_PARAM, -0.06798301f, 0.06798301f, 0.f, "Fine Tune", "%", 0.f, 18.9702f, 0.f);
-		// negatiuve value difference == 0.01645129630197%
+		//TODO: fix the bottom scale of finetune%
+		configParam(FINE_PARAM, -0.39f, 0.06798301f, 0.f, "Fine Tune", "%", 0.f, 18.9702f, 0.f);
+		//configParam(FINE_PARAM, -0.06798301f, 0.06798301f, 0.f, "Fine Tune", "%", 0.f, 18.9702f, 0.f);
 		configParam(OFFSET1_PARAM, -10.f, 10.f, 0.f, "Offset 1", "v");
 		configParam(OFFSET2_PARAM, -10.f, 10.f, 10.f, "Offset 2", "v");
-		configParam(PW_PARAM, 0.01f, .99f, 0.5f, "Pulse Width", "%", 0.f, 100.f, -50.f);
+		configParam(PW_PARAM, 0.01f, .99f, 0.5f, "Sqr Wave Pulse Width\n\nLower values for a trigger", "%", 0.f, 100.f, -50.f);
 		configParam(FM1_PARAM, 0.f, 1.f, 0.f, "Freq Mod 1", "%", 0.f, 100.f);
 		configParam(FM2_PARAM, 0.f, 1.f, 0.f, "Freq Mod 2", "%", 0.f, 100.f);
 		configParam(PWM_PARAM, 0.f, 1.f, 0.f, "Pulse Width Mod", "%", 0.f, 100.f);
+		//slider---
 		configParam<tpWave>(WAVEMIX_PARAM, 0.f, 3.f, 0.f, "Wave ");
-		configParam<tpPolarVal>(OFFSET_PARAM, 0.f, 1.f, 1.f, "Type", "Polar");	
-		configParam<tpPhaseVal>(INVERT_PARAM, 0.f, 1.f, 1.f, "Phase", "°");
-		configParam(RESET_PARAM, 0.f, 1.f, 0.f, "Reset Phase");
-		configParam(SETsin_PARAM, 0.f, 1.f, 0.f, "Top Output Sine");
-		configParam(SETsaw_PARAM, 0.f, 1.f, 0.f, "Top Output Saw");
-		configParam(SETtri_PARAM, 0.f, 1.f, 0.f, "Top Output Triangle");
-		configParam(SETsqr_PARAM, 0.f, 1.f, 0.f, "Top Output Square");
-		configParam(SETbi_PARAM, 0.f, 1.f, 0.f, "Set Offsets Bipolar");
-		configParam(SETuni_PARAM, 0.f, 1.f, 0.f, "Set Offsets Unipolar");
-		lightDivider.setDivision(256);
+		//switch / button---
+		configSwitch(OFFSET_PARAM, 0.f, 1.f, 1.f, "Type", { "Bi-Polar", "Uni-Polar" });
+		configSwitch(INVERT_PARAM, 0.f, 1.f, 1.f, "Phase", { "180°", "0°" });
+		configSwitch(RESET_PARAM, 0.f, 1.f, 0.f, "Reset phase");
+		configSwitch(SETsin_PARAM, 0.f, 1.f, 0.f, "Assign clamped output & light: Sine");
+		configSwitch(SETsaw_PARAM, 0.f, 1.f, 0.f, "Assign clamped output & light: Saw");
+		configSwitch(SETtri_PARAM, 0.f, 1.f, 0.f, "Assign clamped output & light: Triangle");
+		configSwitch(SETsqr_PARAM, 0.f, 1.f, 0.f, "Assign clamped output & light: Square");
+		configSwitch(SETbi_PARAM, 0.f, 1.f, 0.f, "Configure offset's to Bi-polar [-5v, 5v]");
+		configSwitch(SETuni_PARAM, 0.f, 1.f, 0.f, "Configure offset's to Uni-polar [0v, 10v]");
+		//output---
+		configOutput(OUT1_OUTPUT, "2v sine wave");
+		configOutput(OUT2_OUTPUT, "2v square wave");
+		configOutput(OUT1a_OUTPUT, "Offset 1");
+		configOutput(OUT2a_OUTPUT, "Offset 2");
+		configOutput(SIN_OUTPUT, "Sine");
+		configOutput(TRI_OUTPUT, "Triangle");
+		configOutput(SAW_OUTPUT, "Sawtooth");
+		configOutput(SQR_OUTPUT, "Square wave");
+		configOutput(trimLFO_OUTPUT, "Clamped");
+		//input
+		configInput(FM1_INPUT, "Frequency modulation 1");
+		configInput(FM2_INPUT, "Frequency modulation 2");
+		configInput(RESET_INPUT, "Reset");
+		configInput(PW_INPUT, "Square wave, pulse\nwidth modulation");
+		//light
+		configLight(PHASE_POS_LIGHT, "Frequency & Phase");
+		lightInfos[PHASE_POS_LIGHT]->description = "Represents the phase & frequency\nof the selected wave which you can\nassign to clamped output.\n\nTip: Click the labels at the wave\n outputs to change both!";
+
+		//disable random
+		getParamQuantity(TrimLFO::FINE_PARAM)->randomizeEnabled = false;
+
+		lightDivider.setDivision(16);
 	}
 
 	void process(const ProcessArgs &args) override {
@@ -94,7 +118,7 @@ struct TrimLFO : Module {
 
 		//simdLFO
 		for (int i = 0; i < 4; i += 4) {
-			auto *oscillator = &oscillators[i];
+			auto *oscillator = &oscillators[i / 4];
 			//frequency
 			float_4 pitch = params[FREQ_PARAM].getValue() + fineTune;
 			pitch += params[FM1_PARAM].getValue() * inputs[FM1_INPUT].getVoltageSimd<float_4>(i);
@@ -119,8 +143,8 @@ struct TrimLFO : Module {
 			triValue = 5.f * oscillator->tri();
 			sqrValue = 5.f * oscillator->sqr();
 
-			float_4 out1 = simd::clamp(params[OFFSET1_PARAM].getValue(), -10.f, 10.f) + oscillator->sin();
-			float_4	out2 = simd::clamp(params[OFFSET2_PARAM].getValue(), -10.f, 10.f) + oscillator->sqr();
+			float_4 out1 = simd::clamp(params[OFFSET1_PARAM].getValue(), -8.f, 8.f) + oscillator->sin();
+			float_4	out2 = simd::clamp(params[OFFSET2_PARAM].getValue(), -8.f, 8.f) + oscillator->sqr();
 
 			outputs[OUT1_OUTPUT].setVoltageSimd(out1, i);
 			outputs[OUT2_OUTPUT].setVoltageSimd(out2, i);
@@ -158,7 +182,7 @@ struct TrimLFO : Module {
 			fine = fineTune;
 		volts1 = simd::clamp(params[OFFSET1_PARAM].getValue(), -10.f, 10.f);
 		volts2 = simd::clamp(params[OFFSET2_PARAM].getValue(), -10.f, 10.f);
-		frq = simd::clamp(frq, -16.f, 16.f);
+		frq = simd::clamp(frq, -16.61f, 16.f);			//[0.0000100hz, 16Hz]
 		freqHz = 1.f * simd::pow(2.f, frq + fine);
 		//----------------	DISPLAY Hz	--------------------------
 
@@ -190,13 +214,18 @@ struct TrimLFO : Module {
 		if (lightDivider.process()) {
 			bool isUni = params[OFFSET_PARAM].getValue();
 			if (isUni) {
-				//lights[PHASE_POS_LIGHT].setSmoothBrightness(oscillatorLight, args.sampleTime * lightDivider.getDivision());
-				lights[PHASE_POS_LIGHT].setBrightness(outputs[trimLFO_OUTPUT].getVoltage() / 10);
+				/**	when uniPolar, set brightness of red light to 0	manually
+				*	to remove the sticky red light when changing the polarity
+				*	R + G = Y
+				*/
+				if (lights[PHASE_POS_LIGHT].getBrightness() != 0) { lights[PHASE_POS_LIGHT].setBrightness(0); }
+
+				lights[PHASE_NEG_LIGHT].setBrightness(outputs[trimLFO_OUTPUT].getVoltage() / 10);
 			} else {
-				//lights[PHASE_POS_LIGHT].setSmoothBrightness(oscillatorLight, args.sampleTime * lightDivider.getDivision());
-				lights[PHASE_POS_LIGHT].setBrightness(outputs[trimLFO_OUTPUT].getVoltage() / 5);
+				//lights[PHASE_POS_LIGHT].setSmoothBrightness(oscillatorLight, args.sampleTime * lightDivider.getDivision());	//stages are flipped
+				lights[PHASE_NEG_LIGHT].setBrightness(outputs[trimLFO_OUTPUT].getVoltage() / 5);
 				//lights[PHASE_NEG_LIGHT].setSmoothBrightness(-oscillatorLight, args.sampleTime * lightDivider.getDivision());
-				lights[PHASE_NEG_LIGHT].setBrightness(-outputs[trimLFO_OUTPUT].getVoltage() / 5);
+				lights[PHASE_POS_LIGHT].setBrightness(-outputs[trimLFO_OUTPUT].getVoltage() / 5);
 			}
 		}
 		
@@ -206,13 +235,19 @@ struct TrimLFO : Module {
 ////---------------------------------------------------------------------------------------------------------------------------
 struct FreqDisplayWidget : TransparentWidget {
 	float *freqHz;
-	std::shared_ptr<Font> font;
+	//std::shared_ptr<Font> font;
+	std::string fontPath;
 
+	/***/
 	FreqDisplayWidget() {
-		font = FONT;
+		fontPath = asset::plugin(pluginInstance, FONT);
 	}
+	
 
 	void draw(const DrawArgs &freqDisp) override {
+
+		std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
+
 		constexpr float spacer = 40.f;
 		NVGcolor backgroundColor = nvgRGB(26, 26, 36);		//CreamyRed 97, 54, 57
 		NVGcolor borderColor = nvgRGB(0, 0, 0);
@@ -228,8 +263,8 @@ struct FreqDisplayWidget : TransparentWidget {
 		nvgStroke(freqDisp.vg);
 		nvgTextAlign(freqDisp.vg, 1 << 1);
 		nvgFontSize(freqDisp.vg, FONT_SIZE);
-		nvgFontFaceId(freqDisp.vg, font->handle);
-		nvgTextLetterSpacing(freqDisp.vg, LETTER_SPACING/* / 10*/);
+		if (font) { nvgFontFaceId(freqDisp.vg, font->handle); }
+		nvgTextLetterSpacing(freqDisp.vg, LETTER_SPACING);
 		Vec textPos = Vec(85.798f / 2.0f - 8.0f, TEXT_POS_Y);
 		//----- "Hz"
 		nvgFillColor(freqDisp.vg, nvgTransRGBA(textColor, 255));
@@ -250,13 +285,19 @@ struct FreqDisplayWidget : TransparentWidget {
 struct VoltsDisplayWidget : TransparentWidget {
 	TrimLFO *module;
 	float *value;
-	std::shared_ptr<Font> font;
+	//std::shared_ptr<Font> font;
+	std::string fontPath;
+
 
 	VoltsDisplayWidget() {
-		font = FONT;
+		//font = FONT;
+		fontPath = asset::plugin(pluginInstance, FONT);
 	}
 
 	void draw(const DrawArgs &voltDisp) override {
+
+		std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
+
 		NVGcolor backgroundColor = nvgRGB(26, 26, 36);
 		NVGcolor borderColor = nvgRGB(0, 0, 0);
 		NVGcolor gradStartCol = nvgRGBA(255, 255, 244, 17);
@@ -271,7 +312,7 @@ struct VoltsDisplayWidget : TransparentWidget {
 		nvgStroke(voltDisp.vg);
 		nvgTextAlign(voltDisp.vg, 1 << 1);
 		nvgFontSize(voltDisp.vg, FONT_SIZE);
-		nvgFontFaceId(voltDisp.vg, font->handle);
+		if (font) { nvgFontFaceId(voltDisp.vg, font->handle); }
 		nvgTextLetterSpacing(voltDisp.vg, LETTER_SPACING);
 		char display_string[8];
 		sprintf(display_string, "%0.4f", *value);
@@ -317,7 +358,8 @@ struct TrimLFOWidget : ModuleWidget {
 		addParam(createParam<BarkScrew01>(Vec(box.size.x - 12.3f, 367.7f), module, TrimLFO::FINE_PARAM));
 		addParam(createParam<BarkKnob_40>(Vec(20.38f, rackY - 329.78f), module, TrimLFO::OFFSET1_PARAM));
 		addParam(createParam<BarkKnob_40>(Vec(89.6f, rackY - 329.78f), module, TrimLFO::OFFSET2_PARAM));
-		addParam(createParam<BarkKnob_30>(Vec(4.08f, rackY - 170.f), module, TrimLFO::PW_PARAM));
+		addParam(createParam<BarkKnob_22>(Vec(7.399f, 216.433f), module, TrimLFO::PW_PARAM));
+		//addParam(createParam<BarkKnob_30>(Vec(4.08f, rackY - 170.f), module, TrimLFO::PW_PARAM));
 		addParam(createParam<BarkKnob_30>(Vec(20.31f, rackY - 124.64f), module, TrimLFO::FM1_PARAM));
 		addParam(createParam<BarkKnob_30>(Vec(60.499f, rackY - 124.64f), module, TrimLFO::FM2_PARAM));
 		addParam(createParam<BarkKnob_30>(Vec(100.909f, rackY - 124.64f), module, TrimLFO::PWM_PARAM));
@@ -334,7 +376,7 @@ struct TrimLFOWidget : ModuleWidget {
 		addParam(createParam<BarkButton1>(Vec(10.55f, rackY - 191.09f), module, TrimLFO::SETbi_PARAM));
 		addParam(createParam<BarkButton1>(Vec(10.55f, rackY - 228.33f), module, TrimLFO::SETuni_PARAM));
 		//Screw---
-		addChild(createWidget<BarkScrew3>(Vec(2.7f, 2.7f)));		//pos1
+		addChild(createWidget<RandomRotateScrew>(Vec(2.7f, 2.7f)));		//pos1
 		//Light---
 		addChild(createLight<LessBigLight<greenRedLight>>(Vec(71.87f, rackY - 152.63f), module, TrimLFO::PHASE_POS_LIGHT));
 		//------------------------------
@@ -364,6 +406,8 @@ Model *modelTrimLFO = createModel<TrimLFO, TrimLFOWidget>("TrimLFO");
 //**-------------------------------------------------------------------------------------------------------------------------------------------------
 //-----bpmTrimLFO------------------------------------------------------------------------------------------------------------------------------------
 //**-------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 struct bpmTrimLFO : Module {
 
 	enum ParamIds {
@@ -421,26 +465,59 @@ struct bpmTrimLFO : Module {
 
 	bpmTrimLFO() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+		//knobs---
 		configParam(FREQ_PARAM, -16.f, 4.f, 1.f, "Freq", " BPM", 2.f, 1.f * simd::pow(2.f, params[FREQ_PARAM].getValue()) * 60);
-		configParam(FINE_PARAM, -0.06798301f, 0.06798301f, 0.f, "Fine Tune", "%", 0.f, 18.9702f, 0.f);
+		//TODO: fix the bottom scale of finetune%
+		configParam(FINE_PARAM, -0.39f, 0.06798301f, 0.f, "Fine Tune", "%", 0.f, 18.9702f, 0.f);
+		//configParam(FINE_PARAM, -0.06798301f, 0.06798301f, 0.f, "Fine Tune", "%", 0.f, 18.9702f, 0.f);
 		configParam(BPM_PARAM, -1.0136f / 2, 0.952f / 2, 0.f, "Fine Tune", "%", 0.f, 100.f, 0.f);
 		configParam(OFFSET1_PARAM, -10.f, 10.f, 0.f, "Offset 1", "v");
 		configParam(OFFSET2_PARAM, -10.f, 10.f, 10.f, "Offset 2", "v");
-		configParam(PW_PARAM, 0.01f, .99f, 0.5f, "Pulse Width", "%", 0.f, 100.f, -50.f);
+		configParam(PW_PARAM, 0.01f, .99f, 0.5f, "Offset Sqr. Wave PW", "%", 0.f, 100.f, -50.f);
 		configParam(FM1_PARAM, 0.f, 1.f, 0.f, "Freq Mod 1", "%", 0.f, 100.f);
 		configParam(FM2_PARAM, 0.f, 1.f, 0.f, "Freq Mod 2", "%", 0.f, 100.f);
 		configParam(PWM_PARAM, 0.f, 1.f, 0.f, "Pulse Width Mod", "%", 0.f, 100.f);
+		//slider---
 		configParam<tpWave>(WAVEMIX_PARAM, 0.f, 2.99999f, 0.f, "Wave ");
-		configParam<tpPolarVal>(OFFSET_PARAM, 0.f, 1.f, 1.f, "Type", "Polar");
-		configParam<tpPhaseVal>(INVERT_PARAM, 0.f, 1.f, 1.f, "Phase", "°");
-		configParam(RESET_PARAM, 0.f, 1.f, 0.f, "Reset Phase");
-		configParam(SETsin_PARAM, 0.f, 1.f, 0.f, "Top Output Sine");
-		configParam(SETsaw_PARAM, 0.f, 1.f, 0.f, "Top Output Saw");
-		configParam(SETtri_PARAM, 0.f, 1.f, 0.f, "Top Output Triangle");
-		configParam(SETsqr_PARAM, 0.f, 1.f, 0.f, "Top Output Square");
-		configParam(SETbi_PARAM, 0.f, 1.f, 0.f, "Set Offsets Bipolar");
-		configParam(SETuni_PARAM, 0.f, 1.f, 0.f, "Set Offsets Unipolar");
-		lightDivider.setDivision(256);
+		//switch / button---
+		/**
+		configButton(TAP_PARAM);
+		configSwitch(SYNC_PARAM, 0, 1, 0, "Sync mode", {"Soft", "Hard"});
+		*/
+		configSwitch(OFFSET_PARAM, 0.f, 1.f, 1.f, "Type", { "Bi-Polar", "Uni-Polar" });
+		configSwitch(INVERT_PARAM, 0.f, 1.f, 1.f, "Phase", { "180°", "0°"});
+		configSwitch(RESET_PARAM, 0.f, 1.f, 0.f, "Phase, Manual Reset");
+		configSwitch(SETsin_PARAM, 0.f, 1.f, 0.f, "Assign clamped output & light: Sine");
+		configSwitch(SETsaw_PARAM, 0.f, 1.f, 0.f, "Assign clamped output & light: Saw");
+		configSwitch(SETtri_PARAM, 0.f, 1.f, 0.f, "Assign clamped output & light: Triangle");
+		configSwitch(SETsqr_PARAM, 0.f, 1.f, 0.f, "Assign clamped output & light: Square");
+		configSwitch(SETbi_PARAM, 0.f, 1.f, 0.f, "Configure offset's to Bi-polar [-5v, 5v]");
+		configSwitch(SETuni_PARAM, 0.f, 1.f, 0.f, "Configure offset's to Uni-polar [0v, 10v]");
+		//output---
+		configOutput(OUT1_OUTPUT, "2v sine wave");
+		configOutput(OUT2_OUTPUT, "2v square wave");
+		configOutput(OUT1a_OUTPUT, "Offset 1");
+		configOutput(OUT2a_OUTPUT, "Offset 2");
+		configOutput(SIN_OUTPUT, "Sine");
+		configOutput(TRI_OUTPUT, "Triangle");
+		configOutput(SAW_OUTPUT, "Sawtooth");
+		configOutput(SQR_OUTPUT, "Square wave");
+		configOutput(trimLFO_OUTPUT, "Clamped");
+		//input
+		configInput(FM1_INPUT, "Frequency Mod 1");
+		configInput(FM2_INPUT, "Frequency Mod 2");
+		configInput(RESET_INPUT, "Reset");
+		configInput(PW_INPUT, "Square wave, pulse\nwidth modulation");
+		//light
+		configLight(PHASE_POS_LIGHT, "Frequency & Phase");
+		lightInfos[PHASE_POS_LIGHT]->description = "Represents the phase & frequency\nof the selected wave which you can\nassign to clamped output.\n\nTip: Click the labels at the wave\n outputs to change both!";
+
+
+		//Disable random
+		getParamQuantity(FINE_PARAM)->randomizeEnabled = false;
+		getParamQuantity(BPM_PARAM)->randomizeEnabled = false;
+
+		lightDivider.setDivision(16);
 	}
 
 	void process(const ProcessArgs &args) override {		
@@ -456,7 +533,7 @@ struct bpmTrimLFO : Module {
 
 		//simdLFO
 		for (int i = 0; i < 4; i += 4) {
-			auto *oscillator = &oscillators[i];
+			auto *oscillator = &oscillators[i / 4];
 			//frequency
 			float_4 pitch = params[FREQ_PARAM].getValue() + fineTune;
 			pitch += params[FM1_PARAM].getValue() * inputs[FM1_INPUT].getVoltageSimd<float_4>(i);
@@ -481,8 +558,8 @@ struct bpmTrimLFO : Module {
 			triValue = 5.f * oscillator->tri();
 			sqrValue = 5.f * oscillator->sqr();
 
-			float_4 out1 = simd::clamp(params[OFFSET1_PARAM].getValue(), -10.f, 10.f) + oscillator->sin();
-			float_4	out2 = simd::clamp(params[OFFSET2_PARAM].getValue(), -10.f, 10.f) + oscillator->sqr();
+			float_4 out1 = simd::clamp(params[OFFSET1_PARAM].getValue(), -8.f, 8.f) + oscillator->sin();
+			float_4	out2 = simd::clamp(params[OFFSET2_PARAM].getValue(), -8.f, 8.f) + oscillator->sqr();
 
 			outputs[OUT1_OUTPUT].setVoltageSimd(out1, i);
 			outputs[OUT2_OUTPUT].setVoltageSimd(out2, i);
@@ -553,13 +630,18 @@ struct bpmTrimLFO : Module {
 		if (lightDivider.process()) {
 			bool isUni = params[OFFSET_PARAM].getValue();
 			if (isUni) {
-				//lights[PHASE_POS_LIGHT].setSmoothBrightness(oscillatorLight, args.sampleTime * lightDivider.getDivision());
-				lights[PHASE_POS_LIGHT].setBrightness(outputs[trimLFO_OUTPUT].getVoltage() / 10);
+				/**	when uniPolar, set brightness of red light to 0	manually 
+				*	to remove the sticky red light when changing the polarity 
+				*	R + G = Y
+				*/
+				if (lights[PHASE_POS_LIGHT].getBrightness() != 0) { lights[PHASE_POS_LIGHT].setBrightness(0); }
+
+				lights[PHASE_NEG_LIGHT].setBrightness(outputs[trimLFO_OUTPUT].getVoltage() / 10);
 			} else {
-				//lights[PHASE_POS_LIGHT].setSmoothBrightness(oscillatorLight, args.sampleTime * lightDivider.getDivision());
-				lights[PHASE_POS_LIGHT].setBrightness(outputs[trimLFO_OUTPUT].getVoltage() / 5);
+				//lights[PHASE_POS_LIGHT].setSmoothBrightness(oscillatorLight, args.sampleTime * lightDivider.getDivision());	//stages are flipped
+				lights[PHASE_NEG_LIGHT].setBrightness(outputs[trimLFO_OUTPUT].getVoltage() / 5);
 				//lights[PHASE_NEG_LIGHT].setSmoothBrightness(-oscillatorLight, args.sampleTime * lightDivider.getDivision());
-				lights[PHASE_NEG_LIGHT].setBrightness(-outputs[trimLFO_OUTPUT].getVoltage() / 5);
+				lights[PHASE_POS_LIGHT].setBrightness(-outputs[trimLFO_OUTPUT].getVoltage() / 5);
 			}
 		}
 		
@@ -569,13 +651,19 @@ struct bpmTrimLFO : Module {
 ////---------------------------------------------------------------------------------------------------------------------------
 struct bpmFreqDisplayWidget : TransparentWidget {
 	float *freqHz;
-	std::shared_ptr<Font> font;
+	//std::shared_ptr<Font> font;
+	std::string fontPath;
 
 	bpmFreqDisplayWidget() {
-		font = FONT;
+		//font = FONT;
+		fontPath = asset::plugin(pluginInstance, FONT);
+
 	}
 
 	void draw(const DrawArgs &freqDisp) override {
+
+		std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
+
 		constexpr float spacer = 40.f;
 		NVGcolor backgroundColor = nvgRGB(26, 26, 36);
 		NVGcolor borderColor = nvgRGB(0, 0, 0);
@@ -596,12 +684,12 @@ struct bpmFreqDisplayWidget : TransparentWidget {
 		Vec textPos = Vec(85.798f / 2.f - 8.f, TEXT_POS_Y);
 		//----- "BPM"
 		nvgFillColor(freqDisp.vg, nvgTransRGBA(textColor, 255));
-		char display_stringBPM[11];
-		snprintf(display_stringBPM, sizeof(display_stringBPM), "%0.5f", (*freqHz) * 60);
+		char display_stringBPM[10];	//11
+		snprintf(display_stringBPM, sizeof(display_stringBPM), (*freqHz) * 60 > 100 ? "%0.4f" : (*freqHz) * 60 > 10 ? "%0.5f" : "%0.6f", (*freqHz) * 60);
 		nvgText(freqDisp.vg, textPos.x - 5, textPos.y, display_stringBPM, NULL);
 		nvgTextLetterSpacing(freqDisp.vg, LETTER_SPACING * .2f);
-		nvgText(freqDisp.vg, textPos.x + spacer - 8.5f, textPos.y, "BP", NULL);
-		nvgText(freqDisp.vg, textPos.x + spacer + 2.3f, textPos.y, "M", NULL);
+		nvgText(freqDisp.vg, textPos.x + spacer - 8.5f, textPos.y, "BP", NULL);//7.5 right a bit
+		nvgText(freqDisp.vg, textPos.x + spacer + 2.3f, textPos.y, "M", NULL);//3.3 right a bit
 		//textColor = nvgRGB(68, 255, 78);
 		nvgFillColor(freqDisp.vg, textColor);
 		//---------Gradient Screen
@@ -617,13 +705,19 @@ struct bpmFreqDisplayWidget : TransparentWidget {
 struct bpmVoltsDisplayWidget : TransparentWidget {
 	bpmTrimLFO *module;
 	float *value;
-	std::shared_ptr<Font> font;
+	//std::shared_ptr<Font> font;
+	std::string fontPath;
+
 
 	bpmVoltsDisplayWidget() {
-		font = FONT;
+		//font = FONT;
+		fontPath = asset::plugin(pluginInstance, FONT);
 	}
 
 	void draw(const DrawArgs &voltDisp) override {
+
+		std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
+
 		NVGcolor backgroundColor = nvgRGB(26, 26, 36);
 		NVGcolor borderColor = nvgRGB(0, 0, 0);
 		NVGcolor gradStartCol = nvgRGBA(255, 255, 244, 17);
@@ -685,7 +779,8 @@ struct bpmTrimLFOWidget : ModuleWidget {
 		addParam(createParam<BarkScrew02>(Vec(2.7f, 2.7f), module, bpmTrimLFO::BPM_PARAM));
 		addParam(createParam<BarkKnob_40>(Vec(20.38f, rackY - 329.78f), module, bpmTrimLFO::OFFSET1_PARAM));
 		addParam(createParam<BarkKnob_40>(Vec(89.6f, rackY - 329.78f), module, bpmTrimLFO::OFFSET2_PARAM));
-		addParam(createParam<BarkKnob_30>(Vec(4.08f, rackY - 170.f), module, bpmTrimLFO::PW_PARAM));
+		addParam(createParam<BarkKnob_22>(Vec(7.399f, 216.433f), module, bpmTrimLFO::PW_PARAM));
+		//addParam(createParam<BarkKnob_30>(Vec(4.08f, rackY - 170.f), module, bpmTrimLFO::PW_PARAM));//knob 30
 		addParam(createParam<BarkKnob_30>(Vec(20.31f, rackY - 124.64f), module, bpmTrimLFO::FM1_PARAM));
 		addParam(createParam<BarkKnob_30>(Vec(60.499f, rackY - 124.64f), module, bpmTrimLFO::FM2_PARAM));
 		addParam(createParam<BarkKnob_30>(Vec(100.909f, rackY - 124.64f), module, bpmTrimLFO::PWM_PARAM));
@@ -707,6 +802,7 @@ struct bpmTrimLFOWidget : ModuleWidget {
 		addChild(createLight<LessBigLight<greenRedLight>>(Vec(71.87f, rackY - 152.63f), module, bpmTrimLFO::PHASE_POS_LIGHT));
 		
 		//------------------------------bpmTrimLFO
+		
 		if (module != NULL) {
 			bpmVoltsDisplayWidget *display4 = createWidget<bpmVoltsDisplayWidget>(Vec(15.009f, 31.05f));
 			display4->box.size = Vec(50.728f, 13.152f);
@@ -723,7 +819,7 @@ struct bpmTrimLFOWidget : ModuleWidget {
 			addChild(display6);
 			////------------------------------bpmTrimLFO
 		}
-
+		
 	}
 
 };
