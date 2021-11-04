@@ -9,7 +9,7 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    sodipodi:docname="BarkLMH.svg"
-   inkscape:version="0.92.2 (5c3e80d, 2017-08-06)"
+   inkscape:version="1.0.2-2 (e86c870879, 2021-01-15)"
    id="svg4532"
    version="1.1"
    viewBox="0 0 11.90625 100.54167"
@@ -425,16 +425,6 @@
         </g>
       </g>
     </clipPath>
-    <linearGradient
-       y2="293.34039"
-       x2="-26.369097"
-       y1="204.1385"
-       x1="-26.456299"
-       gradientUnits="userSpaceOnUse"
-       id="linearGradient7514-3"
-       xlink:href="#linearGradient5230"
-       inkscape:collect="always"
-       gradientTransform="matrix(1.3333334,0,0,1,16.10599,1.6683198e-6)" />
     <clipPath
        id="clipPath3966-1-3"
        clipPathUnits="userSpaceOnUse">
@@ -560,36 +550,6 @@
        xlink:href="#linearGradient8295"
        inkscape:collect="always"
        gradientTransform="translate(0,192.65184)" />
-    <linearGradient
-       y2="189.58746"
-       x2="21.742266"
-       y1="199.74429"
-       x1="21.742266"
-       gradientTransform="matrix(1.3333334,0,0,1,-19.040365,1.0290657)"
-       gradientUnits="userSpaceOnUse"
-       id="linearGradient10740"
-       xlink:href="#linearGradient5230"
-       inkscape:collect="always" />
-    <linearGradient
-       y2="246.72917"
-       x2="39.718994"
-       y1="246.72917"
-       x1="-0.031491905"
-       gradientTransform="matrix(1.3333334,0,0,1,6.3607917,1.6683199e-6)"
-       gradientUnits="userSpaceOnUse"
-       id="linearGradient10742"
-       xlink:href="#linearGradient5230"
-       inkscape:collect="always" />
-    <linearGradient
-       y2="247.12604"
-       x2="-8.5674667"
-       y1="247.12604"
-       x1="-48.317951"
-       gradientTransform="matrix(1.3333334,0,0,1,16.10599,1.6683199e-6)"
-       gradientUnits="userSpaceOnUse"
-       id="linearGradient10744"
-       xlink:href="#linearGradient5230"
-       inkscape:collect="always" />
     <linearGradient
        y2="189.58746"
        x2="21.742266"
@@ -1452,9 +1412,9 @@
      units="px"
      inkscape:snap-global="false"
      showgrid="false"
-     inkscape:current-layer="layer4"
+     inkscape:current-layer="layer1"
      inkscape:document-units="px"
-     inkscape:cy="214.65387"
+     inkscape:cy="209.14662"
      inkscape:cx="8.8631035"
      inkscape:zoom="7.2631582"
      inkscape:pageshadow="2"
@@ -1506,23 +1466,23 @@
       </g>
     </g>
     <g
-       style="display:inline;fill:url(#linearGradient7514-3);fill-opacity:1;stroke-width:1.15470052"
+       style="display:inline;fill:#383838;fill-opacity:1;stroke-width:1.15470052"
        transform="matrix(0.29952466,0,0,0.99992555,14.472418,-0.378482)"
        clip-path="url(#clipPath3966-1-3)"
        id="g3964-0-5">
       <g
-         style="fill:url(#linearGradient10744);fill-opacity:1;stroke-width:1.15470052"
+         style="fill:#383838;fill-opacity:1;stroke-width:1.15470052"
          id="g3962-6-2"
          inkscape:label="Clip">
         <g
            transform="translate(-29.235592,-0.63219317)"
            id="layer1-1-9-4"
            inkscape:label="Layer 1"
-           style="fill:url(#linearGradient10742);fill-opacity:1;stroke-width:1.15470052">
+           style="fill:#383838;fill-opacity:1;stroke-width:1.15470052">
           <path
              id="rect1342-0-2-6"
              d="M -19.082359,197.48366 H 20.668125 V 298.03281 H -19.082359 Z"
-             style="opacity:1;fill:url(#linearGradient10740);fill-opacity:1;stroke-width:0.30551454"
+             style="opacity:1;fill:#383838;fill-opacity:1;stroke-width:0.30551454"
              inkscape:connector-curvature="0" />
         </g>
       </g>
@@ -2107,7 +2067,7 @@
      inkscape:groupmode="layer">
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.73895001px;line-height:125%;font-family:'Segoe Print';-inkscape-font-specification:'Segoe Print, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:url(#linearGradient10375-2-0-109);fill-opacity:1;stroke:none;stroke-width:0.26458299px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.73895px;line-height:125%;font-family:'Segoe Print';-inkscape-font-specification:'Segoe Print, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:url(#linearGradient10375-2-0-109);fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        x="4.1258965"
        y="39.045414"
        id="text13021-45-0-7-3-0-9-8"
@@ -2304,24 +2264,24 @@
        style="fill:#2cafd2;stroke-width:0.26458299;paint-order:markers stroke fill" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:1.73895001px;line-height:125%;font-family:'Segoe Print';-inkscape-font-specification:'Segoe Print, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:url(#linearGradient10375-2-0-10);fill-opacity:1;stroke:none;stroke-width:0.26458299px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:1.73895px;line-height:125%;font-family:'Segoe Print';-inkscape-font-specification:'Segoe Print, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:url(#linearGradient10375-2-0-10);fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        x="-9.1945667"
        y="87.537033"
        id="text13021-45-0-7-3-0-9-2"
        transform="scale(0.98062443,1.0197584)"><tspan
          id="tspan4880-77"
          sodipodi:role="line"
-         style="fill:url(#linearGradient10375-2-0-10);stroke-width:0.26458299px"
+         style="fill:url(#linearGradient10375-2-0-10);stroke-width:0.264583px"
          x="-9.1945667"
          y="87.537033">S&amp;H</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.73895001px;line-height:125%;font-family:'Segoe Print';-inkscape-font-specification:'Segoe Print, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:url(#linearGradient10375-2-0-109-3-3);fill-opacity:1;stroke:none;stroke-width:0.26458299px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.73895px;line-height:125%;font-family:'Segoe Print';-inkscape-font-specification:'Segoe Print, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:url(#linearGradient10375-2-0-109-3-3);fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        x="-8.7274227"
        y="14.29203"
        id="text13021-45-0-7-3-0-9-8-3-0"
        transform="scale(0.98062443,1.0197584)"><tspan
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.73895001px;font-family:'Segoe Print';-inkscape-font-specification:'Segoe Print, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:url(#linearGradient10375-2-0-109-3-3);stroke-width:0.26458299px"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.73895px;font-family:'Segoe Print';-inkscape-font-specification:'Segoe Print, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:url(#linearGradient10375-2-0-109-3-3);stroke-width:0.264583px"
          y="14.29203"
          x="-8.7274227"
          sodipodi:role="line"

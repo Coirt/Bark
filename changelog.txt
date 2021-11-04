@@ -1,3 +1,27 @@
+---v2.3.0---
+VCV Rack v2 compatibility update
+Various panel updates: preview font
+Various port/param/light descriptions added
+Update components: lights, ports minor changes to some buttons
+Screws now have a random rotation when added to the rack or when relaunching
+
+Trim LFO: 
+Fixed a bug where light stages were flipped in v2.
+Adjusted PW knob size
+Frequency display should show leading 0's more appropately for the unit's of frequency i.e. 120.0000 or 60.00000
+
+Clamp:
+Fixed a bug where the link param would cause an infinite loop to occur making opposite numbers jitter
+
+SHTH:
+Fixed a bug where number of channels would be 0 until you connected a gate
+
+PolyX:
+Moved open volatges to a menu option. 
+Where patches use this to modulate level the menu item will have to be checked for "Levels" to be set correctly on channels not
+connected to PolyX' input ports         
+
+
 ---v1.2.5---
 bug fixes on Mac.
 

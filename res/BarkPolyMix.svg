@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
-
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://creativecommons.org/ns#"
@@ -15,7 +13,7 @@
    viewBox="0 0 39.6875 100.54167"
    version="1.1"
    id="svg4532"
-   inkscape:version="0.92.2 (5c3e80d, 2017-08-06)"
+   inkscape:version="1.0.2-2 (e86c870879, 2021-01-15)"
    sodipodi:docname="BarkPolyMix.svg">
   <title
      id="title5077">165x380</title>
@@ -1623,27 +1621,6 @@
        x2="28.02243"
        y2="210.89375"
        gradientTransform="translate(0,0.24662981)" />
-    <linearGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient5230"
-       id="linearGradient7514"
-       gradientUnits="userSpaceOnUse"
-       x1="-26.456299"
-       y1="204.1385"
-       x2="-26.369097"
-       y2="293.34039" />
-    <linearGradient
-       inkscape:collect="always"
-       id="linearGradient5230">
-      <stop
-         style="stop-color:#383838;stop-opacity:1;"
-         offset="0"
-         id="stop5226" />
-      <stop
-         style="stop-color:#383838;stop-opacity:0;"
-         offset="1"
-         id="stop5228" />
-    </linearGradient>
     <clipPath
        clipPathUnits="userSpaceOnUse"
        id="clipPath3966-1">
@@ -1655,34 +1632,6 @@
          width="100%"
          height="100%" />
     </clipPath>
-    <linearGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient5230"
-       id="linearGradient9064"
-       gradientUnits="userSpaceOnUse"
-       gradientTransform="translate(-19.050867,1.0290644)"
-       x1="21.742266"
-       y1="199.74429"
-       x2="21.742266"
-       y2="189.58746" />
-    <linearGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient5230"
-       id="linearGradient9066"
-       gradientUnits="userSpaceOnUse"
-       x1="-0.031491905"
-       y1="246.72917"
-       x2="39.718994"
-       y2="246.72917" />
-    <linearGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient5230"
-       id="linearGradient9068"
-       gradientUnits="userSpaceOnUse"
-       x1="-48.317951"
-       y1="247.12604"
-       x2="-8.5674667"
-       y2="247.12604" />
     <linearGradient
        inkscape:collect="always"
        xlink:href="#linearGradient3655"
@@ -1810,11 +1759,11 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="5.6568542"
-     inkscape:cx="56.580969"
-     inkscape:cy="313.89056"
+     inkscape:zoom="1.7394738"
+     inkscape:cx="75"
+     inkscape:cy="190"
      inkscape:document-units="px"
-     inkscape:current-layer="layer6"
+     inkscape:current-layer="layer1"
      showgrid="false"
      inkscape:snap-global="false"
      units="px"
@@ -1822,7 +1771,8 @@
      guidecolor="#0000e4"
      guideopacity="0.49803922"
      guidehicolor="#eae565"
-     guidehiopacity="0.40784314" />
+     guidehiopacity="0.40784314"
+     inkscape:document-rotation="0" />
   <metadata
      id="metadata4529">
     <rdf:RDF>
@@ -1852,19 +1802,19 @@
        id="g3964-0"
        clip-path="url(#clipPath3966-1)"
        transform="matrix(0.99841554,0,0,0.99992552,59.106305,-0.37847176)"
-       style="display:inline;fill:url(#linearGradient7514);fill-opacity:1">
+       style="display:inline;fill:#383838;fill-opacity:1">
       <g
          inkscape:label="Clip"
          id="g3962-6"
-         style="fill:url(#linearGradient9068);fill-opacity:1">
+         style="fill:#383838;fill-opacity:1">
         <g
-           style="fill:url(#linearGradient9066);fill-opacity:1"
+           style="fill:#383838;fill-opacity:1"
            inkscape:label="Layer 1"
            id="layer1-1-9"
            transform="translate(-29.235592,-0.63219317)">
           <path
              inkscape:connector-curvature="0"
-             style="opacity:1;fill:url(#linearGradient9064);fill-opacity:1;stroke-width:0.26458335"
+             style="opacity:1;fill:#383838;fill-opacity:1;stroke-width:0.26458335"
              d="M -19.082359,197.48366 H 20.668125 V 298.03281 H -19.082359 Z"
              id="rect1342-0-2" />
         </g>

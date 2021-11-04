@@ -13,7 +13,8 @@ struct LowFrequencyOscillator {
 
 	void setPitch(T pitch) {
 		pitch = simd::fmin(pitch, 16.f);
-		freq = simd::pow(2.f, pitch);
+		//freq = simd::pow(2.f, pitch);
+		freq = rack::dsp::approxExp2_taylor5(pitch + 30.f) / simd::pow(2.f, 30.f);
 	}
 	void setPulseWidth(T pw_) {
 		const T pwMin = 0.01f;
@@ -36,32 +37,43 @@ struct LowFrequencyOscillator {
 	}
 	T sin() {
 		T p = phase;
-		if (!polarPat) p -= 0.25f;
+		if (!polarPat) 
+			p -= 0.25f;
 		T v = simd::sin(2 * M_PI * p);
-		if (invert) v *= -1.f;
-		if (!polarPat) v += 1.f;
+		if (invert) 
+			v *= -1.f;
+		if (!polarPat) 
+			v += 1.f;
 		return v;
 	}
 	T saw() {
 		T p = phase;
-		if (!polarPat) p -= 0.5f;
+		if (!polarPat) 
+			p -= 0.5f;
 		T v = 2.f * (p - simd::round(p));
-		if (invert) v *= -1.f;
-		if (!polarPat) v += 1.f;
+		if (invert) 
+			v *= -1.f;
+		if (!polarPat) 
+			v += 1.f;
 		return v;
 	}
 	T tri() {
 		T p = phase;
-		if (polarPat) p += 0.25f;
+		if (polarPat) 
+			p += 0.25f;
 		T v = 4.f * simd::fabs(p - simd::round(p)) - 1.f;
-		if (invert) v *= -1.f;
-		if (!polarPat) v += 1.f;
+		if (invert) 
+			v *= -1.f;
+		if (!polarPat) 
+			v += 1.f;
 		return v;
 	}
 	T sqr() {
 		T v = simd::ifelse(phase < pw, 1.f, -1.f);
-		if (invert) v *= -1.f;
-		if (!polarPat) v += 1.f;
+		if (invert) 
+			v *= -1.f;
+		if (!polarPat) 
+			v += 1.f;
 		return v;
 	}
 	T light() {

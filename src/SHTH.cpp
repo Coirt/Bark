@@ -57,14 +57,21 @@ struct SHTH : Module {
 
 	SHTH() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-		configParam<tpMode_sh>(SMP_OR_TRK_PARAM, 0.f, 1.f, 0.f, "Mode");
-		configParam<tpIntExt>(SAMPLE_PARAM, 0.f, 1.f, 1.f, "Sample Mode");
-		configParam(INCREMENT_PARAM, 0.f, 1.f, 0.f, "Next");
-		configParam(DECREMENT_PARAM, 0.f, 1.f, 0.f, "Prev");
-		configParam<tpPlusMinus>(POLE_PARAM, 0.f, 1.f, 0.f, "Mode");
-		configParam<tpOnOffBtn>(INVERT_PARAM, 0.f, 1.f, 0.f, "Invert");
+		//param---
 		configParam(RANGE_PARAM, (1 / 12.0)* 6.f, 10.f, 1.f, "V/Oct Range", "v");
 		configParam(OFFSET_PARAM, -5.f, 5.f, 0.f, "Offset", "v");
+		//switch / button---
+		configSwitch(SMP_OR_TRK_PARAM, 0.f, 1.f, 0.f, "Mode", { "Sample & Hold", "Track & Hold" });
+		configSwitch(SAMPLE_PARAM, 0.f, 1.f, 1.f, "Sample Mode", { "\nExternal", "\nInternal" });
+		configParam(INCREMENT_PARAM, 0.f, 1.f, 0.f, "Next"); //user needs feedback that button was pressed 
+		configParam(DECREMENT_PARAM, 0.f, 1.f, 0.f, "Prev");
+		configSwitch(POLE_PARAM, 0.f, 1.f, 0.f, "Mode", { "+", "+/-" });
+		configSwitch(INVERT_PARAM, 0.f, 1.f, 0.f, "Invert", { "Off", "On" });
+		//output---
+		configOutput(OUT_OUTPUT, "Sampled");
+		//input---
+		configInput(GATE_INPUT, "Gate");
+		configInput(IN_INPUT, "Sample");
 
 		//set display to address of index
 		displayNumber = &index;
@@ -110,6 +117,7 @@ struct SHTH : Module {
 			outCon = outputs[OUT_OUTPUT].isConnected(),
 			noiseOnly = (outCon && (!inCon && !gateCon)),
 			gateOnly = (outCon && (!inCon && gateCon));
+		
 
 		//get number of channels
 		//noiseOnly ? nCh = 1 : nCh = inputs[GATE_INPUT].getChannels();
@@ -168,6 +176,7 @@ struct SHTH : Module {
 				
 			}
 			//set outputs sampleInternal else sampleExternal
+			//TODO: if only noise output next/previous have to be pressed for settings to take effect, setSafely
 			noiseOnly ? outputs[OUT_OUTPUT].setVoltage(inverted[i] ? -noise1[i] + offsetParam[i] :
 														noise1[i] + offsetParam[i], i) :
 							outputs[OUT_OUTPUT].setVoltage(inverted[i] ? -sample1[i] + offsetParam[i] :
@@ -187,7 +196,9 @@ struct SHTH : Module {
 			scaleParam[index] = params[RANGE_PARAM].getValue();
 			offsetParam[index] = params[OFFSET_PARAM].getValue();
 		}
-		
+
+		//set nCh to 1 on inititial state to stop previous button assigning no channel
+		if (nCh == 0) { nCh = 1; }
 
 		if (nextChannel) {
 			init = false;
@@ -208,7 +219,7 @@ struct SHTH : Module {
 				
 				btnPressed = !btnPressed;
 			}
-			
+
 			if (index >= 0 && index < (nCh - 1)) {
 				prevIndex = index;
 				index++;
@@ -228,8 +239,10 @@ struct SHTH : Module {
 
 			btnPressed = !btnPressed;
 		}
-
+		
 		if (prevChannel) {
+			
+
 			init = false;
 			btnPressed = true;
 			
@@ -430,13 +443,17 @@ struct ChannelNumberWidget : TransparentWidget {
 	SHTH *module;
 	int* chNum;
 
-	std::shared_ptr<Font> font;
+	//std::shared_ptr<Font> font;
+	std::string fontPath;
 
 	ChannelNumberWidget() {
-		font = FONT;
+		//font = FONT;
+		fontPath = asset::plugin(pluginInstance, FONT);
 	}
 
 	void draw(const DrawArgs &labelDisp) override {
+
+		std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
 
 		NVGcolor textColor = nvgRGB(0xFF, 0xFF, 0xFF);
 
@@ -444,7 +461,7 @@ struct ChannelNumberWidget : TransparentWidget {
 
 		nvgTextAlign(labelDisp.vg, 1 << 1);
 		nvgFontSize(labelDisp.vg, 9);
-		nvgFontFaceId(labelDisp.vg, font->handle);
+		if (font) { nvgFontFaceId(labelDisp.vg, font->handle); }
 		nvgTextLetterSpacing(labelDisp.vg, .1f);
 		char display_string_channel[5];
 		snprintf(display_string_channel, sizeof(display_string_channel), "%1.d", (*chNum) + 1);
@@ -480,8 +497,8 @@ struct SHTHWidget : ModuleWidget {
 		addParam(createParam<BarkSwitchSmall>(Vec(5.264f, switchY), module, SHTH::INVERT_PARAM));
 		addParam(createParam<BarkSwitchSmall>(Vec(24.827f, switchY), module, SHTH::POLE_PARAM));
 		//screw---
-		addChild(createWidget<BarkScrew1>(Vec(2.7f, 2.7f)));					//pos1
-		addChild(createWidget<BarkScrew2>(Vec(box.size.x - 12.3f, 367.7f)));	//pos4
+		addChild(createWidget<RandomRotateScrew>(Vec(2.7f, 2.7f)));					//pos1
+		addChild(createWidget<RandomRotateScrew>(Vec(box.size.x - 12.3f, 367.7f)));	//pos4
 
 		if (module != NULL) {
 			ChannelNumberWidget *label = new ChannelNumberWidget;

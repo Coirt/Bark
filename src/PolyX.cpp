@@ -27,13 +27,20 @@ struct PolyX : Module {
 	dsp::ClockDivider lightDivider, setSafe;
 	dsp::BooleanTrigger setP1; dsp::BooleanTrigger setP2;
 	int channels;
+	bool sendOpenVolt;
+	bool whatIsTheMsg[16];
+	//TODO: make description more succinct
+	std::string connection = "\nIn order to make level modulation viable,\nwhere no port is connected.We need to send\na voltage.Check the menu option to send\nthat voltage on all disconnected ports\n";
 
 	PolyX() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
 		configParam<tpMute10v>(MUTEALL_PARAM, 0.f, 2.f, 1.f, "Set Channels");
 		for (int i = 0; i < 16; i++) {
-			configParam<tpMute10v>(MUTEFAKE_PARAM + i, 0.f, 1.f, 1.f, "Voltage");
+			configSwitch(MUTEFAKE_PARAM + i, 0.f, 1.f, 1.f, "Voltage ch. " + std::to_string(i + 1), { "Open", "Mute" });
+			configInput(MONO_INPUT + i, "Channel " + std::to_string(i + 1));
+			inputInfos[MONO_INPUT + i]->description = "";
 		}
+		configOutput(POLY_OUTPUT, "Polyphonic");
 		lightDivider.setDivision(512);//8
 		setSafe.setDivision(4);
 		onReset();
@@ -41,9 +48,11 @@ struct PolyX : Module {
 
 	void onReset() override {
 		channels = 4;	//Auto == -1
+		sendOpenVolt = false;
 	}
 
 	void process(const ProcessArgs &args) override {
+		float openVolts = sendOpenVolt ? 10.f : 0.f;	//if send open volt checked, assign openVolts 10.f
 		int lastCh = -1;
 		bool setChannelState1 = setP1.process(params[MUTEALL_PARAM].getValue() == 1.f);
 		bool setChannelState2 = setP2.process(params[MUTEALL_PARAM].getValue() == 2.f);
@@ -55,9 +64,16 @@ struct PolyX : Module {
 				params[MUTEFAKE_PARAM + ch].getValue() == 0.f ? volt = inputs[MONO_INPUT + ch].getVoltage() : volt = 0.f;
 			} else if (!inputs[MONO_INPUT + ch].isConnected()) {
 				lastCh = ch;
-				params[MUTEFAKE_PARAM + ch].getValue() == 0.f ? volt = 10.f : volt = 0.f;
+				/**	
+				*	moved option for opening voltage to menu item, check this for sending 10v to level modulation 
+				*	such as Poly Mix where there is no poly connection to that input channel				
+				*/
+				params[MUTEFAKE_PARAM + ch].getValue() == 0.f ? volt = openVolts : volt = 0.f;	
 			}
 			outputs[POLY_OUTPUT].setVoltage(clamp(volt, -10.f, 10.f), ch);
+			
+			whatIsTheMsg[ch] = inputs[MONO_INPUT + ch].isConnected();
+			
 		}
 		// In order to allow 0 channels, modify channels directly instead of using `setChannels()`
 		outputs[POLY_OUTPUT].channels = (channels >= 0) ? channels : (lastCh + 1);
@@ -104,6 +120,7 @@ struct PolyX : Module {
 	json_t* dataToJson() override {
 		json_t* rootJ = json_object();
 		json_object_set_new(rootJ, "Channels", json_integer(channels));
+		json_object_set_new(rootJ, "Open Voltage", json_boolean(sendOpenVolt));
 		return rootJ;
 	}
 
@@ -111,6 +128,9 @@ struct PolyX : Module {
 		json_t* channelsJ = json_object_get(rootJ, "Channels");
 		if (channelsJ)
 			channels = json_integer_value(channelsJ);
+		json_t* openJ = json_object_get(rootJ, "Open Voltage");
+		if (openJ)
+			sendOpenVolt = json_boolean_value(openJ);
 	}
 };
 
@@ -195,8 +215,8 @@ struct PolyXWidget : ModuleWidget {
 		addParam(createParam<BarkPushButton3>(Vec(btnC1, rackY - btnY[7]), module, PolyX::MUTEFAKE_PARAM + 14));
 		addParam(createParam<BarkPushButton3>(Vec(btnC2, rackY - btnY[7]), module, PolyX::MUTEFAKE_PARAM + 15));
 		//screw---
-		addChild(createWidget<BarkScrew3>(Vec(2.7f, 2.7f)));				//pos1
-		addChild(createWidget<BarkScrew4>(Vec(box.size.x - 12.3f, 367.7f)));		//pos4
+		addChild(createWidget<RandomRotateScrew>(Vec(2.7f, 2.7f)));				//pos1
+		addChild(createWidget<RandomRotateScrew>(Vec(box.size.x - 12.3f, 367.7f)));		//pos4
 		//Light---
 		///lightRow1
 		addChild(createLight<SmallestLightInverse<PolyLight>>(Vec(lightCol1, rackY - lightRow1), module, PolyX::chPolySTATE_LIGHT + 0));//on mono in
@@ -255,7 +275,10 @@ struct PolyXWidget : ModuleWidget {
 	void appendContextMenu(Menu* menu) override {
 		PolyX* module = dynamic_cast<PolyX*>(this->module);
 
-		menu->addChild(new MenuEntry);
+		menu->addChild(new MenuSeparator);
+		menu->addChild(createBoolPtrMenuItem("Open state, send 10v", "", &module->sendOpenVolt));
+		//menu->addChild(new MenuSeparator);
+		//menu->addChild(new MenuEntry);
 
 		PolyXChannelsItem* channelsItem = new PolyXChannelsItem;
 		channelsItem->text = "Channels";

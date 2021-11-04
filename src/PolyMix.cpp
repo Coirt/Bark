@@ -52,10 +52,23 @@ struct PolyMix : Module {
 			configParam(PAN_PARAM + i, -1.f, 1.f, 0.f, "Pan Ch " + std::to_string(i + 1));
 			//M_LOG2E == 1.44269504088896340736
 			configParam(LEVEL_PARAM + i, 0., M_LOG2E, 1., "Level Ch " + std::to_string(i + 1), "dB", -10, 40);	//M_SQRT2
-			configParam<tpOnOff>(INVERT_PARAM + i, 0.f, 1.f, 1.f, "Invert Ch " + std::to_string(i + 1));
-			configParam<tpOnOff>(MUTE_PARAM + i, 0.f, 1.f, 1.f, "Mute Ch " + std::to_string(i + 1));
-			configParam<tpOnOff>(SOLO_PARAM + i, 0.f, 1.f, 1.f, "Solo Ch " + std::to_string(i + 1));	
+			//switch---
+			configSwitch(INVERT_PARAM + i, 0.f, 1.f, 1.f, "Invert Ch " + std::to_string(i + 1), { "On", "Off" });
+			configSwitch(MUTE_PARAM + i, 0.f, 1.f, 1.f, "Mute Ch " + std::to_string(i + 1), { "On", "Off" });
+			configSwitch(SOLO_PARAM + i, 0.f, 1.f, 1.f, "Solo Ch " + std::to_string(i + 1), { "On", "Off" });
 		}
+		//input---
+		configInput(POLYAUDIO_INPUT, "Polyphonic");
+		configInput(POLYLEVEL_INPUT, "Level modulation");
+		configInput(POLYPAN_INPUT, "Pan modulation");
+		configInput(GAINLEVEL_INPUT, "Master level modulation");
+		configInput(AUX1RETURN_INPUT, "Return 1");
+		configInput(AUX2RETURN_INPUT, "Return 2");
+		//ouput---
+		configOutput(OUTL_OUTPUT, "Master L");
+		configOutput(OUTR_OUTPUT, "Master R");
+		configOutput(AUX1SEND_OUTPUT, "Send 1");
+		configOutput(AUX2SEND_OUTPUT, "Send 2");
 	}
 
 	void process(const ProcessArgs &args) override {
@@ -75,7 +88,7 @@ struct PolyMix : Module {
 		//get audio channels
 		//get #channels connected
 		nChAudio = inputs[POLYAUDIO_INPUT].getChannels();//int
-		if (inputs[POLYAUDIO_INPUT].isConnected()) { //nested for loops not playing nice with poly
+		if (inputs[POLYAUDIO_INPUT].isConnected()) {
 				if (chSel == 0) {
 					params[INVERT_PARAM + 0].getValue() == 1.f ?
 						polyChAudioL[0] = polyChAudioR[0] = inputs[POLYAUDIO_INPUT].getVoltage(0) :
@@ -691,8 +704,8 @@ struct PolyMixWidget : ModuleWidget {
 
 		}
 		//Screws---
-		addChild(createWidget<BarkScrew4>(Vec(2.7f, 2.7f)));				//pos1
-		addChild(createWidget<BarkScrew1>(Vec(box.size.x - 12.3f, 367.7f)));		//pos4
+		addChild(createWidget<RandomRotateScrew>(Vec(2.7f, 2.7f)));				//pos1
+		addChild(createWidget<RandomRotateScrew>(Vec(box.size.x - 12.3f, 367.7f)));		//pos4
 		//Light---
 
 	}

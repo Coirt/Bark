@@ -4,6 +4,17 @@
 using namespace barkComponents;
 
 struct EOsum : Module {
+
+	std::vector<std::string> vuLightDescription = { "Clipping +0dB",
+							"-3dB to -0dB\n\nA white",
+							"-5dB to -2dB\nEach",
+							"-8dB to -6dB\nEach",
+							"-11dB to -9dB\nEach",
+							"-14dB to -12dB\nEach",
+							"-17dB to -15dB\nEach",
+							"-inf to -18dB\nEach"
+	};
+
 	enum ParamIds {
 		ODDLVL_PARAM,
 		EVENLVL_PARAM,
@@ -33,6 +44,28 @@ struct EOsum : Module {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
 		configParam(EVENLVL_PARAM, 0.f, 1.f, 1.f, "Even Level", "%", 0.f, 100.f);
 		configParam(ODDLVL_PARAM, 0.f, 1.f, 1.f, "Odd Level", "%", 0.f, 100.f);
+		//Input---
+		configInput(POLY_INPUT, "Ployphonic");
+		//Output---
+		configOutput(MONOODD_OUTPUT, "Summed odd");
+		configOutput(MONOEVEN_OUTPUT, "Summed even");
+		//Lights---
+		for (int i = 0; i < 16; i++) {
+			configLight(chPolySTATE_LIGHT + i, "Ch. " + std::to_string(i + 1));
+			//lightInfos[chPolySTATE_LIGHT + i]->description = "Channel " + std::to_string(i + 1);
+		}
+		for (int i = 0; i < 8; i++) {
+			configLight(ODDVU_LIGHTS + i, vuLightDescription[i]);
+			configLight(EVENVU_LIGHTS + i, vuLightDescription[i]);
+		}
+		
+		for (int i = 2; i < 8; i++) {	//start at 2[1]
+			lightInfos[ODDVU_LIGHTS + i]->description = " represents 3dB\nlight " + std::to_string(i) + ":";
+			lightInfos[EVENVU_LIGHTS + i]->description = " represents 3dB\nlight " + std::to_string(i) + ":";
+		}
+		lightInfos[ODDVU_LIGHTS + 1]->description = " represents a\nclipping signal.\n\nlight 1:";
+		lightInfos[EVENVU_LIGHTS + 1]->description = " represents a\nclipping signal.\n\nlight 1:";
+
 
 		vuMeterOdd.lambda = 1 / 0.1f;
 		vuDividerOdd.setDivision(16);
@@ -73,8 +106,9 @@ struct EOsum : Module {
 		// Set channel lights infrequently
 		if (polyLights.process()) {
 			for (int c = 0; c < 16; c++) {
-				bool active = (c < inputs[POLY_INPUT].getChannels());
-				lights[chPolySTATE_LIGHT + c].setBrightness(active);
+				//bool active = (c < inputs[POLY_INPUT].getChannels());
+				//lights[chPolySTATE_LIGHT + c].setBrightness(active);
+				lights[chPolySTATE_LIGHT + c].setBrightness(inputs[POLY_INPUT].getPolyVoltage(c));
 			}
 			
 			lights[ODDVU_LIGHTS + 0].setBrightness(vuMeterOdd.getBrightness(0.f, 0.f));
@@ -110,8 +144,8 @@ struct EOsumWidget : ModuleWidget {
 		addParam(createParam<BarkKnob_40>(Vec(10.f, 112.624f), module, EOsum::ODDLVL_PARAM));
 		addParam(createParam<BarkKnob_40>(Vec(10.f, 173.672f), module, EOsum::EVENLVL_PARAM));
 		//screw---
-		addChild(createWidget<BarkScrew1>(Vec(2.7f, 2.7f)));						//pos1
-		addChild(createWidget<BarkScrew3>(Vec(box.size.x - 12.3f, 367.7f)));			//pos4
+		addChild(createWidget<RandomRotateScrew>(Vec(2.7f, 2.7f)));							//pos1
+		addChild(createWidget<RandomRotateScrew>(Vec(box.size.x - 12.3f, 367.7f)));			//pos4
 		///Light---
 		constexpr float lightCol1 = 19.5f, lightCol2 = lightCol1 + 6.f, lightCol3 = lightCol2 + 6.f, lightCol4 = lightCol3 + 6.f,
 				lightRow1 = 26.815f, lightRow2 = lightRow1 + 6.109f, lightRow3 = lightRow2 + 6.109f, lightRow4 = lightRow3 + 6.109f;
@@ -135,7 +169,8 @@ struct EOsumWidget : ModuleWidget {
 		///VU Light--
 		//Odd-
 		constexpr float lightXpos1 = 12.512f, lightXpos2 = 40.494f;
-		addChild(createLight<BiggerLight<clipLight>>(Vec(lightXpos1 - 1, lightY[0]), module, EOsum::ODDVU_LIGHTS + 0));
+		addChild(createLight<BigLight<clipLight>>(Vec(lightXpos1, lightY[0] + 0.99f), module, EOsum::ODDVU_LIGHTS + 0));	//v2 clip light draw order
+		//addChild(createLight<BiggerLight<clipLight>>(Vec(lightXpos1 - 1, lightY[0]), module, EOsum::ODDVU_LIGHTS + 0));
 		addChild(createLight<BigLight<redLight>>(Vec(lightXpos1, lightY[1]), module, EOsum::ODDVU_LIGHTS + 1));
 		addChild(createLight<BigLight<orangeLight>>(Vec(lightXpos1, lightY[2]), module, EOsum::ODDVU_LIGHTS + 2));
 		addChild(createLight<BigLight<yellowLight2>>(Vec(lightXpos1, lightY[3]), module, EOsum::ODDVU_LIGHTS + 3));
@@ -144,7 +179,8 @@ struct EOsumWidget : ModuleWidget {
 		addChild(createLight<BigLight<greenLight>>(Vec(lightXpos1, lightY[6]), module, EOsum::ODDVU_LIGHTS + 6));
 		addChild(createLight<BigLight<greenLight>>(Vec(lightXpos1, lightY[7]), module, EOsum::ODDVU_LIGHTS + 7));
 		//Even-
-		addChild(createLight<BiggerLight<clipLight>>(Vec(lightXpos2 - 1, lightY[0]), module, EOsum::EVENVU_LIGHTS + 0));
+		addChild(createLight<BigLight<clipLight>>(Vec(lightXpos2, lightY[0] + 0.99f), module, EOsum::EVENVU_LIGHTS + 0));	//v2 clip light draw order
+		//addChild(createLight<BiggerLight<clipLight>>(Vec(lightXpos2 - 1, lightY[0]), module, EOsum::EVENVU_LIGHTS + 0));
 		addChild(createLight<BigLight<redLight>>(Vec(lightXpos2, lightY[1]), module, EOsum::EVENVU_LIGHTS + 1));
 		addChild(createLight<BigLight<orangeLight>>(Vec(lightXpos2, lightY[2]), module, EOsum::EVENVU_LIGHTS + 2));
 		addChild(createLight<BigLight<yellowLight2>>(Vec(lightXpos2, lightY[3]), module, EOsum::EVENVU_LIGHTS + 3));
