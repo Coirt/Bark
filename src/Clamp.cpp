@@ -29,27 +29,43 @@ struct Clamp : Module {
 	dsp::ClockDivider step;
 
 	float volt1, volt2, prevMax = 0.f, prevMin = 0.f;
+	float prevVal1, prevVal2;
 	
 	Clamp() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
 		configParam(MAX_PARAM, -10.f, 10.f, 10.f, "Max", "v");
-		configParam<tpCeiling>(CEILING_PARAM, 0.f, 1.f, 0.f, "Celing");
 		configParam(MIN_PARAM, -10.f, 10.f, -10.f, "Min", "v");
-		configParam<tpOnOff>(LINKMINMAX_PARAM, 0.f, 1.f, 1.f, "Link");
 		configParam(_2BY_PARAM, -2.f, 2.f, 1.f, "Multiplier");
+		/*
+		defualt 0dB (1.f) == -6dB
+		*/
 		configParam(GAIN_PARAM, 0.f, 4.f, 1.f, "Input Gain", "dB", -10, 40);
+
+		//Switch---
 		for (int i = 0; i < 4; i++) {
-			configParam<tpOnOffBtn>(ATTENUVERT_BUTTONS + i, 0.f, 1.f, 0.f, "Snap to");
+			configSwitch(ATTENUVERT_BUTTONS + i, 0.f, 1.f, 0.f, "Snap to", { "On", "Off" });
 		}
+		configSwitch(LINKMINMAX_PARAM, 0.f, 1.f, 1.f, "Link", { "On", "Off" });
+		configSwitch(CEILING_PARAM, 0.f, 1.f, 0.f, "Celing", {"Off","-0.1dB"});
+		//Input---
+		configInput(INL_INPUT, "Left");
+		configInput(INR_INPUT, "Right");
+		//Output---
+		configOutput(OUTL_OUTPUT, "Left");
+		configOutput(OUTR_OUTPUT, "Right");
+		
 		step.setDivision(32);
+		//Route Bypass---
+		configBypass(INL_INPUT, OUTL_OUTPUT);
+		configBypass(INR_INPUT, OUTR_OUTPUT);
 	}//config
 	
 	void process(const ProcessArgs &args) override {
 		bool linkParams = params[LINKMINMAX_PARAM].getValue() < 1.f;
-		
-		float prevVal1, prevVal2;
+
 		prevVal1 = params[MAX_PARAM].getValue();
 		prevVal2 = params[MIN_PARAM].getValue();
+		
 		//display
 		volt1 = params[MAX_PARAM].getValue();
 		volt2 = params[MIN_PARAM].getValue();
@@ -58,11 +74,12 @@ struct Clamp : Module {
 		//------- one knob controls other, 
 		if (linkParams && prevVal1 != prevMax) {
 			params[MIN_PARAM].setValue(-prevVal1);
-		} if (linkParams && prevVal2 != prevMin) {
+		} else if (linkParams && prevVal2 != prevMin) {
 			params[MAX_PARAM].setValue(-prevVal2);
-			prevMax = prevVal1;
-			prevMin = prevVal2;
 		} 
+		prevMax = prevVal1;
+		prevMin = prevVal2;
+
 
 		//pad 0.1dB
 		if (params[CEILING_PARAM].getValue() > 0.f) {
@@ -105,13 +122,19 @@ struct Clamp : Module {
 struct voltDisplayWidget : TransparentWidget {
 	Clamp *module;
 	float* value;
-	std::shared_ptr<Font> font;
+
+	//std::shared_ptr<Font> font;
+	std::string fontPath;
 
 	voltDisplayWidget() {
-		font = FONT;
+		//font = FONT;
+		fontPath = asset::plugin(pluginInstance, FONT);
 	}
 
 	void draw(const DrawArgs &voltDisp) override {
+
+		std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
+
 		NVGcolor backgroundColor = nvgRGB(26, 26, 36);
 		NVGcolor borderColor = nvgRGB(0, 0, 0);
 		NVGcolor gradStartCol = nvgRGBA(255, 255, 244, 17);
@@ -126,7 +149,9 @@ struct voltDisplayWidget : TransparentWidget {
 		nvgStroke(voltDisp.vg);
 		nvgTextAlign(voltDisp.vg, 1 << 1);
 		nvgFontSize(voltDisp.vg, FONT_SIZE);
-		nvgFontFaceId(voltDisp.vg, font->handle);
+		if (font) {
+			nvgFontFaceId(voltDisp.vg, font->handle);
+		}
 		nvgTextLetterSpacing(voltDisp.vg, LETTER_SPACING);
 		char display_string[9];
 		sprintf(display_string, "%0.4f", *value);
@@ -177,8 +202,8 @@ struct ClampWidget : ModuleWidget {
 		addParam(createParam<BarkPushButton1>(Vec(att2xPos[1], rackY - 132.07f), module, Clamp::ATTENUVERT_BUTTONS + 3));
 		//screw---
 		//screw---
-		addChild(createWidget<BarkScrew2>(Vec(box.size.x - 12.3f, 2.7f)));			//pos2
-		addChild(createWidget<BarkScrew3>(Vec(2.7, 367.7f)));					//pos3
+		addChild(createWidget<RandomRotateScrew>(Vec(box.size.x - 12.3f, 2.7f)));			//pos2
+		addChild(createWidget<RandomRotateScrew>(Vec(2.7, 367.7f)));					//pos3
 		//Display---
 		if (module != NULL) {
 			voltDisplayWidget *maxVolt = createWidget<voltDisplayWidget>(Vec(4.61f, rackY - 355.65f));
