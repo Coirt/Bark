@@ -34,11 +34,11 @@ struct PolyX : Module {
 
 	PolyX() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-		configParam<tpMute10v>(MUTEALL_PARAM, 0.f, 2.f, 1.f, "Set Channels");
+		configSwitch(MUTEALL_PARAM, 0.f, 2.f, 1.f, "Set Channels", { "Open", "Mute" });
 		for (int i = 0; i < 16; i++) {
 			configSwitch(MUTEFAKE_PARAM + i, 0.f, 1.f, 1.f, "Voltage ch. " + std::to_string(i + 1), { "Open", "Mute" });
 			configInput(MONO_INPUT + i, "Channel " + std::to_string(i + 1));
-			inputInfos[MONO_INPUT + i]->description = "";
+			//inputInfos[MONO_INPUT + i]->description = "";
 		}
 		configOutput(POLY_OUTPUT, "Polyphonic");
 		lightDivider.setDivision(512);//8
