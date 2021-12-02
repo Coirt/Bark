@@ -248,7 +248,7 @@ namespace barkComponents {
 			math::Vec position = math::Vec(0.f, 0.f);
 			maxHandlePos = math::Vec(95.f, 0.f).plus(position);
 			minHandlePos = math::Vec(-5.f, 0.f).plus(position);
-			setBackgroundSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/Barkslider1.svg")));
+			setBackgroundSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BarkSlider1.svg")));
 			background->wrap();
 			background->box.pos = position;
 			box.size = background->box.size.plus(position.mult(2));
