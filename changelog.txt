@@ -1,4 +1,4 @@
----v2.3.0---
+---v2.3.1---
 VCV Rack v2 compatibility update
 Various panel updates: preview font
 Various port/param/light descriptions added
