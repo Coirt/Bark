@@ -314,7 +314,7 @@ struct VoltsDisplayWidget : TransparentWidget {
 		nvgFontSize(voltDisp.vg, FONT_SIZE);
 		if (font) { nvgFontFaceId(voltDisp.vg, font->handle); }
 		nvgTextLetterSpacing(voltDisp.vg, LETTER_SPACING);
-		char display_string[8];
+		char display_string[9];
 		sprintf(display_string, "%0.4f", *value);
 		Vec textPos = Vec(25.364f, TEXT_POS_Y);
 		nvgFillColor(voltDisp.vg, nvgTransRGBA(nvgRGB(0xdf, 0xd2, 0x2c), 16));
@@ -734,7 +734,7 @@ struct bpmVoltsDisplayWidget : TransparentWidget {
 		nvgFontSize(voltDisp.vg, FONT_SIZE);
 		nvgFontFaceId(voltDisp.vg, font->handle);
 		nvgTextLetterSpacing(voltDisp.vg, LETTER_SPACING);
-		char display_string[8];
+		char display_string[9];
 		sprintf(display_string, "%0.4f", *value);
 		Vec textPos = Vec(25.364f, TEXT_POS_Y);		//		box.size = Vec(50.728f, 13.152f);
 		nvgFillColor(voltDisp.vg, nvgTransRGBA(nvgRGB(0xdf, 0xd2, 0x2c), 16));
